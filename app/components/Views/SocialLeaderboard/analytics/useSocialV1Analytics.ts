@@ -4,10 +4,17 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { SOCIAL_TERMS_VERSION } from '../terms/socialTermsAcceptance';
+import { withSocialAppBuild } from './socialAppBuild';
+import {
+  getSocialInteractionMilestones,
+  getSocialScreenViewedMilestones,
+  type SocialMilestoneEmission,
+} from './socialMilestoneEvents';
 import {
   getSocialReactionType,
   SocialEvent,
   type SocialBlockedReason,
+  type SocialCopyTradeAnalyticsProperties,
   type SocialPositionAnalyticsProperties,
   type SocialScreenName,
   type SocialScreenViewedProperties,
@@ -33,7 +40,10 @@ interface UseSocialScreenViewedOptions {
   resetWhenInactive?: boolean;
 }
 type SocialScreenContextProperties = SocialPositionAnalyticsProperties &
-  Pick<SocialScreenViewedProperties, 'composer_entry'>;
+  Pick<
+    SocialScreenViewedProperties,
+    'composer_entry' | 'share_id' | 'order_id' | 'transaction_hash'
+  >;
 type SocialInteractionContext = Partial<
   Pick<SocialUIInteractionProperties, 'source' | 'tab_name' | 'step'>
 > & { properties?: SocialScreenContextProperties };
@@ -47,23 +57,52 @@ type SocialInteractionOutcome = NonNullable<
 export const useSocialAnalytics = () => {
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { track } = useSocialLeaderboardAnalytics();
-  const trackInteraction = useCallback(
-    (properties: SocialUIInteractionProperties) => {
+  const trackMilestone = useCallback(
+    (emission: SocialMilestoneEmission) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_UI_INTERACTION, { ...properties });
+        track(emission.event, withSocialAppBuild(emission.properties));
       }
     },
     [isSocialV1Enabled, track],
+  );
+  const trackInteraction = useCallback(
+    (properties: SocialUIInteractionProperties) => {
+      if (isSocialV1Enabled) {
+        // TODO(TSA-1860): remove this legacy `Social UI Interaction` emit once
+        // the milestone events below are the only ones dashboards read.
+        track(
+          MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+          withSocialAppBuild(properties),
+        );
+        getSocialInteractionMilestones(properties).forEach((emission) =>
+          trackMilestone(emission),
+        );
+      }
+    },
+    [isSocialV1Enabled, track, trackMilestone],
   );
   const trackScreenViewed = useCallback(
     (properties: SocialScreenViewedProperties) => {
       if (isSocialV1Enabled) {
-        track(MetaMetricsEvents.SOCIAL_SCREEN_VIEWED, { ...properties });
+        // TODO(TSA-1860): remove this legacy `Social Screen Viewed` emit once
+        // the milestone events below are the only ones dashboards read.
+        track(
+          MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+          withSocialAppBuild(properties),
+        );
+        getSocialScreenViewedMilestones(properties).forEach((emission) =>
+          trackMilestone(emission),
+        );
       }
     },
-    [isSocialV1Enabled, track],
+    [isSocialV1Enabled, track, trackMilestone],
   );
-  return { isSocialV1Enabled, trackInteraction, trackScreenViewed };
+  return {
+    isSocialV1Enabled,
+    trackInteraction,
+    trackScreenViewed,
+    trackMilestone,
+  };
 };
 type Tracker = ReturnType<typeof useSocialAnalytics>['trackInteraction'];
 const useBoundSocialInteraction = (
@@ -131,7 +170,7 @@ export const useSocialFeedInteractions = (
   const track = useSocialInteraction(screenName, context, enabled);
   return useMemo(
     () => ({
-      onCopyTradeInteraction: (position: SocialPositionAnalyticsProperties) =>
+      onCopyTradeInteraction: (position: SocialCopyTradeAnalyticsProperties) =>
         track(Interaction.COPY_TRADE_TAPPED, position),
       onCopyTradeBlocked: (
         position: SocialPositionAnalyticsProperties,
@@ -140,14 +179,18 @@ export const useSocialFeedInteractions = (
         track(Interaction.COPY_TRADE_BLOCKED, { ...position, blocked_reason }),
       onPositionTap: (position: SocialPositionAnalyticsProperties) =>
         track(Interaction.TAP, position),
-      onReactionInteraction: (action: 'added' | 'removed', emotion: string) => {
+      onReactionInteraction: (
+        action: 'added' | 'removed',
+        emotion: string,
+        subject?: { post_id?: string; author_trader_id?: string },
+      ) => {
         const reaction_type = getSocialReactionType(emotion);
         if (reaction_type) {
           track(
             action === 'added'
               ? Interaction.REACTION_ADDED
               : Interaction.REACTION_REMOVED,
-            { reaction_type },
+            { reaction_type, ...subject },
           );
         }
       },

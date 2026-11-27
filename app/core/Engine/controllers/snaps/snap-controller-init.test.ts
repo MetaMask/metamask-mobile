@@ -72,10 +72,6 @@ describe('SnapControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       state: undefined,
-      clientCryptography: {
-        pbkdf2Sha512: expect.any(Function),
-        hmacSha512: expect.any(Function),
-      },
       detectSnapLocation: expect.any(Function),
       encryptor: expect.any(Object),
       environmentEndowmentPermissions: expect.any(Array),

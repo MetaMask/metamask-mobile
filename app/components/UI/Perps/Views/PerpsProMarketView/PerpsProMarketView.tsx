@@ -12,6 +12,7 @@ import {
   TimeDuration,
   type CandlePeriod,
   type PerpsMarketData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -50,6 +51,7 @@ import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { useMinimumOrderAmount, usePerpsMarketData } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
+import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   type PerpsMarketDetailSectionState,
@@ -98,6 +100,7 @@ import { usePerpsProSectionReadiness } from './hooks/usePerpsProSectionReadiness
 
 interface PerpsProOrderBookColumnProps {
   symbol: string;
+  providerId?: PerpsProviderType;
   marketPrice?: number;
   isMarketContextReady: boolean;
   marketContextKey: string;
@@ -120,6 +123,7 @@ interface PerpsProOrderBookColumnProps {
  */
 const PerpsProOrderBookColumn = ({
   symbol,
+  providerId,
   marketPrice,
   isMarketContextReady,
   marketContextKey,
@@ -138,7 +142,7 @@ const PerpsProOrderBookColumn = ({
   } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
-  const { marketData } = usePerpsMarketData({ asset: symbol });
+  const { marketData } = usePerpsMarketData({ asset: symbol, providerId });
   const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
 
   const handleSelectPrice = useCallback(
@@ -217,6 +221,7 @@ const PerpsProOrderBookColumn = ({
   return (
     <PerpsProOrderBookPanel
       symbol={symbol}
+      providerId={providerId}
       marketPrice={marketPrice}
       isMarketContextReady={isMarketContextReady}
       marketContextKey={marketContextKey}
@@ -308,6 +313,7 @@ const PerpsProMarketView = ({
     error: marketsError,
     hasResolvedInitialData: haveMarketsResolved = false,
   } = usePerpsMarkets({
+    fullCatalog: true,
     skipInitialFetch: hasFormattedMaxLeverage,
   });
   const enrichedMarket = useMemo(
@@ -479,6 +485,7 @@ const PerpsProMarketView = ({
     isInitialLoading: isLoadingAccount,
     deliveryRevision: accountDeliveryRevision = 0,
   } = usePerpsLiveAccount();
+  const { tone: crossMarginTone } = usePerpsCrossMarginSummary();
 
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
@@ -693,6 +700,7 @@ const PerpsProMarketView = ({
           onBackPress={handleBackPress}
           onIdentityPress={handleMarketListPress}
           onWalletPress={handleWalletPress}
+          walletRiskTone={crossMarginTone}
           onFavoritePress={handleFavoritePress}
           isFavorite={isWatchlist}
           onModeChange={handlePerpsModeChange}
@@ -746,6 +754,7 @@ const PerpsProMarketView = ({
             layout={LinearTransition.duration(AnimationDuration.Fast)}
           >
             <PerpsProMarketStatsBar
+              providerId={market?.providerId}
               symbol={market.symbol}
               nextFundingTime={market.nextFundingTime}
               fundingIntervalHours={market.fundingIntervalHours}
@@ -756,6 +765,7 @@ const PerpsProMarketView = ({
                 context (TAT-3643). Keyed by symbol so form state resets when the
                 market changes. */}
             <PerpsOrderProvider
+              providerId={market.providerId}
               key={currentMarketIdentityKey}
               initialAsset={market.symbol}
               initialDirection={initialDirection}
@@ -783,6 +793,7 @@ const PerpsProMarketView = ({
                 orderBook={
                   <PerpsProOrderBookColumn
                     symbol={market.symbol}
+                    providerId={market.providerId}
                     marketPrice={marketPrice}
                     isMarketContextReady={isMarketContextReady}
                     marketContextKey={marketSectionContextKey}
@@ -833,6 +844,7 @@ const PerpsProMarketView = ({
       <PerpsBalanceBottomSheet
         isVisible={isBalanceSheetVisible}
         onClose={handleBalanceSheetClose}
+        buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS}
       />
     </View>
   );

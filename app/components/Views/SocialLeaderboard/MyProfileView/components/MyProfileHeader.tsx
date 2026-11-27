@@ -16,9 +16,9 @@ import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
-import ProfileVerifiedBadge from '../../shared/ProfileVerifiedBadge';
 import EditableProfileAvatar from './EditableProfileAvatar';
 
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 import type { MySocialProfile } from '../hooks/useMyProfile';

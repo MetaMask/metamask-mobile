@@ -36,6 +36,7 @@ export const useFeeDisclaimer = ({
     !isNullOrUndefined(discountType) && discountType !== '';
 
   const hasFee = activeQuote && feePercentage > 0;
+  const isFree = discountType === DiscountType.FREE;
 
   const isDiscounted =
     activeQuote &&
@@ -53,6 +54,13 @@ export const useFeeDisclaimer = ({
       return { type: DiscountType.VIP };
     }
 
+    if (isFree) {
+      return {
+        type: DiscountType.FREE,
+        label: strings('bridge.discount_badge_free'),
+      };
+    }
+
     if (discountType === DiscountType.DAO) {
       return {
         type: DiscountType.DAO,
@@ -68,16 +76,21 @@ export const useFeeDisclaimer = ({
       type: DiscountType.PROMO,
       label: strings('bridge.discount_badge_promo'),
     };
-  }, [discountType, hasDiscountType]);
+  }, [discountType, hasDiscountType, isFree]);
 
   const isSubscriptionDiscount = discountType === DiscountType.SUBSCRIPTION;
-  const showDiscountedFee = Boolean(isDiscounted);
+  const showDiscountedFee = Boolean(isDiscounted) && !isFree;
 
   const infoText = useMemo(() => {
     if (showDiscountedFee) {
       return;
     }
 
+    if (isFree) {
+      return strings('bridge.fee_percentage_meta_mask', {
+        feePercentage: baseFeePercentage,
+      });
+    }
     if (hasFee) {
       return strings('bridge.fee_disclaimer', {
         feePercentage,
@@ -91,7 +104,14 @@ export const useFeeDisclaimer = ({
     return strings('bridge.no_mm_fee_disclaimer', {
       destTokenSymbol: activeQuote.quote.dest.asset.symbol,
     });
-  }, [showDiscountedFee, hasFee, activeQuote, feePercentage]);
+  }, [
+    showDiscountedFee,
+    hasFee,
+    activeQuote,
+    feePercentage,
+    isFree,
+    baseFeePercentage,
+  ]);
 
   const discountedFeeCopy = showDiscountedFee
     ? {

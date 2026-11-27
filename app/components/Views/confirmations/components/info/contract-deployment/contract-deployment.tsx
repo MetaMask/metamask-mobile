@@ -23,7 +23,6 @@ const ContractDeployment = () => {
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
         enableMetrics
-        isTransactionsRedesign
       />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />

@@ -4,6 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import type { QuickBuyTradeMode } from './types';
 import type { PostTradeShareSheetCountKey } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import type { SocialEventSource } from '../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { SocialPostTradePreview } from '../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 
 /** Post-trade prompt picked at submit for a swap that is not a copy-trade. */
@@ -14,6 +15,8 @@ export type TrackedQuickBuyPostTradePrompt =
       kind: 'post_to_feed_toast';
       tradeInFlightChain: string;
       preview: SocialPostTradePreview;
+      analyticsSource?: SocialEventSource;
+      isCopyTrade?: boolean;
     };
 
 export interface TrackedQuickBuyTrade {

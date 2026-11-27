@@ -32,7 +32,7 @@ describe('MoneyActionButtonRow', () => {
     const { getByText } = render(<MoneyActionButtonRow {...defaultProps} />);
 
     expect(getByText(strings('money.action.add'))).toBeOnTheScreen();
-    expect(getByText(strings('money.action.transfer'))).toBeOnTheScreen();
+    expect(getByText(strings('money.action.move'))).toBeOnTheScreen();
     expect(getByText(strings('money.action.card'))).toBeOnTheScreen();
   });
 
@@ -148,6 +148,48 @@ describe('MoneyActionButtonRow', () => {
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
 
     expect(mockDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the discovery dot on the Details button when requested', () => {
+    const { getByTestId } = render(
+      <MoneyActionButtonRow
+        {...defaultProps}
+        details={{ onPress: noop, showNewDot: true }}
+      />,
+    );
+
+    const dot = getByTestId(MoneyActionButtonRowTestIds.DETAILS_NEW_DOT);
+    expect(dot).toBeOnTheScreen();
+    expect(dot).toHaveProp('pointerEvents', 'none');
+    expect(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON)).toHaveProp(
+      'accessibilityLabel',
+      `${strings('money.action.details')}, ${strings(
+        'money.action.details_new_badge',
+      )}`,
+    );
+  });
+
+  it('renders exactly one discovery dot when the Details button requests one', () => {
+    const { getAllByTestId } = render(
+      <MoneyActionButtonRow
+        {...defaultProps}
+        details={{ onPress: noop, showNewDot: true }}
+      />,
+    );
+
+    expect(
+      getAllByTestId(MoneyActionButtonRowTestIds.DETAILS_NEW_DOT),
+    ).toHaveLength(1);
+  });
+
+  it('does not render the discovery dot by default', () => {
+    const { queryByTestId } = render(
+      <MoneyActionButtonRow {...defaultProps} details={{ onPress: noop }} />,
+    );
+
+    expect(
+      queryByTestId(MoneyActionButtonRowTestIds.DETAILS_NEW_DOT),
+    ).toBeNull();
   });
 
   describe('glass', () => {

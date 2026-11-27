@@ -17,6 +17,7 @@ import {
 import { createMockToken } from '../../../testUtils/fixtures';
 import { TokenSelectorType, type BridgeToken } from '../../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 
 const mockDispatch = jest.fn();
 
@@ -55,9 +56,19 @@ jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
   useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
 }));
 
+jest.mock('../../../hooks/useLiveTokenFiatRate', () => ({
+  useLiveTokenFiatRate: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useRecurringOrderMinAmount', () => ({
+  useRecurringOrderMinAmount: jest.fn(),
+}));
+
 const mockSyncFiatAmountToTokenAmount = jest.fn();
+const mockUseSourceAmountInput = jest.fn();
 jest.mock('../../../hooks/useSourceAmountInput', () => ({
-  useSourceAmountInput: () => ({
+  useSourceAmountInput: (params: unknown) => ({
+    ...mockUseSourceAmountInput(params),
     amount: '',
     selection: undefined,
     handleFocus: jest.fn(),
@@ -88,6 +99,7 @@ jest.mock('../../../hooks/useBridgeSession', () => ({
 }));
 
 import { useSelector } from 'react-redux';
+import { useLiveTokenFiatRate } from '../../../hooks/useLiveTokenFiatRate';
 const mockUseSelector = jest.mocked(useSelector);
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [
@@ -133,6 +145,12 @@ describe('useRecurringBuySwapInputs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsHardwareWallet = false;
+    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '$50.00',
+      hasError: false,
+      isBelowMinAmount: false,
+      minAmountUsd: 50,
+    });
   });
 
   it('preserves a same-chain token pair and source amount on mount', () => {
@@ -159,6 +177,21 @@ describe('useRecurringBuySwapInputs', () => {
       setDestToken(expect.anything()),
     );
     expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('converts fiat input at the live rate of the source token', () => {
+    const sourceToken = createMockToken({ chainId: '0x1' });
+    jest.mocked(useLiveTokenFiatRate).mockReturnValue(2460.27);
+
+    renderRecurringBuySwapInputsHook(
+      { sourceToken, destToken: undefined, sourceAmount: '0.02' },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(useLiveTokenFiatRate).toHaveBeenCalledWith(sourceToken);
+    expect(mockUseSourceAmountInput).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken, tokenFiatRate: 2460.27 }),
+    );
   });
 
   describe('handleSourcePresetAmountSelect', () => {
@@ -261,6 +294,44 @@ describe('useRecurringBuySwapInputs', () => {
       renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
 
       expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+    });
+
+    it('does not request a quote below the recurring minimum', () => {
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 50,
+      });
+
+      renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
+
+      expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+    });
+
+    it('requests a quote when the amount is no longer below the recurring minimum', () => {
+      const selectorState = { ...validInputs };
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 50,
+      });
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: false,
+        minAmountUsd: 50,
+      });
+      selectorState.sourceAmount = '2';
+
+      rerender(undefined);
+
+      expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -413,7 +484,7 @@ describe('useRecurringBuySwapInputs', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         setDestToken(
           expect.objectContaining({
-            symbol: 'USDT',
+            symbol: 'BSC-USD',
             chainId: '0x38',
           }),
         ),
@@ -488,7 +559,7 @@ describe('useRecurringBuySwapInputs', () => {
     });
   });
 
-  it('requests quotes without a Recurring slippage override', () => {
+  it('requests quotes without a recurring price tolerance override', () => {
     const sourceToken = getNativeSourceToken('eip155:1');
     const destToken = createMockToken({
       chainId: '0x1',

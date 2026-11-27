@@ -23,6 +23,10 @@ import AppShellEffects from './AppShellEffects';
  * Version storage is covered here, not by rendering App. App mounts this
  * component after the full route tree, and that mount exceeds Jest's 5s test
  * timeout on a slow unit shard.
+ *
+ * Cases that write a version await that exact `setItem` call. `waitFor` can
+ * only pass on a timer tick, so a worker whose event loop stalls past Jest's
+ * 5s deadline fails the test even after the write has already happened.
  */
 
 jest.mock('../../../hooks/useOTAUpdates', () => ({
@@ -76,7 +80,8 @@ const renderEffects = (existingUser = false): ReturnType<typeof render> => {
 };
 
 // startApp awaits StorageWrapper several times. Each mocked call resolves on a
-// later microtask, so one Promise.resolve() stops before setItem runs.
+// later microtask, so one Promise.resolve() stops before the effect finishes.
+// Used for cases that do not write, where there is no setItem call to await.
 const settleStartApp = async (): Promise<void> => {
   await act(async () => {
     for (let step = 0; step < 20; step += 1) {
@@ -84,6 +89,32 @@ const settleStartApp = async (): Promise<void> => {
     }
   });
 };
+
+// The timer only matters when the awaited write never happens. On the passing
+// path the promise settles on microtasks, before any timer can run.
+const storageCall = <Value,>(
+  description: string,
+  register: (resolve: (value: Value) => void) => void,
+): Promise<Value> =>
+  new Promise<Value>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timed out waiting for ${description}`)),
+      1000,
+    );
+    register((value) => {
+      clearTimeout(timer);
+      resolve(value);
+    });
+  });
+
+const nextWrite = (key: string): Promise<string> =>
+  storageCall<string>(`setItem(${key})`, (resolve) => {
+    mockSetItem.mockImplementation(
+      async (writtenKey: string, value: string): Promise<void> => {
+        if (writtenKey === key) resolve(value);
+      },
+    );
+  });
 
 describe('AppShellEffects', () => {
   beforeEach(() => {
@@ -141,22 +172,22 @@ describe('AppShellEffects', () => {
         }
         return null;
       });
+      const currentVersionWritten = nextWrite(CURRENT_APP_VERSION);
 
       renderEffects(false);
-      await settleStartApp();
 
+      expect(await currentVersionWritten).toBe('1.0.0');
       expect(mockSetItem).toHaveBeenCalledWith(LAST_APP_VERSION, '0.9.0');
-      expect(mockSetItem).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
     });
 
     it('saves only current version when savedVersion is null', async () => {
       mockGetItem.mockImplementation(async () => null);
+      const lastVersionWritten = nextWrite(LAST_APP_VERSION);
 
       renderEffects(false);
-      await settleStartApp();
 
+      expect(await lastVersionWritten).toBe('1.0.0');
       expect(mockSetItem).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
-      expect(mockSetItem).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
     });
 
     it('sets lastVersion to 0.0.1 when existingUser is true and lastVersion is missing', async () => {
@@ -166,11 +197,12 @@ describe('AppShellEffects', () => {
         }
         return null;
       });
+      const lastVersionWritten = nextWrite(LAST_APP_VERSION);
 
       renderEffects(true);
-      await settleStartApp();
 
-      expect(mockSetItem).toHaveBeenCalledWith(LAST_APP_VERSION, '0.0.1');
+      expect(await lastVersionWritten).toBe('0.0.1');
+      expect(mockSetItem).toHaveBeenCalledTimes(1);
     });
 
     it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
@@ -180,11 +212,12 @@ describe('AppShellEffects', () => {
         }
         return null;
       });
+      const lastVersionWritten = nextWrite(LAST_APP_VERSION);
 
       renderEffects(false);
-      await settleStartApp();
 
-      expect(mockSetItem).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
+      expect(await lastVersionWritten).toBe('1.0.0');
+      expect(mockSetItem).toHaveBeenCalledTimes(1);
     });
 
     it('does not overwrite versions when currentVersion matches savedVersion', async () => {

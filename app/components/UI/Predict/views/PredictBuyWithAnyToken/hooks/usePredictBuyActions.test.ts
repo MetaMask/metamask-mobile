@@ -107,11 +107,26 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
 }));
 
 const mockResetSelectedPaymentToken = jest.fn();
+let mockSelectedPaymentToken: {
+  address: string;
+  chainId: string;
+  symbol?: string;
+} | null = null;
+let mockIsMoneyAccountSelected = false;
+
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     resetSelectedPaymentToken: mockResetSelectedPaymentToken,
+    selectedPaymentToken: mockSelectedPaymentToken,
   }),
 }));
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
 
 jest.mock('../../../hooks/usePredictTrading', () => ({
   usePredictTrading: () => ({
@@ -187,6 +202,8 @@ describe('usePredictBuyActions', () => {
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
     mockApprovalRequest = undefined;
+    mockSelectedPaymentToken = null;
+    mockIsMoneyAccountSelected = false;
     mockPlaceOrder.mockReset();
     mockPlaceOrder.mockResolvedValue(undefined);
     mockInitPayWithAnyToken.mockResolvedValue(undefined);
@@ -200,7 +217,10 @@ describe('usePredictBuyActions', () => {
         paymentMethod,
       }: {
         amountUsd: number;
-        paymentMethod: 'pay_with_any_token' | 'predict_balance';
+        paymentMethod:
+          | 'pay_with_any_token'
+          | 'predict_balance'
+          | 'money_account';
       }) => ({
         attemptId: 'attempt-1',
         amountUsd,
@@ -594,6 +614,61 @@ describe('usePredictBuyActions', () => {
         error: 'Deposit preparation returned undefined',
       });
       expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
+    });
+
+    it('derives money_account paymentMethod and triggers approval confirm when Money Account is selected', async () => {
+      mockIsMoneyAccountSelected = true;
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = { id: 'approval-money-1' };
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockStartPredictBuyAttempt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: 'money_account',
+        }),
+      );
+      expect(mockOnApprovalConfirm).toHaveBeenCalledWith({
+        deleteAfterResult: true,
+        waitForResult: true,
+        handleErrors: false,
+      });
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionId: 'approval-money-1',
+          attempt: expect.objectContaining({
+            paymentMethod: 'money_account',
+          }),
+        }),
+      );
+    });
+
+    it('derives pay_with_any_token paymentMethod when an ERC-20 payment token is selected', async () => {
+      mockSelectedPaymentToken = {
+        address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+        chainId: '0x89',
+        symbol: 'USDC.e',
+      };
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = { id: 'approval-erc20-1' };
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockStartPredictBuyAttempt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: 'pay_with_any_token',
+        }),
+      );
     });
   });
 

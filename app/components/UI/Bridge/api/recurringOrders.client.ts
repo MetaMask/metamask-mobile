@@ -131,11 +131,11 @@ async function prepareRecurringDelegation(
     srcAssetId: query.srcAssetId,
     srcAmount: query.srcAmount,
     destAssetId: query.destAssetId,
-    slippage: String(query.slippage),
-    every: String(query.every),
-    unit: query.unit,
-    repeatCount: String(query.repeatCount),
+    schedule: JSON.stringify(query.schedule),
   });
+  if (query.priceRange) {
+    searchParams.set('priceRange', JSON.stringify(query.priceRange));
+  }
 
   return recurringRequest({
     method: 'GET',
@@ -168,7 +168,7 @@ async function getRecurringOrders(
   query.chainIds?.forEach((chainId) =>
     searchParams.append('chainIds', chainId),
   );
-  if (query.asset) searchParams.set('asset', query.asset);
+  if (query.assetId) searchParams.set('assetId', query.assetId);
   if (query.limit !== undefined) {
     searchParams.set('limit', String(query.limit));
   }

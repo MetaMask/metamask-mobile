@@ -474,7 +474,7 @@ describe('CreatePriceAlertView', () => {
 
     expect(screen.getByText('$84,000')).toBeOnTheScreen();
     expect(mockAbsoluteForm).toHaveBeenCalledWith(
-      expect.objectContaining({ currentPrice: 84000, szDecimals: 5 }),
+      expect.objectContaining({ currentPrice: 84000, isPerps: true }),
     );
   });
 });

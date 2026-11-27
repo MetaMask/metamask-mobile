@@ -1,7 +1,7 @@
 import Routes from '../../../../constants/navigation/Routes';
 
 const CONFIRMATION_ROUTE_NAMES: ReadonlySet<string> = new Set([
-  Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+  Routes.FULL_SCREEN_CONFIRMATIONS.CONFIRMATIONS,
   Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
 ]);
 
@@ -54,12 +54,12 @@ export function getFocusedRouteName(
 }
 
 /**
- * Whether the redesigned confirmation screen is the focused route.
+ * Whether the confirmation screen is the focused route.
  *
  * @param navigation - Navigation object exposing `getState`.
  * @returns True when a confirmation route is focused.
  */
-export function isRedesignedConfirmationFocused(
+export function isConfirmationFocused(
   navigation: Pick<DepositConfirmationNavigation, 'getState'>,
 ): boolean {
   const focused = getFocusedRouteName(navigation.getState());
@@ -68,7 +68,7 @@ export function isRedesignedConfirmationFocused(
 
 /**
  * Whether the deposit confirmation flow is focused, including Pay With sheets
- * stacked on top of the redesigned confirmation.
+ * stacked on top of the confirmation.
  *
  * @param navigation - Navigation object exposing `getState`.
  * @returns True when confirmation or a Pay With route is focused.

@@ -37,10 +37,14 @@ describe('getSmartTransactionsControllerMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
-          'AuthenticationController:getBearerToken',
           'NetworkController:getNetworkClientById',
           'NetworkController:getState',
           'RemoteFeatureFlagController:getState',
+          'SentinelApiService:cancel',
+          'SentinelApiService:getBatchStatus',
+          'SentinelApiService:getFees',
+          'SentinelApiService:getNetwork',
+          'SentinelApiService:submitTransactions',
           'TransactionController:getNonceLock',
           'TransactionController:getTransactions',
           'TransactionController:failTransaction',

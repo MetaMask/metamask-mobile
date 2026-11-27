@@ -1,32 +1,31 @@
 import React from 'react';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
-import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictTrendingFeed } from '../../../UI/PredictNext';
-import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
+import { useABTest } from '../../../../hooks/useABTest';
+import { useCryptoPillFeed } from '../feeds/tokens/useCryptoPillFeed';
+import type { CryptoPillKey } from '../feeds/tokens/cryptoPillConfig';
+import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
-import {
-  EARN_MODULE_COMPONENT_NAMES,
-  EARN_MODULE_ENTRY_POINTS,
-  EARN_MODULE_SCREEN_NAMES,
-} from '../../../UI/Earn/constants/earnModuleEvents';
 
 const mockNavigate = jest.fn();
-const mockEarnSection = jest.fn((_props: Record<string, unknown>) => null);
+const mockCryptoTokensPillBlock = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 const mockUseIsFocused = jest.fn(() => true);
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
-const mockUseTokensFeed = jest.mocked(useTokensFeed);
-const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
-const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
+const mockUseABTest = useABTest as jest.MockedFunction<typeof useABTest>;
+const mockUseCryptoPillFeed = useCryptoPillFeed as jest.MockedFunction<
+  typeof useCryptoPillFeed
+>;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -38,54 +37,84 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../UI/Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(),
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardEnabled: jest.fn(),
+  }),
+);
+
+const mockTopTradersProps = jest.fn();
+jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  function MockTopTradersSection({
+    source,
+    prefetchProfiles,
+    chains,
+  }: {
+    source?: string;
+    prefetchProfiles?: boolean;
+    chains?: string[];
+  }) {
+    MockReact.useEffect(() => {
+      mockTopTradersProps({ source, prefetchProfiles, chains });
+    });
+    return MockReact.createElement(
+      View,
+      {
+        testID: 'top-traders-section',
+        accessibilityHint: source,
+        accessibilityLabel: String(prefetchProfiles),
+      },
+      MockReact.createElement(Text, null, 'Top traders'),
+    );
+  }
+  return {
+    __esModule: true,
+    default: MockTopTradersSection,
+  };
+});
+
+const mockUseNetworkTier = jest.fn();
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  ...jest.requireActual('../../../../hooks/useNetworkTier'),
+  useNetworkTier: () => mockUseNetworkTier(),
 }));
 
-jest.mock('../../../UI/Earn/selectors/visibility', () => ({
-  selectIsExploreEarnSectionVisible: jest.fn(),
+const mockGetHardwareTier = jest.fn();
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: () => mockGetHardwareTier(),
 }));
 
-jest.mock('../../../UI/Earn/components/EarnSection', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => mockEarnSection(props),
-}));
+jest.mock('../feeds/tokens/CryptoTokensPillBlock', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockCryptoTokensPillBlock(props);
+      return (
+        <>
+          {props.ListHeaderComponent as React.ReactNode}
+          <View testID="explore-section-tokens" />
+        </>
+      );
+    },
+  };
+});
 
-jest.mock('../feeds/tokens/useTokensFeed', () => ({
-  useTokensFeed: jest.fn(),
-}));
-
-jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
-  usePredictTrendingFeed: jest.fn(),
-}));
-
-jest.mock('../feeds/perps/usePerpsFeed', () => ({
-  usePerpsFeed: jest.fn(),
-}));
-
-jest.mock('../feeds/perps/PerpsSectionProvider', () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock('../feeds/tokens/useCryptoPillFeed', () => {
+  const actual = jest.requireActual('../feeds/tokens/useCryptoPillFeed');
+  return {
+    ...actual,
+    useCryptoPillFeed: jest.fn(),
+  };
+});
 
 jest.mock('../components/SectionHeader', () => ({
   __esModule: true,
   default: () => null,
-}));
-
-jest.mock('../components/TileCarousel', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-jest.mock('../../../UI/RobinhoodBanner', () => ({
-  RobinhoodBanner: () => null,
-  RobinhoodBannerSurface: { ExploreCrypto: 'explore_crypto' },
-  useRobinhoodBanner: () => ({
-    dismiss: jest.fn(),
-    handlePress: jest.fn(),
-    shouldShow: false,
-  }),
 }));
 
 jest.mock('../../../UI/Trending/contexts', () => ({
@@ -95,9 +124,9 @@ jest.mock('../../../UI/Trending/contexts', () => ({
 }));
 
 jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
+  useABTest: jest.fn(() => ({
     variant: { showQuickTradeButton: false },
-  }),
+  })),
 }));
 
 const defaultTabProps = {
@@ -107,57 +136,59 @@ const defaultTabProps = {
 };
 
 const arrangeMocks = ({
-  perpsEnabled = false,
-  earnSectionVisible = false,
+  quickTradeEnabled = false,
+  watchlistEnabled = false,
+  topTradersEnabled = true,
 }: {
-  perpsEnabled?: boolean;
-  earnSectionVisible?: boolean;
+  quickTradeEnabled?: boolean;
+  watchlistEnabled?: boolean;
+  topTradersEnabled?: boolean;
 } = {}) => {
   jest.clearAllMocks();
   mockUseIsFocused.mockReturnValue(true);
 
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
+  });
+
+  mockUseABTest.mockReturnValue({
+    variant: { showQuickTradeButton: quickTradeEnabled },
   } as never);
 
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectPerpsEnabledFlag) return perpsEnabled;
-    if (selector === selectIsExploreEarnSectionVisible) {
-      return earnSectionVisible;
-    }
+    if (selector === selectTokenWatchlistEnabled) return watchlistEnabled;
+    if (selector === selectSocialLeaderboardEnabled) return topTradersEnabled;
     // Other selectors, such as Predict's Active Venue, read the default state.
-    return (selector as (state: unknown) => unknown)({
+    return selector({
       engine: { backgroundState },
     });
   });
 
-  mockUseTokensFeed.mockReturnValue({
-    data: [],
-    isLoading: false,
-    refetch: jest.fn(),
-  } as never);
-  mockUsePredictionsFeed.mockReturnValue({
-    data: [],
-    isLoading: false,
-    refetch: jest.fn(),
-  } as never);
-  mockUsePerpsFeed.mockReturnValue({
-    data: [{ market: { symbol: 'BTC' } }],
-    isLoading: false,
-    refetch: jest.fn(),
-    defaultSortOptionId: 'priceChange',
-  } as never);
+  mockUseNetworkTier.mockReturnValue(null);
+  mockGetHardwareTier.mockReturnValue(null);
+
+  mockUseCryptoPillFeed.mockReturnValue({
+    results: {
+      trending: {
+        data: [{} as TrendingAsset],
+        isLoading: false,
+        isError: false,
+      },
+    },
+  });
 };
 
-const getSectionOrder = (tree: ReturnType<typeof render>['root']): string[] => {
-  const sectionIds = new Set([
+const getSectionOrder = (
+  tree: ReturnType<typeof render>['root'],
+  trackedIds: ReadonlySet<string> = new Set([
+    'explore-section-tokens',
     'explore-section-crypto_perps',
     'explore-section-earn',
-  ]);
-
+  ]),
+): string[] => {
   const walk = (node: typeof tree): string[] => {
     const testID = node.props?.testID;
-    const ownSection = sectionIds.has(testID) ? [testID] : [];
+    const ownSection = trackedIds.has(testID) ? [testID] : [];
     const childSections = node.children.flatMap((child) =>
       typeof child === 'string' ? [] : walk(child),
     );
@@ -168,36 +199,213 @@ const getSectionOrder = (tree: ReturnType<typeof render>['root']): string[] => {
   return [...new Set(walk(tree))];
 };
 
-describe('CryptoTab — Earn section', () => {
-  it('renders Earn when the section is visible', () => {
-    arrangeMocks({ earnSectionVisible: true });
+describe('CryptoTab — section ordering', () => {
+  it('renders the top traders section above the tokens section only', () => {
+    arrangeMocks();
 
-    render(<CryptoTab {...defaultTabProps} />);
+    const { root } = render(<CryptoTab {...defaultTabProps} />);
 
-    expect(screen.getByTestId('explore-section-earn')).toBeOnTheScreen();
-    expect(mockEarnSection).toHaveBeenCalledWith({
-      enabled: false,
-      refresh: { trigger: 0, silentRefresh: true },
-      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
-      analyticsContext: {
-        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB,
-        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB,
-        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
-      },
-    });
+    expect(
+      getSectionOrder(
+        root,
+        new Set([
+          'top-traders-section',
+          'explore-section-tokens',
+          'explore-section-crypto_perps',
+          'explore-section-earn',
+          'explore-section-predictions',
+        ]),
+      ),
+    ).toEqual(['top-traders-section', 'explore-section-tokens']);
   });
+});
 
-  it('does not render Earn when the section is not visible', () => {
+describe('CryptoTab — Top Traders section', () => {
+  it('renders the top traders section when the feature flag is enabled', () => {
     arrangeMocks();
 
     render(<CryptoTab {...defaultTabProps} />);
 
-    expect(screen.queryByTestId('explore-section-earn')).not.toBeOnTheScreen();
-    expect(mockEarnSection).not.toHaveBeenCalled();
+    expect(screen.getByTestId('top-traders-section')).toBeOnTheScreen();
   });
 
-  it('forwards the Explore refresh trigger to Earn', () => {
-    arrangeMocks({ earnSectionVisible: true });
+  it('omits chains so the section defaults to the spot chains', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockTopTradersProps).toHaveBeenLastCalledWith({
+      source: 'explore_crypto',
+      prefetchProfiles: true,
+      chains: undefined,
+    });
+  });
+
+  it('hides top traders when the social leaderboard flag is off', () => {
+    arrangeMocks({ topTradersEnabled: false });
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.queryByTestId('top-traders-section')).not.toBeOnTheScreen();
+  });
+
+  it('hides top traders when there is no network', () => {
+    arrangeMocks();
+    mockUseNetworkTier.mockReturnValue('NONE');
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.queryByTestId('top-traders-section')).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['LOW', 'SLOW_CELLULAR', 'false'],
+    ['LOW', 'WIFI', 'true'],
+    ['MID', 'SLOW_CELLULAR', 'true'],
+    [null, 'SLOW_CELLULAR', 'true'],
+    ['LOW', null, 'true'],
+    [null, null, 'true'],
+  ])(
+    'with %s hardware and %s network, top traders profile prefetch is %s',
+    (hardwareTier, networkTier, expected) => {
+      arrangeMocks();
+      mockGetHardwareTier.mockReturnValue(hardwareTier);
+      mockUseNetworkTier.mockReturnValue(networkTier);
+
+      render(<CryptoTab {...defaultTabProps} />);
+
+      expect(
+        screen.getByTestId('top-traders-section').props.accessibilityLabel,
+      ).toBe(expected);
+    },
+  );
+
+  it('keeps top traders on slow cellular', () => {
+    arrangeMocks();
+    mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(screen.getByTestId('top-traders-section')).toBeOnTheScreen();
+  });
+});
+
+describe('CryptoTab — tokens pill block', () => {
+  it('renders the tokens section while at least one pill is visible', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalled();
+    expect(screen.getByTestId('explore-section-tokens')).toBeOnTheScreen();
+  });
+
+  it('hides the tokens section entirely when no pill is visible', () => {
+    arrangeMocks();
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        trending: { data: [], isLoading: false, isError: false },
+        gainers: { data: undefined, isLoading: false, isError: true },
+      },
+    });
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId('explore-section-tokens'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('passes the pill block the expected props', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith({
+      title: 'Tokens',
+      activePillKey: undefined,
+      onActivePillChange: expect.any(Function),
+      tabName: 'Crypto',
+      headerTestID: 'section-header-view-all-tokens',
+      idPrefix: 'tokens',
+      testIdPrefix: 'crypto-tokens',
+      listTestId: 'crypto-tokens-list',
+      onQuickTrade: undefined,
+      ListHeaderComponent: expect.anything(),
+      refreshing: false,
+      onRefresh: defaultTabProps.onRefresh,
+      testID: 'explore-crypto-scroll-view',
+    });
+  });
+
+  it('gates the crypto pill feed on the default pill until the user picks one', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ activePillKey: 'trending' }),
+    );
+  });
+
+  it('defaults the feed to trending when the watchlist is enabled but empty', () => {
+    arrangeMocks({ watchlistEnabled: true });
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        watchlist: {
+          data: [],
+          isLoading: false,
+          isError: false,
+        },
+        trending: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+      },
+    });
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
+      expect.objectContaining({ activePillKey: 'trending' }),
+    );
+  });
+
+  it('targets the user-selected pill for the crypto feed', () => {
+    arrangeMocks();
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        trending: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+        gainers: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+      },
+    });
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    const blockProps = mockCryptoTokensPillBlock.mock.calls[0]?.[0] as {
+      onActivePillChange: (key: CryptoPillKey) => void;
+    };
+    act(() => {
+      blockProps.onActivePillChange('gainers');
+    });
+
+    expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
+      expect.objectContaining({ activePillKey: 'gainers' }),
+    );
+  });
+
+  it('forwards the Explore refresh trigger to the crypto pill feed', () => {
+    arrangeMocks();
 
     render(
       <CryptoTab
@@ -206,57 +414,30 @@ describe('CryptoTab — Earn section', () => {
       />,
     );
 
-    expect(mockEarnSection).toHaveBeenCalledWith({
-      enabled: false,
-      refresh: { trigger: 1, silentRefresh: true },
-      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
-      analyticsContext: {
-        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB,
-        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB,
-        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
-      },
-    });
-  });
-
-  it('enables Earn when Crypto is the active Explore tab', () => {
-    arrangeMocks({ earnSectionVisible: true });
-
-    render(
-      <ExploreActiveTabProvider activeTab="Crypto">
-        <CryptoTab {...defaultTabProps} />
-      </ExploreActiveTabProvider>,
-    );
-
-    expect(mockEarnSection).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
+    expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refresh: { trigger: 1, silentRefresh: true },
+      }),
     );
   });
 
-  it('disables Earn when Explore screen is unfocused', () => {
-    arrangeMocks({ earnSectionVisible: true });
-    mockUseIsFocused.mockReturnValue(false);
+  it('passes a quick-trade callback only when the variant enables it', () => {
+    arrangeMocks({ quickTradeEnabled: true });
 
-    render(
-      <ExploreActiveTabProvider activeTab="Crypto">
-        <CryptoTab {...defaultTabProps} />
-      </ExploreActiveTabProvider>,
-    );
+    render(<CryptoTab {...defaultTabProps} />);
 
-    expect(mockEarnSection).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith(
+      expect.objectContaining({ onQuickTrade: expect.any(Function) }),
     );
   });
-});
 
-describe('CryptoTab — section ordering', () => {
-  it('renders Earn immediately after Perps when both sections are visible', () => {
-    arrangeMocks({ perpsEnabled: true, earnSectionVisible: true });
+  it('omits the quick-trade callback when the variant is disabled', () => {
+    arrangeMocks();
 
-    const { root } = render(<CryptoTab {...defaultTabProps} />);
+    render(<CryptoTab {...defaultTabProps} />);
 
-    expect(getSectionOrder(root)).toEqual([
-      'explore-section-crypto_perps',
-      'explore-section-earn',
-    ]);
+    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith(
+      expect.objectContaining({ onQuickTrade: undefined }),
+    );
   });
 });

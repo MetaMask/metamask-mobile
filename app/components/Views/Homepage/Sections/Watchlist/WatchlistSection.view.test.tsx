@@ -1,4 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import {
   renderWatchlistSectionWithRoutes,
   renderWatchlistJourneyWithRoutes,
@@ -26,6 +28,8 @@ import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/comp
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { getPerpsMarketRowItemSelector } from '../../../../UI/Perps/Perps.testIds';
+import { createEthMarketForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 
@@ -34,8 +38,10 @@ const getRowTestId = (assetId: string) =>
 
 const getAddButtonTestId = (assetId: string) =>
   getTrendingTokenRowAddButtonTestId(assetId);
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
   setupReadOnlyNetworkStoreMock();
@@ -43,6 +49,7 @@ beforeEach(() => {
 
 afterEach(() => {
   clearWatchlistApiMocks();
+  netInfoMock.__resetMockNetInfo();
 });
 
 describeForPlatforms('WatchlistSection', () => {
@@ -52,7 +59,7 @@ describeForPlatforms('WatchlistSection', () => {
     });
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
-      await findByTestId(getRowTestId(assetId), {}, { timeout: 5000 });
+      await findByTestId(getRowTestId(assetId));
     }
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
@@ -81,6 +88,140 @@ describeForPlatforms('WatchlistSection', () => {
         scope.getByText(`${pctPrefix}${Math.abs(pctChange).toFixed(2)}%`),
       ).toBeOnTheScreen();
     }
+  });
+
+  it('renders same-ticker token and Perps rows when unified watchlist is enabled', async () => {
+    const { findByTestId, queryByTestId } = renderWatchlistSectionWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: ['ETH'],
+      streamOverrides: {
+        marketData: [
+          createEthMarketForViews({
+            name: 'Ethereum Perpetual',
+            marketType: 'index',
+          }),
+        ],
+      },
+    });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.badge('ETH')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders two token suggestions followed by three Perps suggestions', async () => {
+    setupWatchlistStorageMock(EMPTY_BLOB);
+    clearAllNockMocks();
+    setupWatchlistTokenApiMock([
+      {
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        decimals: 18,
+        marketData: {
+          price: '90000.00',
+          pricePercentChange1d: '1.10',
+          marketCap: 900_000_000_000,
+          totalVolume: 20_000_000_000,
+        },
+      },
+      ...mockWatchlistTokensResponse,
+    ]);
+    setupReadOnlyNetworkStoreMock();
+
+    const suggestedPerps = ['SOL', 'XRP', 'DOGE', 'AVAX'].map((symbol) =>
+      createEthMarketForViews({
+        symbol,
+        name: `${symbol} Perpetual`,
+        marketType: 'index',
+      }),
+    );
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderWatchlistSectionWithRoutes({
+        unifiedWatchlist: true,
+        streamOverrides: { marketData: suggestedPerps },
+      });
+
+    await findByTestId(
+      getAddButtonTestId('bip122:000000000019d6689c085ae165831e93/slip44:0'),
+    );
+    expect(
+      getByTestId(getAddButtonTestId('eip155:1/slip44:60')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('SOL')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.badge('SOL')),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('XRP')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('DOGE')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.addButton('AVAX')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not suggest a Perps market matching a watched token', async () => {
+    setupWatchlistStorageMock({
+      assets: [mockWatchlistAssetIds[0]],
+      version: 1,
+    });
+
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderWatchlistSectionWithRoutes({
+        unifiedWatchlist: true,
+        streamOverrides: {
+          marketData: ['ETH', 'SOL', 'XRP', 'DOGE'].map((symbol) =>
+            createEthMarketForViews({
+              symbol,
+              name: `${symbol} Perpetual`,
+            }),
+          ),
+        },
+      });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.addButton('ETH')),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('SOL')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not suggest a token matching a watched Perps market', async () => {
+    setupWatchlistStorageMock(EMPTY_BLOB);
+
+    const { findByTestId, queryByTestId } = renderWatchlistSectionWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: ['ETH'],
+      streamOverrides: {
+        marketData: [
+          createEthMarketForViews({
+            name: 'Ethereum Perpetual',
+          }),
+        ],
+      },
+    });
+
+    expect(
+      await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
+    ).not.toBeOnTheScreen();
   });
 
   it('navigates to the full-screen watchlist when the section header is pressed', async () => {
@@ -323,18 +464,14 @@ describeForPlatforms('WatchlistSection', () => {
       fireEvent.press(addButton);
     });
 
-    await waitFor(() => expect(putScope.isDone()).toBe(true), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(putScope.isDone()).toBe(true));
 
     // The add flips the section from the empty state to watchlist mode: the
     // suggested star button disappears and the added token renders as a row.
-    await waitFor(
-      () =>
-        expect(
-          queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
-        ).toBeNull(),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(
+        queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
+      ).toBeNull(),
     );
     expect(
       await findByTestId(getRowTestId('eip155:1/slip44:60')),

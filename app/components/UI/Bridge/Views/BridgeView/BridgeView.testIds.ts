@@ -16,6 +16,7 @@ export const BridgeViewSelectorsIDs = {
    */
   QUOTE_KEYPAD_DISMISS_TARGET: 'quote-keypad-dismiss-target',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
+  FEE_DISCLAIMER_FREE_BADGE: 'bridge-fee-disclaimer-free-badge',
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
@@ -30,6 +31,7 @@ export const BridgeViewSelectorsIDs = {
   LIMIT_TAB: 'bridge-limit-tab',
   LIMIT_TAB_NEW_DOT: 'bridge-limit-tab-new-dot',
   RECURRING_TAB: 'bridge-recurring-tab',
+  RECURRING_TAB_NEW_DOT: 'bridge-recurring-tab-new-dot',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
   LIMIT_ORDER_DISMISS_AREA: 'bridge-limit-order-dismiss-area',
@@ -43,6 +45,7 @@ export const BridgeViewSelectorsIDs = {
   LIMIT_FEE_TOKEN_RETRY_BUTTON: 'limit-fee-token-retry-button',
   RECURRING_BUY_CONTAINER: 'bridge-recurring-buy-container',
   RECURRING_BUY_SCROLL: 'bridge-recurring-buy-scroll',
+  RECURRING_BUY_DISMISS_AREA: 'bridge-recurring-buy-dismiss-area',
   RECURRING_BANNERS_WRAPPER: 'recurring-banners-wrapper',
   RECURRING_SOURCE_TOKEN_AREA: 'recurring-source-token-area',
   RECURRING_SOURCE_TOKEN_INPUT: 'recurring-source-token-area-input',

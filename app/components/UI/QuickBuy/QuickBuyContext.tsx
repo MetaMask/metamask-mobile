@@ -50,6 +50,9 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   /** Whether the numeric keypad is currently shown. */
   isKeypadOpen: boolean;
   setIsKeypadOpen: (open: boolean) => void;
+  /** Token picker search query, kept while the picker is swapped for the network list. */
+  tokenSearchQuery: string;
+  setTokenSearchQuery: (query: string) => void;
 }
 
 export const QuickBuyContext = createContext<QuickBuyContextValue | null>(null);
@@ -101,6 +104,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   // dimmed/inert alongside the rest of the sheet instead, which keeps the height
   // constant no matter when the flag settles.
   const [isKeypadOpen, setIsKeypadOpen] = useState(true);
+  const [tokenSearchQuery, setTokenSearchQuery] = useState('');
   const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
     controller;
 
@@ -182,6 +186,8 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     handleBuy,
     isKeypadOpen,
     setIsKeypadOpen,
+    tokenSearchQuery,
+    setTokenSearchQuery,
   };
 
   return (

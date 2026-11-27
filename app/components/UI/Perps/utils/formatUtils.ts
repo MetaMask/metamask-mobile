@@ -7,9 +7,11 @@ import {
   getIntlDateTimeFormatter,
   getIntlNumberFormatter,
 } from '../../../../util/intl';
+import { createFormatters } from '@metamask/client-utils';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
+  formatCrossMarginRatio as formatCrossMarginRatioWithFormatters,
   formatPerpsFiat,
   formatHyperLiquidPrice,
   formatWithSignificantDigits,
@@ -1252,6 +1254,23 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
+ * Formats cross account leverage with one decimal in the user's locale,
+ * e.g. `"2.5x"`, or `"2,5x"` where the decimal separator is a comma.
+ *
+ * @param leverage - Account notional divided by cross collateral.
+ * @param locale - Optional locale override.
+ * @returns The leverage with an `x` suffix.
+ */
+export const formatAccountLeverage = (
+  leverage: number,
+  locale?: string,
+): string =>
+  `${getPerpsNumberFormatter(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(leverage)}x`;
+
+/**
  * Formats how far (in %) the price must move from `entryPrice` to reach
  * `liquidationPrice`, e.g. `"30.05%"`.
  *
@@ -1288,6 +1307,21 @@ export const formatLiquidationDistance = (
   const distance = (Math.abs(entry - liquidation) / entry) * 100;
   return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
 };
+
+/**
+ * Formats a 0..1 cross margin ratio as a locale-aware percentage with at most
+ * one decimal. Core's formatter renders it, so rounding and the `%` placement
+ * follow the locale.
+ * @example formatCrossMarginRatio(0.174) => "17.4%"
+ * @example formatCrossMarginRatio(0.63) => "63%"
+ */
+export const formatCrossMarginRatio = (
+  ratio: number,
+  locale?: string,
+): string =>
+  formatCrossMarginRatioWithFormatters(ratio, {
+    formatters: createFormatters({ locale: getCurrentPerpsLocale(locale) }),
+  });
 
 /**
  * Parses formatted currency strings back to numeric values

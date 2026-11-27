@@ -28,10 +28,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: jest.fn(),
       getState: jest.fn(() => ({
         index: 1,
-        routes: [
-          { name: 'PerpsMarketListView' },
-          { name: 'RedesignedConfirmations' },
-        ],
+        routes: [{ name: 'PerpsMarketListView' }, { name: 'Confirmations' }],
       })),
       addListener: jest.fn(() => jest.fn()),
     })),
@@ -106,10 +103,7 @@ describe('usePerpsHomeActions', () => {
     goBack: jest.fn(),
     getState: jest.fn(() => ({
       index: 1,
-      routes: [
-        { name: 'PerpsMarketListView' },
-        { name: 'RedesignedConfirmations' },
-      ],
+      routes: [{ name: 'PerpsMarketListView' }, { name: 'Confirmations' }],
     })),
     addListener: jest.fn<jest.Mock, [event: string, callback: () => void]>(() =>
       jest.fn(),

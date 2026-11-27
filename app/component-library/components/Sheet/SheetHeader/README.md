@@ -31,8 +31,7 @@ Optional action option, which includes a callback when the action button is pres
 ## Usage
 
 ```javascript
-// Replace with relative import.
-import SheetHeader from 'app/component-library/components/SheetHeader';
+import SheetHeader from '#app/component-library/components/Sheet/SheetHeader';
 
 <SheetHeader
   onBack={ONBACK_HANDLER}

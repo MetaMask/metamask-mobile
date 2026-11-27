@@ -20,7 +20,10 @@ import {
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
@@ -34,6 +37,7 @@ import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 /** Smallest fiat amount the input can display and a quote can be built for. */
 export const MIN_FIAT_AMOUNT = 0.01;
@@ -136,13 +140,17 @@ export function useDepositPrefillAmount({
       return prefilledAmountConfig.enabled;
     }
 
+    // Full-balance intents own their 100% prefill in useTransactionCustomAmount.
+    if (isFullBalanceDepositIntent(depositIntent)) {
+      return false;
+    }
+
     // Explicit amounts use the same quote preparation flow without opting into
-    // balance-based prefill or changing card/add-mUSD funding behavior.
+    // balance-based prefill or changing card funding behavior.
     if (amount !== undefined) {
       const explicitAmount = new BigNumber(amount);
       return (
         depositIntent !== 'card' &&
-        depositIntent !== 'addMusd' &&
         explicitAmount.isFinite() &&
         explicitAmount.gt(0)
       );
@@ -187,7 +195,7 @@ export function useDepositPrefillAmount({
   // same source `updatePendingAmountPercentage` applies the amount from.
   const { balanceUsd } = useTransactionPayBalance();
 
-  const tokenKey = `${payToken?.address}:${payToken?.chainId}:${accountOverride}`;
+  const tokenKey = `${payToken?.assetId}:${accountOverride}`;
   const [committedKey, setCommittedKey] = useState<string | null>(null);
 
   const { prefillAmount, percentage, isLimitCapped } = useMemo(() => {
@@ -207,11 +215,14 @@ export function useDepositPrefillAmount({
       };
     }
 
-    const stable = isListedStablecoin(
-      stablecoins,
-      payToken.chainId,
-      payToken.address,
-    );
+    const payTokenAsset = decodePaymentTokenAssetId(payToken);
+    const stable =
+      payTokenAsset !== undefined &&
+      isListedStablecoin(
+        stablecoins,
+        payTokenAsset.chainId,
+        payTokenAsset.address,
+      );
     const nextPercentage = isMoneyAccountDeposit && stable ? 100 : 50;
 
     const raw = new BigNumber(nextPercentage)

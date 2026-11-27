@@ -2,7 +2,6 @@ import React, { ReactNode, useCallback, useRef, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
 } from '@metamask/design-system-react-native';
@@ -10,6 +9,8 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 interface ExpandableProps {
   collapsedContent: ReactNode;
@@ -34,6 +35,7 @@ const Expandable = ({
   isCompact,
   copyText,
 }: ExpandableProps) => {
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, { isCompact });
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [expanded, setExpanded] = useState(false);
@@ -71,14 +73,15 @@ const Expandable = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
               onClose={handleRequestClose}
               closeButtonProps={{
                 testID: collapseButtonTestID ?? 'collapseButtonTestID',
               }}
             >
               {expandedContentTitle}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box twClassName="flex flex-col">
               <View style={styles.modalExpandedContent}>
                 {copyText && (

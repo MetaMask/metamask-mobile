@@ -40,7 +40,7 @@ import { useSocialFeed } from '../../SocialFeed';
 import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -90,7 +90,7 @@ const mockSelectors = ({
   };
 
   useSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectSocialLeaderboardEnabled) {
+    if (selector === selectIsSocialV1Enabled) {
       return socialEnabled;
     }
     if (selector === selectMemecoinTdpV1TabConfigOrder) {
@@ -148,6 +148,10 @@ const withHolders = (overrides: Record<string, unknown> = {}) => {
 };
 
 jest.mock('../../SocialFeed', () => {
+  const { Pressable: FeedPressable } = jest.requireActual('react-native');
+  const { mockOpenSpotFeedItem } = jest.requireActual(
+    '../../SocialFeed/mocks/socialV1Feed.mock',
+  );
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
     posts: [],
     isLoading: false,
@@ -159,32 +163,18 @@ jest.mock('../../SocialFeed', () => {
   }));
   return {
     useSocialFeed: useSocialFeedMock,
-    SocialFeed: () => null,
-    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
-      children ?? null,
-    SocialV1FeedPostList: () => null,
-    SocialFeedPostShell: () => null,
-    SocialFeedSkeleton: () => null,
-    SocialFeedEmpty: () => null,
-    SocialFeedError: () => null,
-  };
-});
-
-jest.mock('../components/tabs/TokenDetailsFeed', () => {
-  const { Pressable: FeedPressable } = jest.requireActual('react-native');
-  const { useSocialFeed: useFeed } = jest.requireMock('../../SocialFeed');
-  const { mockOpenSpotFeedItem } = jest.requireActual(
-    '../../SocialFeed/mocks/socialV1Feed.mock',
-  );
-  return {
-    TokenDetailsFeed: ({
-      source,
+    SocialFeed: ({
+      scope,
+      chains,
+      assetIds,
       onCopyTrade,
     }: {
-      source: { kind: 'token'; assetId: string };
+      scope: string;
+      chains?: string[];
+      assetIds?: string[];
       onCopyTrade?: (item: unknown, commentId?: string) => void;
     }) => {
-      useFeed(source);
+      useSocialFeedMock({ scope, chains, assetIds });
       return (
         <FeedPressable
           testID="mock-feed-copy-trade"
@@ -209,8 +199,39 @@ jest.mock('../components/tabs/TokenDetailsFeed', () => {
         />
       );
     },
+    SocialEntryOptionsProvider: ({
+      children,
+    }: {
+      children?: React.ReactNode;
+    }) => children ?? null,
+    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    SocialV1FeedPostList: () => null,
+    SocialFeedPostShell: () => null,
+    SocialFeedSkeleton: () => null,
+    SocialFeedEmpty: () => null,
+    SocialFeedError: () => null,
   };
 });
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
+  () => ({
+    useSocialFeedPostNavigation: () => ({
+      onAuthorPress: jest.fn(),
+      onPositionPress: jest.fn(),
+    }),
+  }),
+);
+
+jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
+  useMyProfile: () => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
 
 const mockQuickBuyRoot = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../QuickBuy', () => ({
@@ -1559,8 +1580,9 @@ describe('TokenDetailsV1', () => {
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
     expect(mockUseSocialFeed).toHaveBeenCalledWith({
-      kind: 'token',
-      assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+      scope: 'all',
+      chains: ['eip155:1'],
+      assetIds: ['eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933'],
     });
   });
 
@@ -1585,7 +1607,7 @@ describe('TokenDetailsV1', () => {
           tokenName: 'PEPE',
           chain: 'eip155:1',
         },
-        copyTradeOrigin: { commentId: 'comment-1' },
+        copyTradeOrigin: { commentId: 'comment-1', authorId: 'v1-trader-frog' },
         initialTradeMode: 'buy',
         analyticsContext: {
           source: 'trader_feed',

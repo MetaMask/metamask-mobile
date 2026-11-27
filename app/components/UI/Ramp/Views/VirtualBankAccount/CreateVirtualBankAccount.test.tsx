@@ -109,11 +109,11 @@ describe('CreateVirtualBankAccount', () => {
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    expect(getByText('Add funds right from your bank')).toBeOnTheScreen();
-    expect(getByText('No fees to add funds')).toBeOnTheScreen();
+    expect(getByText('Add funds from your bank')).toBeOnTheScreen();
+    expect(getByText('No fees from MetaMask')).toBeOnTheScreen();
     expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
     expect(getByText('Set up once, use anytime')).toBeOnTheScreen();
-    expect(getByText('Starts earning straight away')).toBeOnTheScreen();
+    expect(getByText('Starts earning right away')).toBeOnTheScreen();
     expect(getByText('Powered by')).toBeOnTheScreen();
     expect(
       getByTestId(
@@ -121,7 +121,7 @@ describe('CreateVirtualBankAccount', () => {
       ),
     ).toBeOnTheScreen();
     expect(getByText('Get account details')).toBeOnTheScreen();
-    expect(getByText('Deposits earn 4.2% APY as mUSD.')).toBeOnTheScreen();
+    expect(getByText('Funds earn 4.2% APY as mUSD.')).toBeOnTheScreen();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.VENDOR_TERMS,
@@ -139,8 +139,8 @@ describe('CreateVirtualBankAccount', () => {
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    expect(getByText('Deposits earn APY as mUSD.')).toBeOnTheScreen();
-    expect(queryByText('Deposits earn 4.2% APY as mUSD.')).toBeNull();
+    expect(getByText('Funds earn APY as mUSD.')).toBeOnTheScreen();
+    expect(queryByText('Funds earn 4.2% APY as mUSD.')).toBeNull();
   });
 
   it('navigates back when the header back button is pressed', () => {

@@ -19,9 +19,11 @@ import {
   selectDisplayedMoneyAccountPlusSubscription,
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
+  selectHasMoneyAccountPremiumApyEntitlement,
   selectHasMoneyAccountPlusMembership,
   selectIsMoneyAccountPlusSubscriber,
   selectIsMoneyAccountPlusTrialing,
+  selectIsMoneyAccountPlusAnnual,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
@@ -895,6 +897,55 @@ describe('subscriptionController selectors', () => {
       });
     });
 
+    describe('selectIsMoneyAccountPlusAnnual', () => {
+      const createAnnualTestState = (interval: Subscription['interval']) =>
+        createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              interval,
+            }),
+          ],
+          trialedProducts: [],
+        });
+
+      it('returns true for an annual Plus subscription', () => {
+        expect(
+          selectIsMoneyAccountPlusAnnual(
+            createAnnualTestState(RECURRING_INTERVALS.year),
+          ),
+        ).toBe(true);
+      });
+
+      it('returns false for a monthly Plus subscription', () => {
+        expect(
+          selectIsMoneyAccountPlusAnnual(
+            createAnnualTestState(RECURRING_INTERVALS.month),
+          ),
+        ).toBe(false);
+      });
+
+      it('returns false when only another product is annual', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-shield',
+              products: [createProduct(PRODUCT_TYPES.SHIELD)],
+              interval: RECURRING_INTERVALS.year,
+            }),
+          ],
+          trialedProducts: [],
+        });
+
+        expect(selectIsMoneyAccountPlusAnnual(state)).toBe(false);
+      });
+
+      it('returns false when the controller is absent', () => {
+        expect(selectIsMoneyAccountPlusAnnual(createState())).toBe(false);
+      });
+    });
+
     describe('selectMoneyAccountPlusSubscription', () => {
       it('returns the Plus subscription when present', () => {
         const plusSubscription = createSubscription({
@@ -1052,6 +1103,53 @@ describe('subscriptionController selectors', () => {
 
       it('fails closed when the controller is absent', () => {
         expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
+          false,
+        );
+      });
+    });
+
+    describe('selectHasMoneyAccountPremiumApyEntitlement', () => {
+      it('returns true when premiumApy is granted', () => {
+        const state = createPlusState({ premiumApy: true });
+
+        expect(selectHasMoneyAccountPremiumApyEntitlement(state)).toBe(true);
+      });
+
+      it('returns false when premiumApy is revoked', () => {
+        expect(
+          selectHasMoneyAccountPremiumApyEntitlement(createPlusState({})),
+        ).toBe(false);
+      });
+
+      it('keeps premiumApy for a past_due subscription the active-subscriber selector rejects', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.pastDue,
+            }),
+          ],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
+              plan: 'premium',
+              entitlements: {
+                swapFeeWaiver: false,
+                perpsFeeWaiver: false,
+                predictFreeTx: false,
+                premiumApy: true,
+              },
+            },
+          },
+        });
+
+        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+        expect(selectHasMoneyAccountPremiumApyEntitlement(state)).toBe(true);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(selectHasMoneyAccountPremiumApyEntitlement(createState())).toBe(
           false,
         );
       });

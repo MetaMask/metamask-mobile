@@ -1,11 +1,13 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import {
   fireEvent,
   render,
   screen,
   within,
 } from '@testing-library/react-native';
-import { lightTheme } from '@metamask/design-tokens';
+import { Theme, ThemeProvider } from '@metamask/design-system-twrnc-preset';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { parsePredictEvent } from '../../contracts/v1/marketData';
 import type {
   PredictDecimal,
@@ -80,6 +82,48 @@ const threeMarkets = () => [
 ];
 
 describe('EventCardStandard', () => {
+  describe('container', () => {
+    it('uses the section surface, 20pt radius, muted border, and default padding', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')])}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-event-kalshi-event-1'),
+      ).toHaveStyle({
+        backgroundColor: lightTheme.colors.background.section,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: lightTheme.colors.border.muted,
+        paddingTop: 12,
+        paddingRight: 16,
+        paddingBottom: 16,
+        paddingLeft: 16,
+      });
+    });
+
+    it('uses dark theme section surface and muted border in dark mode', () => {
+      render(
+        <ThemeProvider theme={Theme.Dark}>
+          <EventCardStandard
+            event={event([market('market-1')])}
+            onPress={jest.fn()}
+          />
+        </ThemeProvider>,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-event-kalshi-event-1'),
+      ).toHaveStyle({
+        backgroundColor: darkTheme.colors.background.section,
+        borderColor: darkTheme.colors.border.muted,
+      });
+    });
+  });
+
   describe('binary Event', () => {
     it('shows the title, the close date and volume line, and Yes and No rows', () => {
       render(
@@ -426,6 +470,42 @@ describe('EventCardStandard trending', () => {
   });
 
   describe('header', () => {
+    it('uses the section surface, 20pt radius, muted border, and 16pt vertical padding with no horizontal padding', () => {
+      renderCard();
+
+      const card = screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`);
+      const style = StyleSheet.flatten(card.props.style);
+      expect(style).toMatchObject({
+        backgroundColor: lightTheme.colors.background.section,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: lightTheme.colors.border.muted,
+        paddingTop: 16,
+        paddingBottom: 16,
+      });
+      expect(style.paddingLeft).toBeUndefined();
+      expect(style.paddingRight).toBeUndefined();
+    });
+
+    it('uses dark theme section surface and muted border in dark mode', () => {
+      render(
+        <ThemeProvider theme={Theme.Dark}>
+          <EventCardStandard
+            event={albumOfTheYear()}
+            variant="trending"
+            onPress={jest.fn()}
+          />
+        </ThemeProvider>,
+      );
+
+      expect(
+        screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`),
+      ).toHaveStyle({
+        backgroundColor: darkTheme.colors.background.section,
+        borderColor: darkTheme.colors.border.muted,
+      });
+    });
+
     it('shows the Category in caps', () => {
       renderCard();
 

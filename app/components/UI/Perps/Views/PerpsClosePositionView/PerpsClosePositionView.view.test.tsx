@@ -5,15 +5,27 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { Position, PriceUpdate } from '@metamask/perps-controller';
+import { useNavigation } from '@react-navigation/native';
+import { Text } from 'react-native';
+import React, { useEffect, type ComponentType } from 'react';
+import {
+  PERPS_ERROR_CODES,
+  type Position,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
-import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import {
+  renderPerpsClosePositionView,
+  renderPerpsView,
+} from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { resetPerpsCloseLocksForTests } from '../../hooks/usePerpsClosePosition';
 import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import {
@@ -25,11 +37,15 @@ import {
 } from '../../Perps.testIds';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
+import PerpsClosePositionView from './PerpsClosePositionView';
 
 const TIMEOUT_MS = 5000;
 
+const CLOSE_POSITION_JOURNEY_START_ROUTE = 'PerpsClosePositionJourneyStart';
+const CLOSE_POSITION_JOURNEY_START_PROBE = 'route-close-position-journey-start';
+
 /** A 0.145% close fee quote (protocol 0.045% + MetaMask 0.1%). */
-const quoteCloseFee = () =>
+const quoteCloseFee = (): jest.Mock =>
   (Engine.context.PerpsController.calculateFees as jest.Mock).mockResolvedValue(
     {
       feeRate: 0.00145,
@@ -44,15 +60,14 @@ const quoteCloseFee = () =>
 const emitEthPrice = (
   stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
   price: string,
-) =>
+): void =>
   act(() => {
     stream.emitPrices({
       ETH: { symbol: 'ETH', price, timestamp: Date.now(), isTradable: true },
     });
   });
 
-const POST_ONLY_WINDOW_ERROR =
-  'order 0: Only post-only orders allowed immediately after network upgrade';
+const POST_ONLY_WINDOW_ERROR = PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW;
 
 const limitCloseEnabledOverrides = {
   engine: {
@@ -69,7 +84,7 @@ const limitCloseEnabledOverrides = {
   },
 } as unknown as DeepPartial<RootState>;
 
-const selectMidLimitClosePrice = async () => {
+const selectMidLimitClosePrice = async (): Promise<void> => {
   fireEvent.press(
     await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
   );
@@ -455,13 +470,14 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-  it('shows Core receive for a winning cross position, keeping its margin', async () => {
+  it('shows Core receive for a winning cross position, keeping P&L out of its margin', async () => {
     const position = createLongPositionForViews({
       unrealizedPnl: '150',
       leverage: { value: 3, type: 'cross' },
     });
 
     const { stream } = renderPerpsClosePositionView({
+      crossMarginEnabled: true,
       initialParams: { position },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
@@ -481,7 +497,10 @@ describe('PerpsClosePositionView', () => {
     });
     expect(
       screen.getByTestId(PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE),
-    ).toHaveTextContent('$983.33');
+    ).toHaveTextContent('$833.33');
+    expect(
+      screen.getByText(strings('perps.close_position.pnl')),
+    ).toBeOnTheScreen();
   });
 
   it('estimates a partial close on the size the order sends, rounded to the market decimals', async () => {
@@ -726,4 +745,113 @@ describe('PerpsClosePositionView', () => {
       expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
     },
   );
+
+  it('shows the already-closed toast instead of the failure toast when the close result reports POSITION_NOT_FOUND', async () => {
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+    closePosition.mockResolvedValueOnce({
+      success: false,
+      error: 'Position is no longer available',
+      errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+    });
+    const position = createLongPositionForViews();
+
+    const { stream } = renderPerpsClosePositionView({
+      includeToasts: true,
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+    emitEthPrice(stream, '2500');
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.press(confirmButton);
+    });
+
+    expect(
+      await screen.findByText(strings('perps.close_position.already_closed')),
+    ).toBeOnTheScreen();
+    expect(closePosition).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByText(
+        strings('perps.close_position.failed_to_close_position'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('goes back with the already-closed toast when only another venue still holds the symbol', async () => {
+    // The route position was opened on Lighter while the positions stream
+    // reports the symbol only on Hyperliquid, so this venue's position is
+    // gone. The close screen mounts as a pushed route so the dismissal's
+    // goBack is observable as a return to the start probe behind it.
+    const routePosition = {
+      ...createLongPositionForViews(),
+      providerId: 'lighter' as const,
+    };
+    const otherVenuePosition = {
+      ...createLongPositionForViews(),
+      providerId: 'hyperliquid' as const,
+    };
+    let hasPushedCloseScreen = false;
+    const ClosePositionJourneyStart = () => {
+      const navigation = useNavigation<AppNavigationProp>();
+      useEffect(() => {
+        if (hasPushedCloseScreen) {
+          return;
+        }
+        hasPushedCloseScreen = true;
+        navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
+          position: routePosition,
+        });
+      }, [navigation]);
+      return <Text testID={CLOSE_POSITION_JOURNEY_START_PROBE} />;
+    };
+
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+
+    renderPerpsView(
+      ClosePositionJourneyStart,
+      CLOSE_POSITION_JOURNEY_START_ROUTE,
+      {
+        includeToasts: true,
+        streamOverrides: {
+          account: createFundedAccountForViews('10000'),
+          positions: [otherVenuePosition],
+          marketData: [createEthMarketForViews()],
+        },
+        extraRoutes: [
+          {
+            name: Routes.PERPS.CLOSE_POSITION,
+            Component:
+              PerpsClosePositionView as unknown as ComponentType<unknown>,
+          },
+        ],
+      },
+    );
+
+    // The stream holds the symbol only on the other venue, so the close
+    // screen reconciles the route position as gone right away: the
+    // already-closed toast shows and the screen returns to the route it was
+    // pushed from, without submitting a close.
+    expect(
+      await screen.findByText(strings('perps.close_position.already_closed')),
+    ).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(CLOSE_POSITION_JOURNEY_START_PROBE),
+      ).toBeOnTheScreen();
+    });
+    expect(closePosition).not.toHaveBeenCalled();
+  });
 });

@@ -1,5 +1,5 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock, { type Scope } from 'nock';
+import nock from 'nock';
 import Engine from '../../../app/core/Engine';
 import { BRIDGE_API_BASE_URL } from '../../../app/constants/bridge';
 import type { CreatedLimitOrderTransaction } from '../../../app/components/UI/Bridge/api/limitOrders/create/schema';
@@ -99,7 +99,7 @@ export function setupCancelLimitOrderApiMock({
   },
   delayMs = 0,
   onRequest,
-}: CancelLimitOrderApiMockOptions): Scope {
+}: CancelLimitOrderApiMockOptions): nock.Scope {
   disableNetConnect();
 
   return nock(BRIDGE_API_BASE_URL)
@@ -144,7 +144,7 @@ export function setupGetLimitOrderApiMock({
   order,
   transactions = [],
   status = 200,
-}: GetLimitOrderApiMockOptions): Scope {
+}: GetLimitOrderApiMockOptions): nock.Scope {
   disableNetConnect();
 
   return nock(BRIDGE_API_BASE_URL)
