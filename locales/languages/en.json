@@ -3972,7 +3972,13 @@
       "unavailable": "No markets are available right now."
     },
     "home_categories": {
+      "trending": "Trending",
+      "football": "Football",
+      "basketball": "Basketball",
+      "finance": "Finance",
       "politics": "Politics",
+      "culture": "Culture",
+      "tech": "Tech",
       "sports": "Sports"
     },
     "feed_screens": {

@@ -8,30 +8,48 @@ import type { PredictFeedKey } from '../../../types';
 import { strings } from '../../../../../../../locales/i18n';
 
 const CATEGORY_ICONS: Readonly<Record<string, IconName>> = {
+  trending: IconName.TrendUp,
+  football: IconName.Football,
+  basketball: IconName.Basketball,
   politics: IconName.Global,
   sports: IconName.Trophy,
   crypto: IconName.MoneyBag,
   esports: IconName.GameController,
+  // The design draws a microphone, which the design system does not have.
   culture: IconName.StarFilled,
-  finance: IconName.Bank,
-  tech: IconName.Data,
+  finance: IconName.Cash,
+  tech: IconName.Monitor,
   economics: IconName.Chart,
 };
 
+const ICON_NAMES: ReadonlySet<string> = new Set(Object.values(IconName));
+
+const isIconName = (name: string): name is IconName => ICON_NAMES.has(name);
+
 /**
- * Icon for a Home Category chip by its Feed key, falling back to
- * {@link IconName.Explore} for unknown server-added Categories.
+ * Icon for a Home Category chip: the Feed Screen's catalog icon when it names
+ * a design-system icon (PRED-1606), otherwise the app's icon for the
+ * Category's Feed key, otherwise {@link IconName.Explore}.
  */
-export const getHomeCategoryIcon = (categoryId: string): IconName =>
-  Object.prototype.hasOwnProperty.call(CATEGORY_ICONS, categoryId)
+export const getHomeCategoryIcon = (
+  categoryId: string,
+  catalogIcon?: string,
+): IconName => {
+  if (catalogIcon !== undefined && isIconName(catalogIcon)) {
+    return catalogIcon;
+  }
+  return Object.prototype.hasOwnProperty.call(CATEGORY_ICONS, categoryId)
     ? CATEGORY_ICONS[categoryId]
     : IconName.Explore;
+};
 
 /** A Category chip the Active Venue can open. */
 export interface HomeCategory {
   id: PredictFeedKey;
   label: string;
-  iconName: IconName;
+  /** The Feed Screen's catalog icon name, unchecked against the app's
+   * icons. */
+  icon?: string;
   /** The Feed Screen whose ID is the Category's Feed key. */
   feedScreenId: FeedScreenId;
   /** The tab showing the Category's Feed. Undefined opens the first tab. */
@@ -51,7 +69,7 @@ export const resolveHomeCategories = (
   if (capabilities.status !== 'ready') {
     return [];
   }
-  const { categories, feeds } = capabilities.descriptor;
+  const { categories, feeds, screens } = capabilities.descriptor;
   return categories.flatMap((id) => {
     const feedScreen = getFeedScreen(id, capabilities);
     if (!feedScreen) {
@@ -63,7 +81,7 @@ export const resolveHomeCategories = (
         label: strings(`predict_next.home_categories.${id}`, {
           defaultValue: feedScreen.title,
         }),
-        iconName: getHomeCategoryIcon(id),
+        icon: screens.find((screen) => screen.id === id)?.icon,
         feedScreenId: feedScreen.id,
         tabId: feedScreen.tabs.find(({ feedId }) => feedId === feeds[id])?.id,
       },

@@ -125,6 +125,48 @@ describe('PredictHome layout from the Venue catalog', () => {
     ).toBeOnTheScreen();
   });
 
+  it('lays the Categories out in two rows of one horizontal scroll, in catalog order', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      feeds: { ...KALSHI_STATIC_VENUE_CATALOG.feeds, tech: 'tech' },
+      categories: ['politics', 'sports', 'tech'],
+      screens: [
+        ...KALSHI_STATIC_VENUE_CATALOG.screens,
+        {
+          id: 'tech',
+          title: 'Tech',
+          icon: 'Monitor',
+          tabs: [{ id: 'all', title: 'All', feed: 'tech' }],
+        },
+      ],
+    });
+    const view = renderPredictNext();
+
+    const list = await view.findByTestId(PredictHomeTestIds.CATEGORIES_LIST);
+    const rowChipIds = (rowIndex: number) =>
+      within(view.getByTestId(PredictHomeTestIds.categoryRow(rowIndex)))
+        .getAllByRole('button')
+        .map((chip) => String(chip.props.testID));
+
+    expect(list).toHaveProp('horizontal', true);
+    expect(
+      within(list).getByTestId(PredictHomeTestIds.categoryRow(0)),
+    ).toBeOnTheScreen();
+    expect(rowChipIds(0)).toEqual(
+      ['politics', 'sports'].map(PredictHomeTestIds.categoryChip),
+    );
+    expect(rowChipIds(1)).toEqual([PredictHomeTestIds.categoryChip('tech')]);
+    expect(
+      view.getByTestId(PredictHomeTestIds.categoryChipIcon('tech')),
+    ).toHaveProp('name', 'Monitor');
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.categoryChip('tech')));
+
+    expect(
+      await view.findByTestId(PredictFeedScreenTestIds.VIEW),
+    ).toBeOnTheScreen();
+  });
+
   it('drops a section the catalog removes and never reads its Feed', async () => {
     configureHome([TRENDING, CATEGORIES]);
     const view = renderPredictNext();
