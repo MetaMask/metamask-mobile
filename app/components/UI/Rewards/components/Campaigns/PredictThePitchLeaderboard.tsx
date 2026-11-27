@@ -81,7 +81,7 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
 
   if (hasError && entries.length === 0) {
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <RewardsErrorBanner
           title={strings(
             'rewards.predict_the_pitch_campaign.leaderboard_error_loading',
@@ -101,11 +101,11 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
 
   if (isLeaderboardNotYetComputed && !isLoading && entries.length === 0) {
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED}
         >
           {strings(
@@ -118,11 +118,11 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
 
   if (entries.length === 0) {
     return (
-      <Box twClassName="p-4 items-center">
+      <Box className="p-4 items-center">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.EMPTY}
         >
           {strings(

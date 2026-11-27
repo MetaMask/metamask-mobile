@@ -201,13 +201,13 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
     <>
       <Box
         testID={REFERRED_BY_CODE_SECTION_TEST_IDS.SECTION}
-        twClassName="flex-col px-4"
+        className="flex-col px-4"
       >
-        <Box twClassName="gap-2 pb-2">
+        <Box className="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {localizedText?.settingsReferralTitle ?? ''}
           </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+          <Text variant={TextVariant.BodyMd} className="text-alternative">
             {description}
             {description.length > 0 && termsLink ? (
               <>
@@ -221,7 +221,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
           </Text>
         </Box>
 
-        <Box twClassName="pt-3">
+        <Box className="pt-3">
           <TextField
             value={hasStoredCode ? storedCode : referralCode}
             onChangeText={hasStoredCode ? undefined : handleChangeReferralCode}
@@ -241,7 +241,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
           {!hasStoredCode && Boolean(errorMessage) && (
             <Text
               variant={TextVariant.BodySm}
-              twClassName="text-error-default mt-1"
+              className="text-error-default mt-1"
               accessibilityRole="alert"
               accessibilityLiveRegion="polite"
               testID={REFERRED_BY_CODE_SECTION_TEST_IDS.ERROR}
@@ -252,7 +252,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
         </Box>
 
         {!hasStoredCode && (
-          <Box twClassName="pt-3">
+          <Box className="pt-3">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}

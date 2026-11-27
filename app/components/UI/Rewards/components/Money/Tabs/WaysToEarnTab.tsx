@@ -253,10 +253,39 @@ const HistorySection: React.FC<{
     body = <TradingActivityListSkeleton rows={HISTORY_PREVIEW_COUNT} />;
   } else if (listEmpty) {
     body = (
-      <Box twClassName="items-center py-4">
+      <Box className="items-center py-4">
         <TabEmptyState
           icon={
             <AvatarIcon
+              iconName={copyTradingOnly ? IconName.People : IconName.Activity}
+              size={AvatarIconSize.Xl}
+              severity={AvatarIconSeverity.Neutral}
+              iconProps={{ color: IconColor.IconDefault }}
+            />
+          }
+          description={
+            copyTradingOnly
+              ? localizedText.copyTradingEmptyDescription
+              : localizedText.tradingActivityEmptyDescription
+          }
+          descriptionProps={{
+            variant: TextVariant.BodyMd,
+            color: TextColor.TextAlternative,
+          }}
+          actionButtonText={
+            copyTradingOnly
+              ? localizedText.copyTradingEmptyAction
+              : localizedText.tradingActivityEmptyAction
+          }
+          actionButtonProps={{
+            variant: ButtonVariant.Primary,
+            size: ButtonSize.Lg,
+            twClassName: 'mt-3 self-stretch',
+            testID: `${WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_EMPTY}-action`,
+          }}
+          onAction={onEmptyAction}
+          testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_EMPTY}
+        /><AvatarIcon
               iconName={copyTradingOnly ? IconName.People : IconName.Activity}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
@@ -290,7 +319,7 @@ const HistorySection: React.FC<{
     );
   } else {
     body = (
-      <Box twClassName="gap-4" testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY}>
+      <Box className="gap-4" testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY}>
         {items.map((item) => (
           <EarningsHistoryRow
             key={
@@ -313,10 +342,10 @@ const HistorySection: React.FC<{
         title={localizedText.history}
         isInteractive={!listEmpty}
         onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
+        className={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_HEADER}
       />
-      <Box twClassName="px-4 pb-8">
+      <Box className="px-4 pb-8">
         <RewardsEarningsBanners
           summary={bannerSummary}
           localizedText={localizedText}
@@ -579,7 +608,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
       {/* The banner and the card share one padded box so the gap between
           them matches. */}
       {errorSource || summary.show ? (
-        <Box twClassName="gap-3 px-4 pt-4">
+        <Box className="gap-3 px-4 pt-4">
           {errorSource ? (
             <EarningsErrorBanner
               source={errorSource}

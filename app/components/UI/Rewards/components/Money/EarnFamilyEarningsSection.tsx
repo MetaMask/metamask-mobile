@@ -118,14 +118,14 @@ const EarningsStatRow: React.FC<{
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="gap-3"
+    className="gap-3"
     testID={testID}
   >
     {rowIcon(iconName)}
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      twClassName="flex-1"
+      className="flex-1"
     >
       {label}
     </Text>
@@ -140,7 +140,7 @@ const FamilyEarningsSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="gap-4 px-4"
+      className="gap-4 px-4"
       testID={EARN_FAMILY_EARNINGS_TEST_IDS.SKELETON}
     >
       {Array.from({ length: SKELETON_ROWS }, (_, index) => (
@@ -214,7 +214,7 @@ const EarnFamilyEarningsSection: React.FC<EarnFamilyEarningsSectionProps> = ({
   } else {
     body = (
       <Box
-        twClassName="gap-4 px-4"
+        className="gap-4 px-4"
         testID={EARN_FAMILY_EARNINGS_TEST_IDS.CONTAINER}
       >
         {rows.map((row) => (
@@ -237,15 +237,15 @@ const EarnFamilyEarningsSection: React.FC<EarnFamilyEarningsSectionProps> = ({
       <SectionHeader
         // A payload cached before the server added the key has no yourEarnings.
         title={localizedText.yourEarnings ?? localizedText.breakdown}
-        twClassName="pt-0 pb-4"
+        className="pt-0 pb-4"
         testID={EARN_FAMILY_EARNINGS_TEST_IDS.HEADER}
       />
       {leadingRows.length > 0 ? (
-        <Box twClassName="gap-4 px-4 pb-4">{leadingRows.map(statistic)}</Box>
+        <Box className="gap-4 px-4 pb-4">{leadingRows.map(statistic)}</Box>
       ) : null}
       {body}
       {errorSource ? (
-        <Box twClassName="px-4 pt-4">
+        <Box className="px-4 pt-4">
           <RewardsErrorBanner
             title={strings(`${errorCopy}.error_fetching_title`)}
             description={strings(`${errorCopy}.error_fetching_description`)}

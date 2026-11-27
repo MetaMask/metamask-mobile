@@ -68,7 +68,7 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
       >
         {title}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -84,7 +84,7 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
           size: ButtonSize.Lg,
           testID: REWARDS_INFO_SHEET_MODAL_TEST_IDS.GOT_IT,
         }}
-        twClassName="px-4 pt-6"
+        className="px-4 pt-6"
       />
     </BottomSheet>
   );

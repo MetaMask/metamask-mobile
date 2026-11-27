@@ -29,7 +29,7 @@ const VipPerpsTransactionRow: React.FC<VipPerpsTransactionRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full py-3"
+      className="w-full py-3"
       gap={3}
       testID={testID}
     >
@@ -39,7 +39,7 @@ const VipPerpsTransactionRow: React.FC<VipPerpsTransactionRowProps> = ({
         recyclingKey={`${coin}-${transaction.id}`}
       />
 
-      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+      <Box className="flex-1" justifyContent={BoxJustifyContent.Start}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}

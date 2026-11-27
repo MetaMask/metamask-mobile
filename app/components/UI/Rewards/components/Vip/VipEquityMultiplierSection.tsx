@@ -66,15 +66,15 @@ const VipEquityMultiplierSection: React.FC<VipEquityMultiplierSectionProps> = ({
   if (status === 'loading') {
     return (
       <Box
-        twClassName="gap-3 px-4"
+        className="gap-3 px-4"
         testID={VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.SKELETON}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-3"
+          className="gap-3"
         >
-          <Box twClassName="flex-1 gap-1">
+          <Box className="flex-1 gap-1">
             <Skeleton style={tw.style('h-4 w-2/5 rounded-lg')} />
             <Skeleton style={tw.style('h-4 w-full rounded-lg')} />
             <Skeleton style={tw.style('h-4 w-3/4 rounded-lg')} />
@@ -87,7 +87,7 @@ const VipEquityMultiplierSection: React.FC<VipEquityMultiplierSectionProps> = ({
 
   if (status === 'error') {
     return (
-      <Box twClassName="px-4">
+      <Box className="px-4">
         <RewardsErrorBanner
           title={failedTitle}
           description={failedDescription}
@@ -108,15 +108,15 @@ const VipEquityMultiplierSection: React.FC<VipEquityMultiplierSectionProps> = ({
 
   return (
     <Box
-      twClassName="gap-3 px-4"
+      className="gap-3 px-4"
       testID={VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.CONTAINER}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
+        className="gap-3"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

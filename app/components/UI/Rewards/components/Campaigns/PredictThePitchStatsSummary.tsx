@@ -112,7 +112,7 @@ const PredictThePitchStatsSummary: React.FC<
 
   return (
     <Box
-      twClassName="gap-3"
+      className="gap-3"
       testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.CONTAINER}
     >
       {showError && (

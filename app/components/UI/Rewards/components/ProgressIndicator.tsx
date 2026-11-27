@@ -38,7 +38,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Center}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-4"
+        className="gap-4"
         testID="progress-indicator-container"
       >
         {Array.from({ length: totalSteps }, (_, index) => (
@@ -61,7 +61,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Center}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
+      className="gap-1"
       testID="progress-indicator-container"
     >
       {Array.from({ length: totalSteps }, (_, index) => (

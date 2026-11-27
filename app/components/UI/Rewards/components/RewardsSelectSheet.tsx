@@ -72,7 +72,7 @@ const RewardsSelectSheet: React.FC<RewardsSelectSheetProps> = ({ route }) => {
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
-              twClassName={`px-4 py-4 ${
+              className={`px-4 py-4 ${
                 option.value === selectedValue ? 'bg-background-muted' : ''
               }`}
             >

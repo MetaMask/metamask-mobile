@@ -155,7 +155,7 @@ export const EarningsHistoryRow: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      className="gap-3"
       testID={`${EARNINGS_HISTORY_TEST_IDS.ROW}-${item.id}`}
     >
       <AvatarIcon
@@ -164,16 +164,16 @@ export const EarningsHistoryRow: React.FC<{
         severity={AvatarIconSeverity.Neutral}
         iconProps={{ color: IconColor.IconAlternative }}
       />
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          className="gap-2"
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="shrink"
+            className="shrink"
           >
             {title}
           </Text>
@@ -181,7 +181,7 @@ export const EarningsHistoryRow: React.FC<{
             <Text
               variant={TextVariant.BodyMd}
               color={amountColor}
-              twClassName="ml-auto"
+              className="ml-auto"
             >
               {amount ?? '—'}
             </Text>

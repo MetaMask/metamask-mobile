@@ -34,12 +34,12 @@ const VipSwapTransactionRow: React.FC<VipSwapTransactionRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full py-3"
+      className="w-full py-3"
       gap={3}
       testID={testID}
     >
       <Box
-        twClassName="bg-muted rounded-full items-center justify-center size-10"
+        className="bg-muted rounded-full items-center justify-center size-10"
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
@@ -51,7 +51,7 @@ const VipSwapTransactionRow: React.FC<VipSwapTransactionRowProps> = ({
         />
       </Box>
 
-      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+      <Box className="flex-1" justifyContent={BoxJustifyContent.Start}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
@@ -71,7 +71,7 @@ const VipSwapTransactionRow: React.FC<VipSwapTransactionRowProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="max-w-[60%]"
+            className="max-w-[60%]"
             numberOfLines={1}
           >
             {detail}
