@@ -68,6 +68,9 @@ describe('useQRScanner', () => {
   });
 
   it('imports the private key when the user confirms', async () => {
+    jest
+      .mocked(Authentication.importAccountFromPrivateKey)
+      .mockResolvedValueOnce(true);
     const onScanSuccess = arrangeScan();
     onScanSuccess({ private_key: '0xdeadbeef' });
 
@@ -80,6 +83,23 @@ describe('useQRScanner', () => {
     expect(mockNavigate).toHaveBeenCalledWith('ImportPrivateKeyView', {
       screen: 'ImportPrivateKeySuccess',
     });
+  });
+
+  it('does not navigate to success screen when private key import returns false', async () => {
+    jest
+      .mocked(Authentication.importAccountFromPrivateKey)
+      .mockResolvedValueOnce(false);
+    const onScanSuccess = arrangeScan();
+    onScanSuccess({ private_key: '0xdeadbeef' });
+    mockNavigate.mockClear();
+
+    const buttons = jest.mocked(Alert.alert).mock.calls[0][2];
+    await Promise.resolve(buttons?.[1]?.onPress?.());
+
+    expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledWith(
+      '0xdeadbeef',
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('refuses a scanned seed phrase', () => {

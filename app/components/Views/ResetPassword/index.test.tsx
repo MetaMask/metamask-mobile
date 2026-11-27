@@ -21,7 +21,8 @@ import {
 } from '../../../constants/urls';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
-import { Alert, InteractionManager } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
+import NotificationManager from '../../../core/NotificationManager';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -156,19 +157,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
     isEnabled: jest.fn().mockReturnValue(true),
   },
 }));
-
-const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
-  cb();
-  return {
-    then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
-    done: (onfulfilled: () => void, onrejected: () => void) =>
-      Promise.resolve().then(onfulfilled, onrejected),
-    cancel: jest.fn(),
-  };
-});
-jest
-  .spyOn(InteractionManager, 'runAfterInteractions')
-  .mockImplementation(mockRunAfterInteractions);
 
 jest.mock('../../../core/Vault', () => {
   const actual = jest.requireActual('../../../core/Vault');
@@ -894,7 +882,12 @@ describe('ResetPassword', () => {
         );
       });
 
-      expect(mockRunAfterInteractions).toHaveBeenCalled();
+      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
+        status: 'success',
+        duration: 5000,
+        title: strings('reset_password.password_updated'),
+        description: strings('reset_password.successfully_changed'),
+      });
     });
 
     it('disables back button during loading state', async () => {
@@ -918,6 +911,54 @@ describe('ResetPassword', () => {
       fireEvent.press(backButton);
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('disables swipe-back and Android hardware back during loading and restores them after completion', async () => {
+      let resolveRecreate!: () => void;
+      jest.mocked(recreateVaultsWithNewPassword).mockImplementationOnce(
+        async () =>
+          await new Promise<void>((resolve) => {
+            resolveRecreate = resolve;
+          }),
+      );
+
+      const removeBackListener = jest.fn();
+      const backHandlerSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: removeBackListener });
+
+      const component = await navigateToResetForm(null);
+      await fillResetForm(component);
+      await submitResetForm(component);
+
+      await waitFor(() => {
+        expect(
+          component.getByText(strings('reset_password.changing_password')),
+        ).toBeOnTheScreen();
+      });
+
+      expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: false,
+      });
+
+      const backPressCall = backHandlerSpy.mock.calls.find(
+        ([eventName]) => eventName === 'hardwareBackPress',
+      );
+      expect(backPressCall).toBeDefined();
+      expect(backPressCall?.[1]()).toBe(true);
+
+      await act(async () => {
+        resolveRecreate();
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
+          gestureEnabled: true,
+        });
+      });
+      expect(removeBackListener).toHaveBeenCalledTimes(1);
+
+      backHandlerSpy.mockRestore();
     });
 
     it('shows alert when passcode is not set', async () => {
@@ -1393,7 +1434,7 @@ describe('ResetPassword', () => {
       expect(spyLockApp).toHaveBeenCalled();
     });
 
-    it('shows change password error and navigates to security settings on confirm', async () => {
+    it('shows change password error modal without navigating back to security settings', async () => {
       await setupSeedlessErrorTest(
         SeedlessOnboardingControllerErrorMessage.InvalidAccessToken,
       );
@@ -1410,19 +1451,34 @@ describe('ResetPassword', () => {
             description: strings(
               'reset_password.seedless_change_password_error_modal_content',
             ),
+            closeOnPrimaryButtonPress: true,
           }),
         }),
       );
 
       const errorSheetCall = mockNavigation.navigate.mock.calls[1];
-      const onErrorSheetPrimaryButtonPress =
-        errorSheetCall[1].params.onPrimaryButtonPress;
-      await act(async () => {
-        await onErrorSheetPrimaryButtonPress();
-      });
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
-        Routes.SETTINGS.SECURITY_SETTINGS,
+      expect(errorSheetCall[1].params.onPrimaryButtonPress).toBeUndefined();
+      expect(mockNavigation.replace).not.toHaveBeenCalled();
+    });
+
+    it('shows change password error modal when keyring or key-sync fails during seedless password change', async () => {
+      await setupSeedlessErrorTest(
+        'Keyring encryption key synchronization failed',
       );
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings(
+              'reset_password.seedless_change_password_error_modal_title',
+            ),
+            closeOnPrimaryButtonPress: true,
+          }),
+        }),
+      );
+      expect(mockNavigation.replace).not.toHaveBeenCalled();
     });
 
     it('navigates to change password error modal when lockApp rejects after outdated password', async () => {
