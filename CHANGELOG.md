@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added an Add funds button to the Perps trade sheet when the user has insufficient funds (#40593)
 - Renamed the Money account transfer screen title and confirmation button from “Send” to “Move” (#40637)
 - Added block explorer support for EVM and non-EVM networks in off-ramp order confirmations (#39995)
 - Added fiat values next to non-EVM asset balances in the Sell flow (#40034)
