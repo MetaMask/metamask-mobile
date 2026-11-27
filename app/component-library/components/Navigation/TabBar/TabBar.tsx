@@ -176,7 +176,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
-        twClassName="w-full pt-3 mb-1 px-2 bg-default border-t border-muted"
+        className="mb-1 w-full border-t border-muted bg-default px-2 pt-3"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}

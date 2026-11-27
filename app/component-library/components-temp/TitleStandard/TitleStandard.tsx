@@ -47,7 +47,7 @@ const TitleStandard: React.FC<TitleStandardProps> = ({
   const hasBottomContent = bottomAccessory || bottomLabel;
 
   return (
-    <Box twClassName={twClassName} testID={testID}>
+    <Box className={twClassName} testID={testID}>
       {hasTopContent && (
         <Box>
           {topLabel ? (

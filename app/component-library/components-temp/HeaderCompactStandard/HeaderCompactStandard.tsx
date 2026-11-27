@@ -116,7 +116,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
             title
           )}
           {subtitle && (
-            <Box twClassName="-mt-0.5">
+            <Box className="-mt-0.5">
               {typeof subtitle === 'string' ? (
                 <Text
                   variant={TextVariant.BodySm}

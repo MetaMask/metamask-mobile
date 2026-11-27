@@ -120,7 +120,7 @@ const NativeBar = ({
 
   return (
     <Box
-      twClassName={twClassName}
+      className={twClassName}
       style={[style, { height: inset }]}
       testID={testID}
       onLayout={onLayout}

@@ -58,7 +58,7 @@ export const WithChildren = {
         },
       ]}
     >
-      <Box twClassName="items-start">
+      <Box className="items-start">
         <Text variant={TextVariant.HeadingSm}>Custom Title</Text>
         <Text variant={TextVariant.BodySm}>Subtitle text</Text>
       </Box>

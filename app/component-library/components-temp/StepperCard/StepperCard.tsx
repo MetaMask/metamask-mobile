@@ -54,8 +54,8 @@ const StepperCard = ({
   const content = (
     <>
       {/* Image */}
-      <Box twClassName="px-4 pt-4">
-        <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
+      <Box className="px-4 pt-4">
+        <Box testID={getTestId('step-image')} className="aspect-video w-full">
           {step.media ?? (
             <Image
               source={step.image}
@@ -67,12 +67,12 @@ const StepperCard = ({
       </Box>
 
       {/* Content */}
-      <Box twClassName="p-4 gap-4">
-        <Box twClassName="gap-1">
+      <Box className="gap-4 p-4">
+        <Box className="gap-1">
           <Text
             variant={TextVariant.DisplayMd}
             fontFamily={FontFamily.Hero}
-            twClassName="leading-[32px]"
+            className="leading-heading-lg"
             testID={getTestId('title')}
           >
             {step.title}
@@ -105,7 +105,7 @@ const StepperCard = ({
         </Box>
 
         {/* CTAs */}
-        <Box twClassName="flex-row gap-3">
+        <Box className="flex-row gap-3">
           {step.secondaryCta && (
             <ButtonGlass
               isGlass={isGlass}

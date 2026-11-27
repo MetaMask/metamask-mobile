@@ -1,4 +1,5 @@
 import React from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import {
   HeaderStandard,
@@ -6,7 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 
 import HeaderGlass, { type HeaderGlassOptions } from '../HeaderGlass';
-import { glassHeaderTwClassName } from '../HeaderGlass/glassHeaderTwClassName';
 import {
   resolveEndAccessoryGlass,
   resolveStartAccessoryGlass,
@@ -56,11 +56,19 @@ const HeaderStandardGlass = ({
   scrollY,
   onLayout,
   twClassName,
+  style,
   isNativeHeaderEnabled = false,
   onNativeHeaderInset,
   ...props
 }: HeaderStandardGlassProps) => {
-  const headerClassName = glassHeaderTwClassName(twClassName);
+  // Force 16px horizontal padding via style prop. HeaderStandard always merges
+  // 'px-2' via mergeTwClassName, so overriding via twClassName alone is not
+  // reliable across all test environments. The style prop is applied last in
+  // HeaderBase's style array and always wins.
+  const glassPaddingStyle: StyleProp<ViewStyle> = [
+    { paddingLeft: 16, paddingRight: 16 },
+    style,
+  ];
   const isNativeSupported = useIsNativeHeader();
   const nativeConfig =
     isGlass &&
@@ -76,7 +84,8 @@ const HeaderStandardGlass = ({
       <HeaderStandard
         {...props}
         onLayout={onLayout}
-        twClassName={headerClassName}
+        style={glassPaddingStyle}
+        twClassName={twClassName}
       />
     );
   }
@@ -91,7 +100,8 @@ const HeaderStandardGlass = ({
     >
       <HeaderStandard
         {...props}
-        twClassName={headerClassName}
+        style={glassPaddingStyle}
+        twClassName={twClassName}
         startAccessory={resolveStartAccessoryGlass(props)}
         endAccessory={resolveEndAccessoryGlass(props)}
       />
@@ -104,7 +114,7 @@ const HeaderStandardGlass = ({
         config={nativeConfig}
         fallback={glassHeader}
         twClassName={twClassName}
-        style={props.style}
+        style={style}
         testID={props.testID}
         onLayout={onLayout}
         onInset={onNativeHeaderInset}
