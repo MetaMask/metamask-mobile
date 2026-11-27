@@ -1870,6 +1870,41 @@ describe('ActivityList', () => {
     });
   });
 
+  it('hides the Solana source transaction of a MetaMask Pay transaction', () => {
+    selectorValues.enabledEvm = [];
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaPaySource', from: [], to: [] },
+        { chain: 'solana:mainnet', id: 'solanaBridge', from: [], to: [] },
+      ],
+    };
+    selectorValues.localTransactions = [
+      {
+        id: 'pay-parent',
+        metamaskPay: { sourceHash: 'solanaPaySource' },
+        txParams: { from: '0x1' },
+      },
+    ];
+    selectorValues.selectedGroupAccounts = [
+      { address: 'solana-address', type: 'solana:data-account' },
+    ];
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    render(<ActivityList chainId="solana:mainnet" />);
+
+    expect(screen.queryByTestId('row-solanaPaySource')).toBeNull();
+    expect(screen.getByTestId('row-solanaBridge')).toBeOnTheScreen();
+  });
+
   it('includes bridge transactions for configured destination chains without duplicate rows', () => {
     selectorValues.enabledNonEvm = [];
     selectorValues.nonEvmState = {
