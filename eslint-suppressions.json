@@ -119,8 +119,23 @@
       "count": 1
     }
   },
+  "app/components/UI/Assets/watchlist/Views/WatchlistFullScreenView/WatchlistFullScreenView.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 2
+    }
+  },
   "app/components/UI/BlockingActionModal/index.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Bridge/Views/BridgeView/BridgeView.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 7
+    }
+  },
+  "app/components/UI/Bridge/components/CancelLimitOrderModal/CancelLimitOrderModal.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
       "count": 1
     }
   },
@@ -184,6 +199,11 @@
       "count": 1
     }
   },
+  "app/components/UI/Card/Views/ContactDetails/ContactDetails.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/CollectibleDetectionModal/index.tsx": {
     "design-system/spacing-grid": {
       "count": 1
@@ -201,6 +221,11 @@
   },
   "app/components/UI/DeFiPositions/DeFiPositionsListItem.styles.ts": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/DeleteWalletModal/DeleteWalletModal.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -309,6 +334,11 @@
       "count": 2
     }
   },
+  "app/components/UI/NetworkMultiSelector/NetworkMultiSelector.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/NetworkVerificationInfo/NetworkVerificationInfo.styles.ts": {
     "design-system/spacing-grid": {
       "count": 4
@@ -349,6 +379,11 @@
       "count": 2
     }
   },
+  "app/components/UI/Perps/Views/PerpsHeroCardView/PerpsHeroCardView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView.styles.ts": {
     "design-system/spacing-grid": {
       "count": 1
@@ -369,14 +404,99 @@
       "count": 2
     }
   },
+  "app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView.styles.ts": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderLifecycleFlow.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderRedirect.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.styles.ts": {
     "design-system/spacing-grid": {
       "count": 5
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsPositionFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProMarketFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProMarketView/PerpsProLighterScale.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsProOrderTicketFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsRedirect.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectOrderTypeView/PerpsSelectOrderTypeView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsWithdrawView/PerpsWithdrawView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/UI/Perps/components/LivePriceDisplay/LivePriceHeader.tsx": {
@@ -439,6 +559,14 @@
       "count": 1
     }
   },
+  "app/components/UI/Perps/components/PerpsTutorialCarousel/PerpsTutorialCarousel.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    },
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/components/PerpsWebSocketHealthToast/PerpsWebSocketHealthToast.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
@@ -449,8 +577,18 @@
       "count": 2
     }
   },
+  "app/components/UI/PhishingModal/PhishingModal.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictPayWithRow/PredictPayWithRow.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Predict/views/PredictPositionsView/PredictPositionsView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -464,13 +602,48 @@
       "count": 1
     }
   },
+  "app/components/UI/PredictNext/homeSection/PredictHomeSection.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/PredictEntryActions.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 2
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/link/PredictLinks.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/searchResults/PredictSearchResultRow.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
     }
   },
+  "app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/views/PredictHome/internal/PortfolioActions.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictOrderFlow/PredictOrderFlow.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 2
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/views/PredictPortfolio/internal/PortfolioRecoveryPanel.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   },
@@ -482,6 +655,14 @@
   "app/components/UI/QRHardware/QRSigningDetails.tsx": {
     "design-system/spacing-grid": {
       "count": 3
+    }
+  },
+  "app/components/UI/QuickBuy/QuickBuySheet.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 10
+    },
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Aggregator/components/Account.tsx": {
@@ -532,6 +713,11 @@
   "app/components/UI/Ramp/Aggregator/components/modals/Modal.styles.ts": {
     "design-system/spacing-grid": {
       "count": 4
+    }
+  },
+  "app/components/UI/Ramp/Views/BuildQuote/BuildQuote.view.test.tsx": {
+    "component-view/no-restricted-syntax": {
+      "count": 1
     }
   },
   "app/components/UI/Ramp/Views/HeadlessPlayground/HeadlessPlayground.styles.ts": {
@@ -664,9 +850,19 @@
       "count": 1
     }
   },
+  "app/components/UI/TokenDetails/Views/TokenDetailsV1.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 1
+    }
+  },
   "app/components/UI/TokenDetails/components/AssetOverviewContent.tsx": {
     "design-system/spacing-grid": {
       "count": 1
+    }
+  },
+  "app/components/UI/TokenDetails/components/AssetOverviewContent.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 3
     }
   },
   "app/components/UI/TokenDetails/components/SecurityBanner.tsx": {
@@ -682,6 +878,14 @@
   "app/components/UI/TokenDetails/components/V1/StatBar/StatBar.tsx": {
     "design-system/spacing-grid": {
       "count": 1
+    }
+  },
+  "app/components/UI/Tokens/Tokens.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 1
+    },
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 2
     }
   },
   "app/components/UI/TransactionElement/TransactionDetails/index.js": {
@@ -739,6 +943,30 @@
       "count": 2
     }
   },
+  "app/components/Views/AccountStatus/AccountStatus.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "app/components/Views/ActivityList/ActivityList.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 3
+    },
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    },
+    "component-view/no-restricted-syntax": {
+      "count": 2
+    }
+  },
+  "app/components/Views/ActivityScreen/ActivityScreen.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 13
+    },
+    "component-view/no-restricted-syntax": {
+      "count": 7
+    }
+  },
   "app/components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx": {
     "design-system/spacing-grid": {
       "count": 2
@@ -789,6 +1017,14 @@
       "count": 1
     }
   },
+  "app/components/Views/ImportNewSecretRecoveryPhrase/ImportNewSecretRecoveryPhrase.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    },
+    "component-view/no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "app/components/Views/ImportPrivateKeySuccess/index.js": {
     "design-system/spacing-grid": {
       "count": 5
@@ -829,6 +1065,11 @@
       "count": 1
     }
   },
+  "app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.tsx": {
     "design-system/spacing-grid": {
       "count": 1
@@ -862,6 +1103,11 @@
   "app/components/Views/NetworksManagement/NetworkDetailsView/NetworkDetailsView.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
+    }
+  },
+  "app/components/Views/NetworksManagement/NetworksManagementView.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
     }
   },
   "app/components/Views/NftDetails/NftDetails.styles.ts": {
@@ -934,6 +1180,11 @@
       "count": 1
     }
   },
+  "app/components/Views/Settings/SecuritySettings/Sections/TopTradersSection.view.test.tsx": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
   "app/components/Views/Snaps/KeyringSnapRemovalWarning/KeyringSnapRemovalWarning.styles.ts": {
     "design-system/spacing-grid": {
       "count": 2
@@ -969,6 +1220,11 @@
       "count": 1
     }
   },
+  "app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 3
+    }
+  },
   "app/components/Views/TrendingView/components/PillRow.tsx": {
     "design-system/spacing-grid": {
       "count": 1
@@ -1001,6 +1257,11 @@
   },
   "app/components/Views/confirmations/components/UI/text-field-with-label/text-field-with-label.styles.ts": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "app/components/Views/confirmations/components/activity/eip-7702-sponsored-relay-api-failure.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
       "count": 1
     }
   },
@@ -1064,6 +1325,21 @@
       "count": 1
     }
   },
+  "app/components/Views/confirmations/components/send/asset/asset.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 3
+    }
+  },
+  "app/components/Views/confirmations/components/send/send.non-evm.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 20
+    }
+  },
+  "app/components/Views/confirmations/components/send/send.view.test.tsx": {
+    "component-view/no-bare-query-timeout": {
+      "count": 34
+    }
+  },
   "app/components/Views/confirmations/components/token-conversion-asset-header/token-conversion-asset-header.styles.ts": {
     "design-system/spacing-grid": {
       "count": 1
@@ -1111,6 +1387,21 @@
   },
   "app/dev-tools/AgenticService/AgentStepHud.tsx": {
     "design-system/spacing-grid": {
+      "count": 1
+    }
+  },
+  "tests/component-view/api-mocking/priceAlerts.ts": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "tests/component-view/api-mocking/ramp.ts": {
+    "component-view/no-clear-all-mocks-without-reset": {
+      "count": 1
+    }
+  },
+  "tests/component-view/api-mocking/trending.ts": {
+    "component-view/no-clear-all-mocks-without-reset": {
       "count": 1
     }
   }
