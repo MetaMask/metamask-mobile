@@ -345,10 +345,7 @@ export const KalshiDemoOnboardingModal = ({
               isFullWidth
               isLoading={state.busy}
               isDisabled={disabled || !walletAddress}
-              onPress={() => {
-                setActivationStarted(true);
-                onboarding.activate();
-              }}
+              onPress={onboarding.activate}
               testID={TestIds.ACTIVATE}
             >
               Activate
