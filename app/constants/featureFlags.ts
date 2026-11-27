@@ -27,7 +27,10 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
  * stub. Needs `isMpcMoneyKeyringBuildEnabled` too.
  */
 export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
-  return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
+  return (
+    isMpcMoneyKeyringBuildEnabled() &&
+    process.env.MM_MONEY_MPC_REAL_KEYRING === 'true'
+  );
 }
 
 /**

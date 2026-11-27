@@ -50,6 +50,7 @@ const newOverrides = [
       // Money MPC keyring stub: the build gate and static address are read at
       // runtime so tests can flip them per-case.
       'app/constants/featureFlags.ts',
+      'app/constants/featureFlags.test.ts',
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
       'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
