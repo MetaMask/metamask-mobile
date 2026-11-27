@@ -7869,6 +7869,166 @@ describe('PredictController', () => {
     });
   });
 
+  describe('enterPayWithAnyToken', () => {
+    it('moves PREVIEW to PAY_WITH_ANY_TOKEN while keeping selectedPaymentToken null', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('clears a stale ERC-20 selectedPaymentToken and keeps PAY_WITH_ANY_TOKEN', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('clears active order error by default and preserves it when clearError is false', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+          error: 'Order failed',
+          errorStage: 'order',
+        });
+
+        controller.enterPayWithAnyToken({ clearError: false });
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Order failed',
+        );
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+          error: 'Order failed',
+          errorStage: 'order',
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+      });
+    });
+
+    it('does not overwrite in-flight DEPOSITING, PLACING_ORDER, or SUCCESS states', () => {
+      withController(({ controller }) => {
+        for (const state of [
+          ActiveOrderState.DEPOSITING,
+          ActiveOrderState.PLACING_ORDER,
+          ActiveOrderState.SUCCESS,
+        ]) {
+          setActiveOrderForTest(controller, { state });
+
+          controller.enterPayWithAnyToken();
+
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            state,
+          );
+        }
+      });
+    });
+
+    it('does not clear payment failure error when already in PAY_WITH_ANY_TOKEN with no ERC-20 token', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Swap failed',
+          errorStage: 'payment',
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Swap failed',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+      });
+    });
+
+    it('causes placeOrder to enter DEPOSITING instead of submitting an unfunded CLOB order', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          controller.enterPayWithAnyToken();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+          const analyticsProperties = {
+            marketId: 'market-1',
+            transactionType: 'mm_predict_buy' as const,
+          };
+          const attempt = controller.startPredictBuyAttempt({
+            amountUsd: 3,
+            paymentMethod: 'money_account',
+            analyticsProperties,
+          });
+
+          const result = await controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+            transactionId: 'tx-money-account-1',
+          });
+
+          expect(result).toEqual({
+            success: false,
+            response: { status: 'deposit_in_progress' },
+          });
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            ActiveOrderState.DEPOSITING,
+          );
+          expect(
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.paymentTokenAddress,
+          ).toBeUndefined();
+          expect(
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.paymentTokenSymbol,
+          ).toBeUndefined();
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+  });
+
   describe('clearOrderError', () => {
     it('clears error from activeOrder', () => {
       withController(({ controller }) => {
