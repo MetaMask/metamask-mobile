@@ -1916,20 +1916,16 @@ describe('PredictHome', () => {
         },
       });
       mockPredictNextMessenger(
-        (action: string, venueId: string, feedId: string) => {
+        async (action: string, venueId: string, feedId: string) => {
           if (action === 'PredictMarketDataService:getFeed') {
             const events =
               feedId === LIVE_GAMES_FEED_ID ? liveGames : trendingEvents;
-            return Promise.resolve({ venueId, id: feedId, title: '', events });
+            return { venueId, id: feedId, title: '', events };
           }
           if (action === 'PredictPortfolioService:getBalance') {
-            return Promise.resolve({
-              venueId,
-              currency: 'USD',
-              available: '1',
-            });
+            return { venueId, currency: 'USD', available: '1' };
           }
-          return Promise.resolve(undefined);
+          return undefined;
         },
       );
     });
