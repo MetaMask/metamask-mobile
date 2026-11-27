@@ -3,7 +3,9 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V5TransactionRecord } from '@metamask/core-backend';
+
 import { apiClient } from '../../../../../core/apiClient';
+import { selectEvmAddress } from '#app/selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTransactionQuery } from './useTransactionQuery';
 
@@ -95,7 +97,11 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when txHash is missing', () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234' });
+    useSelectorMock.mockImplementation((selector) =>
+      selector === selectSelectedAccountGroupEvmInternalAccount
+        ? { address: '0x1234' }
+        : undefined,
+    );
 
     const { result } = renderHook(
       () =>
@@ -112,7 +118,11 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when chain is not eip155', () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234' });
+    useSelectorMock.mockImplementation((selector) =>
+      selector === selectSelectedAccountGroupEvmInternalAccount
+        ? { address: '0x1234' }
+        : undefined,
+    );
 
     const { result } = renderHook(
       () =>
@@ -129,7 +139,11 @@ describe('useTransactionQuery', () => {
   });
 
   it('disables the query when explicitly disabled', () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234' });
+    useSelectorMock.mockImplementation((selector) =>
+      selector === selectSelectedAccountGroupEvmInternalAccount
+        ? { address: '0x1234' }
+        : undefined,
+    );
 
     const { result } = renderHook(
       () =>
@@ -146,9 +160,11 @@ describe('useTransactionQuery', () => {
   });
 
   it('enables the query and returns data for valid EVM inputs', async () => {
-    useSelectorMock.mockReturnValue({
-      address: '0x1234567890AbCdEf1234567890AbCdEf12345678',
-    });
+    useSelectorMock.mockImplementation((selector) =>
+      selector === selectSelectedAccountGroupEvmInternalAccount
+        ? { address: '0x1234567890AbCdEf1234567890AbCdEf12345678' }
+        : undefined,
+    );
     queryFnMock.mockResolvedValue({ data: mockTransaction });
 
     const { result, waitForNextUpdate } = renderHook(
@@ -176,14 +192,11 @@ describe('useTransactionQuery', () => {
   });
 
   it('falls back to selectEvmAddress when group account is undefined', async () => {
-    let selectorCallCount = 0;
-    useSelectorMock.mockImplementation(() => {
-      selectorCallCount += 1;
-      if (selectorCallCount % 2 === 1) {
-        return undefined;
-      }
-      return '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12';
-    });
+    useSelectorMock.mockImplementation((selector) =>
+      selector === selectEvmAddress
+        ? '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12'
+        : undefined,
+    );
     queryFnMock.mockResolvedValue({ data: mockTransaction });
 
     const { result, waitForNextUpdate } = renderHook(
