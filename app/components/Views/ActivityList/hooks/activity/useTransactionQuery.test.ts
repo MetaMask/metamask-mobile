@@ -174,4 +174,39 @@ describe('useTransactionQuery', () => {
       }),
     );
   });
+
+  it('falls back to selectEvmAddress when group account is undefined', async () => {
+    let selectorCallCount = 0;
+    useSelectorMock.mockImplementation(() => {
+      selectorCallCount += 1;
+      if (selectorCallCount % 2 === 1) {
+        return undefined;
+      }
+      return '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12';
+    });
+    queryFnMock.mockResolvedValue({ data: mockTransaction });
+
+    const { result, waitForNextUpdate } = renderHook(
+      () =>
+        useTransactionQuery({
+          chainId: 'eip155:1',
+          enabled: true,
+          txHash: '0xdef',
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitForNextUpdate();
+
+    expect(result.current.data).toEqual(mockTransaction);
+    expect(queryFnMock).toHaveBeenCalledWith(
+      'eip155:1:0xabcdef1234567890abcdef1234567890abcdef12',
+      '0xdef',
+      expect.objectContaining({
+        includeLogs: false,
+        includeMiscOperations: false,
+        includeTxMetadata: true,
+      }),
+    );
+  });
 });

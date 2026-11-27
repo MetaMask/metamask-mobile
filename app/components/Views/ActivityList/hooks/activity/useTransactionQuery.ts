@@ -10,6 +10,7 @@ import {
 } from '@metamask/utils';
 import I18n from '../../../../../../locales/i18n';
 import { apiClient } from '../../../../../core/apiClient';
+import { selectEvmAddress } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 export function useTransactionQuery({
@@ -22,7 +23,8 @@ export function useTransactionQuery({
   txHash: string | undefined;
 }) {
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const evmAddress = evmAccount?.address ?? '';
+  const globalEvmAddress = useSelector(selectEvmAddress);
+  const evmAddress = evmAccount?.address ?? globalEvmAddress ?? '';
 
   const accountId = useMemo(() => {
     if (!chainId || !isCaipChainId(chainId) || !evmAddress) {
