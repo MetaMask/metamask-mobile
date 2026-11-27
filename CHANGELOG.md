@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.21.3]
 
+### Fixed
+
+- Fixed X account connection failing on Android devices without a Custom Tabs browser by adding an in-app WebView fallback (#40553)
+
 ## [8.21.2]
 
 ### Changed
