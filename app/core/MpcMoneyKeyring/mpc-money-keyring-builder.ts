@@ -14,7 +14,7 @@ const MPC_CLOUD_URL =
   // Empty env overrides must fall back to the dev endpoint.
   // oxlint-disable-next-line typescript/prefer-nullish-coalescing
   process.env.MM_MONEY_MPC_CLOUD_URL ||
-  'https://mpc-service.dev-api.cx.metamask.io/v2';
+  'https://mpc-service.dev-api.cx.metamask.io/v1';
 const MPC_RELAYER_URL =
   // Empty env overrides must fall back to the dev endpoint.
   // oxlint-disable-next-line typescript/prefer-nullish-coalescing

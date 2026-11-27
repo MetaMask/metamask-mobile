@@ -53,7 +53,7 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(options).toMatchObject({
       cl24Lib: { name: 'cl24' },
       dkls23Lib: { name: 'dkls23' },
-      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v2',
+      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v1',
       relayerURL:
         'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     });
@@ -64,14 +64,14 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
       'unset',
       undefined,
       undefined,
-      'https://mpc-service.dev-api.cx.metamask.io/v2',
+      'https://mpc-service.dev-api.cx.metamask.io/v1',
       'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     ],
     [
       'empty',
       '',
       '',
-      'https://mpc-service.dev-api.cx.metamask.io/v2',
+      'https://mpc-service.dev-api.cx.metamask.io/v1',
       'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     ],
     [
