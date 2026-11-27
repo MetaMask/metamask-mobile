@@ -10,10 +10,10 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { backgroundState } from '#app/util/test/initial-root-state';
+import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from '#app/components/UI/BasicFunctionality/BasicFunctionality.constants';
 
 import PrivacySettings from './PrivacySettings';
 import { META_METRICS_SECTION } from '../SecuritySettings/SecuritySettings.constants';
-import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from '../../../UI/BasicFunctionality/BasicFunctionality.constants';
 
 let mockUseParamsValues: {
   scrollToSection?: 'metametrics' | 'data-collection';

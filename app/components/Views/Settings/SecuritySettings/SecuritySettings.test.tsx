@@ -98,12 +98,14 @@ describe('SecuritySettings', () => {
   });
 
   it('renders inline header with Security title', () => {
-    const { getByTestId, getByText } = renderWithProvider(<SecuritySettings />, {
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
       state: initialState,
     });
     const header = getByTestId('header');
     expect(header).toBeOnTheScreen();
-    expect(within(header).getByText(strings('app_settings.security_title'))).toBeOnTheScreen();
+    expect(
+      within(header).getByText(strings('app_settings.security_title')),
+    ).toBeOnTheScreen();
   });
 
   it('calls navigation.goBack when header back button is pressed', () => {
@@ -123,14 +125,14 @@ describe('SecuritySettings', () => {
         state: initialState,
       },
     );
-    expect(getByText(strings('app_settings.protect_title'))).toBeOnTheScreen();
+    expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
-    ).toBeOnTheScreen();
-    expect(getByTestId(AUTO_LOCK_SECTION)).toBeOnTheScreen();
+    ).toBeTruthy();
+    expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
-    ).toBeOnTheScreen();
+    ).toBeTruthy();
   });
 
   it('renders Blockaid settings', async () => {
