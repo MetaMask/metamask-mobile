@@ -82,6 +82,9 @@ export const createOnboardingController = (
   const timers = new Set<ReturnType<typeof setTimeout>>();
   let lastEmail: string | undefined;
   let lastAction: (() => Promise<void>) | undefined;
+  let pinnedDestination:
+    | { walletAddress: string; network: KalshiWalletNetwork; key: string }
+    | undefined;
 
   const guard = () => {
     const gen = generation;
@@ -220,6 +223,7 @@ export const createOnboardingController = (
     timers.clear();
     lastEmail = undefined;
     lastAction = undefined;
+    pinnedDestination = undefined;
   };
 
   return {
@@ -272,11 +276,14 @@ export const createOnboardingController = (
       });
     },
     activate: () => {
-      const { walletAddress, network } = inputs();
-      const key = inputs().newKey();
-      if (!walletAddress) {
-        return;
-      }
+      const current = inputs();
+      if (!pinnedDestination && !current.walletAddress) return;
+      pinnedDestination ??= {
+        walletAddress: current.walletAddress as string,
+        network: current.network,
+        key: current.newKey(),
+      };
+      const { walletAddress, network, key } = pinnedDestination;
       perform(async () => {
         const check = guard();
         await inputs().client.activate(walletAddress, network, key);

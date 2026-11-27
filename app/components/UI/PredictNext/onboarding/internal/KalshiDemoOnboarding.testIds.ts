@@ -11,6 +11,8 @@ export const KalshiDemoOnboardingTestIds = {
   MFA_VERIFY: 'kalshi-demo-onboarding-mfa-verify',
   WORKING: 'kalshi-demo-onboarding-working',
   WALLET_ADDRESS: 'kalshi-demo-onboarding-wallet-address',
+  WALLET_NETWORK: 'kalshi-demo-onboarding-wallet-network',
+  WALLET_NAME: 'kalshi-onboarding-wallet-name',
   ACTIVATE: 'kalshi-demo-onboarding-activate',
   DONE: 'kalshi-demo-onboarding-done',
   MESSAGE: 'kalshi-demo-onboarding-message',

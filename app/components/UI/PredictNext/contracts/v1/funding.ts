@@ -281,7 +281,7 @@ const destinationSchema = object({
     return trimmed.length > 0 && trimmed === value;
   }),
   network: enums(['base'] as const),
-  source: enums(['configured_demo', 'venue'] as const),
+  source: enums(['configured_demo', 'venue', 'registered'] as const),
 });
 
 /** Absent-not-null (ADR-0001): a `sweep_all` quote omits `requestedAmount`

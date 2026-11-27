@@ -1,9 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
+import {
+  selectEvmAddress,
+  selectInternalEvmAccounts,
+} from '../../../../selectors/accountsController';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -14,10 +18,8 @@ import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
-import {
-  kalshiDemoPayoutNetwork,
-  kalshiDemoPayoutWallet,
-} from './internal/demoOnboardingConfig';
+import type { KalshiPayoutDestinationMode } from './internal/kalshiPayoutDestination';
+import { useKalshiPayoutDestinationMode } from './internal/useKalshiPayoutDestinationMode';
 import { KalshiDemoOnboardingModal } from './internal/KalshiDemoOnboardingModal';
 import {
   useKalshiDemoOnboarding,
@@ -44,16 +46,29 @@ const invalidatePortfolioReads = () => {
 
 interface KalshiDemoOnboardingFlowProps {
   client: KalshiOnboardingApi;
-  walletAddress?: string;
+  mode: KalshiPayoutDestinationMode;
 }
 
 const KalshiDemoOnboardingFlow = ({
   client,
-  walletAddress,
+  mode,
 }: KalshiDemoOnboardingFlowProps) => {
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
-  const network = kalshiDemoPayoutNetwork();
+  const accounts = useSelector(selectInternalEvmAccounts);
+  const selectedEvmAddress = useSelector(selectEvmAddress);
+  const selectedAccount = accounts.find(
+    (candidate) =>
+      candidate.address.toLowerCase() === selectedEvmAddress?.toLowerCase(),
+  );
+  const account = selectedAccount
+    ? {
+        address: toChecksumHexAddress(selectedAccount.address),
+        name: selectedAccount.metadata.name,
+      }
+    : undefined;
+  const walletAddress = mode.kind === 'demo' ? mode.address : account?.address;
+  const network = mode.network;
   const pollIntervalMs =
     hardwareTier === 'LOW' ||
     networkTier === 'SLOW_CELLULAR' ||
@@ -79,6 +94,8 @@ const KalshiDemoOnboardingFlow = ({
       onboarding={onboarding}
       walletAddress={walletAddress}
       network={network}
+      mode={mode}
+      account={account}
     />
   );
 };
@@ -100,23 +117,43 @@ export const KalshiDemoOnboardingGate = ({
   const config = useSelector(selectPredictConfig);
   const signedIn = useSelector(selectIsSignedIn);
   const walletUnlocked = useSelector(selectIsUnlocked);
-  const evmAddress = useSelector(selectEvmAddress);
+  const accounts = useSelector(selectInternalEvmAccounts);
+  const destination = useKalshiPayoutDestinationMode(KALSHI_VENUE_ID);
+  const logged = useRef(new Set<string>());
+  const unavailable =
+    destination.status !== 'ready'
+      ? destination.status === 'loading'
+        ? 'loading'
+        : destination.reason
+      : destination.mode.kind === 'production' && accounts.length === 0
+        ? 'no_evm_account'
+        : undefined;
+  useEffect(() => {
+    if (unavailable && !logged.current.has(unavailable)) {
+      logged.current.add(unavailable);
+      Logger.log('PredictNext: Kalshi onboarding unavailable', {
+        reason: unavailable,
+      });
+    }
+  }, [unavailable]);
   const accountNotEnabled = useVenueAccountNotEnabled(KALSHI_VENUE_ID);
   const enabled =
-    resolveVenueAuthProfile(config) !== undefined && signedIn && walletUnlocked;
+    resolveVenueAuthProfile(config) !== undefined &&
+    signedIn &&
+    walletUnlocked &&
+    !unavailable;
   const client = useMemo(
     () => (enabled ? createKalshiOnboardingClient() : undefined),
     [enabled],
   );
-  const walletAddress = kalshiDemoPayoutWallet(evmAddress);
   return (
     <>
       {children}
-      {client ? (
+      {client && destination.status === 'ready' ? (
         <KalshiDemoOnboardingFlow
           key={accountNotEnabled ? 'account-not-enabled' : 'initial'}
           client={client}
-          walletAddress={walletAddress}
+          mode={destination.mode}
         />
       ) : null}
     </>

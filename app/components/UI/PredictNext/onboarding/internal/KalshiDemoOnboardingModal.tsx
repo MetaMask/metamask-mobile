@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  AvatarNetwork,
+  AvatarNetworkSize,
   BottomSheet,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextField,
@@ -14,10 +23,15 @@ import {
 } from '@metamask/design-system-react-native';
 
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import { formatAddress } from '../../../../../util/address';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import type { KalshiWalletNetwork } from './demoOnboardingConfig';
 import type { KalshiMfaChallenge } from '../../contracts/v1/onboarding';
 import type { OnboardingMessage } from './kalshiDemoOnboardingMachine';
 import type { KalshiDemoOnboarding } from './useKalshiDemoOnboarding';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
+import type { KalshiPayoutDestinationMode } from './kalshiPayoutDestination';
 
 /** Literal error copy. Temporary slice: no locale entries. */
 const MESSAGES: Record<OnboardingMessage, string> = {
@@ -53,10 +67,27 @@ const mfaTitle = (mfa: KalshiMfaChallenge | undefined): string => {
   }
 };
 
+/** Display name and icon source for each payout network. */
+const WALLET_NETWORKS: Record<
+  KalshiWalletNetwork,
+  { name: string; chainId: string }
+> = {
+  base: { name: 'Base', chainId: NETWORKS_CHAIN_ID.BASE },
+  polygon: { name: 'Polygon', chainId: NETWORKS_CHAIN_ID.POLYGON },
+};
+
+/** A wallet account that can receive Kalshi withdrawals. */
+export interface KalshiPayoutAccount {
+  address: string;
+  name: string;
+}
+
 interface KalshiDemoOnboardingModalProps {
   onboarding: KalshiDemoOnboarding;
   walletAddress?: string;
-  network: string;
+  network: KalshiWalletNetwork;
+  mode: KalshiPayoutDestinationMode;
+  account?: KalshiPayoutAccount;
 }
 
 /** Disables the buttons for `Retry-After` seconds after a rate limit. */
@@ -83,6 +114,8 @@ export const KalshiDemoOnboardingModal = ({
   onboarding,
   walletAddress,
   network,
+  mode,
+  account,
 }: KalshiDemoOnboardingModalProps) => {
   const { state } = onboarding;
   const [email, setEmail] = useState('');
@@ -109,7 +142,7 @@ export const KalshiDemoOnboardingModal = ({
         return (
           <>
             <Text variant={TextVariant.HeadingSm}>
-              Link a Kalshi demo account
+              Link a Kalshi {mode.kind === 'demo' ? 'demo ' : ''}account
             </Text>
             <TextField
               value={email}
@@ -128,8 +161,8 @@ export const KalshiDemoOnboardingModal = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Use your own Kalshi demo account. Linking moves it from any other
-              MetaMask profile.
+              Use your own Kalshi {mode.kind === 'demo' ? 'demo ' : ''}account.
+              Linking moves it from any other MetaMask profile.
             </Text>
             {message}
             <Button
@@ -242,22 +275,64 @@ export const KalshiDemoOnboardingModal = ({
           <Box twClassName="items-center gap-3 py-6" testID={TestIds.WORKING}>
             <ActivityIndicator />
             <Text variant={TextVariant.BodyMd}>
-              Setting up your Kalshi demo account…
+              Setting up your Kalshi {mode.kind === 'demo' ? 'demo ' : ''}
+              account…
             </Text>
           </Box>
         );
-      case 'wallet':
+      case 'wallet': {
+        const walletNetwork = WALLET_NETWORKS[network];
         return (
           <>
             <Text variant={TextVariant.HeadingSm}>Withdrawal wallet</Text>
             {walletAddress ? (
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                testID={TestIds.WALLET_ADDRESS}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-3"
               >
-                Withdrawals go to {walletAddress} on {network}.
-              </Text>
+                <AvatarAccount
+                  size={AvatarAccountSize.Md}
+                  address={walletAddress}
+                  variant={AvatarAccountVariant.Maskicon}
+                />
+                <Box twClassName="min-w-0 flex-1 gap-0.5">
+                  {mode.kind === 'production' && account?.name ? (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      numberOfLines={1}
+                      testID={TestIds.WALLET_NAME}
+                    >
+                      {account.name}
+                    </Text>
+                  ) : null}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    numberOfLines={1}
+                    testID={TestIds.WALLET_ADDRESS}
+                  >
+                    {formatAddress(walletAddress, 'short')}
+                  </Text>
+                </Box>
+                <Tag
+                  twClassName="shrink-0 self-center rounded-full bg-alternative px-2 py-0.5"
+                  startAccessory={
+                    <AvatarNetwork
+                      size={AvatarNetworkSize.Xs}
+                      name={walletNetwork.name}
+                      src={getNetworkImageSource({
+                        chainId: walletNetwork.chainId,
+                      })}
+                    />
+                  }
+                  severity={TagSeverity.Neutral}
+                  testID={TestIds.WALLET_NETWORK}
+                >
+                  <Text>{walletNetwork.name}</Text>
+                </Tag>
+              </Box>
             ) : (
               <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
                 Select an Ethereum account to continue.
@@ -277,11 +352,13 @@ export const KalshiDemoOnboardingModal = ({
             </Button>
           </>
         );
+      }
       case 'done':
         return (
           <>
             <Text variant={TextVariant.BodyMd} testID={TestIds.DONE}>
-              Your Kalshi demo account is linked.
+              Your Kalshi {mode.kind === 'demo' ? 'demo ' : ''}account is
+              linked.
             </Text>
             <Button
               variant={ButtonVariant.Primary}

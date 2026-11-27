@@ -4292,6 +4292,7 @@
         "title": "Sandbox wallet",
         "body": "This pays the sandbox wallet registered when you set up your demo account. It can't be changed here."
       },
+      "registered_notice": "This is the wallet you registered for withdrawals during Kalshi setup. It can't be changed here.",
       "status": {
         "processing": {
           "title": "Withdrawal processing",

@@ -40,6 +40,10 @@ const PREVIEW_URL = /\/withdrawals\/preview$/u;
 const COMMIT_URL = /\/withdrawals\/([^/]+)\/commit$/u;
 const OBSERVE_URL = /\/withdrawals\/[0-9a-f-]{36}$/u;
 
+/** Slow cellular doubles the first receipt-poll step, so the terminal status
+ * lands after the production 4s budget; this is the async boundary. */
+const SLOW_CELLULAR_SETTLE_TIMEOUT_MS = 6_000;
+
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
 
 interface FetchReply {
@@ -61,6 +65,16 @@ const previewOf = (overrides: Record<string, unknown> = {}) => ({
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
   ...overrides,
 });
+
+const registeredPreviewOf = (overrides: Record<string, unknown> = {}) =>
+  previewOf({
+    destination: {
+      address: DESTINATION_ADDRESS,
+      network: 'base',
+      source: 'registered',
+    },
+    ...overrides,
+  });
 
 const receiptOf = (overrides: Record<string, unknown> = {}) => ({
   operationId: 'd4e5f6a7-1111-4222-8333-444455556666',
@@ -375,12 +389,43 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.queryByTestId(PredictAmountEntryTestIds.DISPLAY),
     ).not.toBeOnTheScreen();
-    fireEvent.press(
-      screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM_BACK),
-    );
+  });
+
+  it('shows the registered destination notice without the sandbox notice', async () => {
+    stubWithdrawals({ preview: () => ({ body: registeredPreviewOf() }) });
+    renderWithdrawFlow();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+
     expect(
-      screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE),
+      await screen.findByTestId(PredictWithdrawFlowTestIds.DESTINATION),
+    ).toHaveTextContent(DESTINATION_ADDRESS);
+    expect(
+      screen.getByTestId(
+        PredictWithdrawFlowTestIds.REGISTERED_DESTINATION_NOTICE,
+      ),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PredictWithdrawFlowTestIds.SANDBOX_NOTICE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the sandbox notice for the configured_demo destination', async () => {
+    stubWithdrawals();
+    renderWithdrawFlow();
+    await openWithdrawFlow();
+    typeAmount('5.00');
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
+
+    expect(
+      await screen.findByTestId(PredictWithdrawFlowTestIds.SANDBOX_NOTICE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PredictWithdrawFlowTestIds.REGISTERED_DESTINATION_NOTICE,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('masks the available balance, confirmed amount, and destination in privacy mode', async () => {
@@ -486,13 +531,12 @@ describe('PredictWithdrawFlow', () => {
     // The screen hands its tier to the polling hook, which reads the receipt
     // back. The step length is a hook-level concern
     // (`useWithdrawReceipt.test.ts`); here the tier must simply not stop
-    // observation short of a terminal status. Slow cellular doubles the first
-    // step, so wait past the production 4s.
+    // observation short of a terminal status.
     expect(
       await screen.findByTestId(
         PredictWithdrawFlowTestIds.status('settled'),
         {},
-        { timeout: 6_000 },
+        { timeout: SLOW_CELLULAR_SETTLE_TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     expect(
