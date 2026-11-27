@@ -9780,9 +9780,6 @@
     "typescript/no-misused-promises": {
       "count": 3
     },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 3
-    },
     "typescript/promise-function-async": {
       "count": 3
     }
