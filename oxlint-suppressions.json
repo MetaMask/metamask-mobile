@@ -13485,11 +13485,6 @@
       "count": 3
     }
   },
-  "app/components/UI/TokenDetails/Views/TokenDetails.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/TokenDetails/Views/TokenDetails.tsx": {
     "typescript/no-misused-promises": {
       "count": 1
@@ -13538,7 +13533,7 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 7
+      "count": 5
     }
   },
   "app/components/UI/TokenDetails/components/AssetOverviewContent.view.test.tsx": {
@@ -13841,11 +13836,6 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/TokenDetails/hooks/useTokenSecurityData.ts": {
-    "typescript/no-floating-promises": {
       "count": 1
     }
   },

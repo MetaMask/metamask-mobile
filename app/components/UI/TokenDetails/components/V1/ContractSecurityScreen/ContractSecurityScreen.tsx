@@ -203,25 +203,19 @@ export const ContractSecurityScreen: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     token,
-    // Defaults keep the event correct even if an opener omits them: this
-    // screen is V1-only, which reports as `v3` / `memecoin`.
     tdpVersion = 'v3',
     tokenCategory = 'memecoin',
   } = useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
 
-  /**
-   * Resolved the same way the detail page resolves it, so both land on one
-   * query entry: this screen is opened from that page and should render from
-   * the payload already in cache rather than fetching its own copy.
-   */
   const caipAssetId = useTokenCaipAssetId(token);
-
   const {
     data: securityData,
+    dataUpdatedAt,
     isPending: isLoading,
     error,
-    dataUpdatedAt,
-  } = useTokenSecurityQuery(caipAssetId);
+  } = useTokenSecurityQuery(caipAssetId, {
+    enabled: tokenCategory !== 'standard',
+  });
 
   const facts = useSecurityFacts({
     securityData: securityData ?? null,
