@@ -287,6 +287,7 @@ describe('useKalshiActivation', () => {
 
     expect(result.current.failure?.message).toBe('activation_timeout');
     expect(client.activate).toHaveBeenCalledTimes(1);
+    expect(client.getStatus).toHaveBeenCalledTimes(1);
   });
 
   it('skips polls while the app is backgrounded', async () => {
