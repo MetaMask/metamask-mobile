@@ -149,13 +149,43 @@ describe('MoneyEarningsView', () => {
     );
   });
 
-  it('shows loading state before historical earnings resolve', async () => {
-    const { findByTestId, getByTestId } = renderMoneyEarningsView();
+  it('shows loading skeletons before historical earnings resolve', async () => {
+    const { findByTestId, getByTestId, getByText, queryByTestId } =
+      renderMoneyEarningsView();
 
     expect(getByTestId(MoneyEarningsViewTestIds.LOADING)).toBeOnTheScreen();
     expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_SKELETON(0)),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_SKELETON(4)),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('money.earnings.total_earned'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings.payouts_disclaimer')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.RANGE_SELECTOR),
+    ).toBeOnTheScreen();
+
+    expect(
       await findByTestId(MoneyEarningsViewTestIds.HERO_TOTAL),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.HERO_TOTAL_SKELETON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE_SKELETON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_SKELETON(0)),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows an error and recovers after retry', async () => {
