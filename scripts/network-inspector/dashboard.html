@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Pulse · MetaMask Mobile</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,.10);
+    --series1: #2a78d6; --series2: #eb6834; --track: #cde2fb;
+    --good: #0ca30c; --good-text: #006300; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+    --hover: rgba(11,11,11,.045); --select: #e6effc; --code: #f1f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,.10);
+      --series1: #3987e5; --series2: #d95926; --track: #0d366b; --good-text: #0ca30c;
+      --hover: rgba(255,255,255,.06); --select: #1d2a3d; --code: #151514;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,.10);
+    --series1: #3987e5; --series2: #d95926; --track: #0d366b; --good-text: #0ca30c;
+    --hover: rgba(255,255,255,.06); --select: #1d2a3d; --code: #151514;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button, input, select { font: inherit; color: inherit; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; }
+  .muted { color: var(--muted); }
+  .i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .i.sm { width: 14px; height: 14px; }
+
+  .app { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+  .side { position: sticky; top: 0; height: 100vh; padding: 18px 12px; display: flex; flex-direction: column;
+    gap: 4px; background: var(--surface); border-right: 1px solid var(--border); }
+  .brand { display: flex; gap: 10px; align-items: center; padding: 4px 8px 18px; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--series1); color: #fff;
+    display: grid; place-items: center; }
+  .brand b { display: block; font-size: 14px; letter-spacing: -.01em; }
+  .brand span { font-size: 12px; color: var(--muted); }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border: 0;
+    background: none; color: var(--ink2); border-radius: 9px; cursor: pointer; text-align: left; }
+  .nav button:hover { background: var(--hover); color: var(--ink); }
+  .nav button.on { background: var(--select); color: var(--ink); font-weight: 600; }
+  .nav .count { margin-left: auto; min-width: 22px; padding: 1px 7px; border-radius: 99px; font-size: 11px;
+    font-weight: 650; color: #fff; background: var(--critical); text-align: center; }
+  .nav .count.soft { background: var(--hover); color: var(--ink2); }
+  .nav-sep { height: 1px; background: var(--border); margin: 10px 8px; }
+  .foot { margin-top: auto; padding: 10px; font-size: 12px; color: var(--muted); display: grid; gap: 8px; }
+  .live { display: flex; align-items: center; gap: 8px; color: var(--ink2); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--critical); }
+  .dot.on { background: var(--good); }
+
+  main { min-width: 0; padding: 0 24px 48px; }
+  .top { position: sticky; top: 0; z-index: 6; background: var(--page); padding: 18px 0 12px;
+    display: grid; gap: 10px; }
+  .top-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+  .top h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+  .top .sub { color: var(--muted); font-size: 13px; }
+  .spacer { flex: 1; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--hover); border-radius: 10px; }
+  .seg button { border: 0; background: none; padding: 5px 11px; border-radius: 8px; cursor: pointer;
+    color: var(--ink2); font-size: 13px; }
+  .seg button.on { background: var(--surface); color: var(--ink); font-weight: 600;
+    box-shadow: 0 0 0 1px var(--border); }
+  .search { display: flex; align-items: center; gap: 8px; padding: 0 11px; height: 34px; min-width: 220px; flex: 1 1 260px; max-width: 460px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); }
+  .search input { border: 0; outline: 0; background: none; width: 100%; color: var(--ink); }
+  .device { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 11px; height: 34px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .device[hidden] { display: none; }
+  .device select { border: 0; outline: 0; background: none; color: var(--ink); padding-right: 6px; max-width: 300px; cursor: pointer; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--ink); }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--series1); border-color: var(--series1); color: #fff; }
+  .btn.on { background: var(--select); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px 3px 11px; font-size: 12.5px;
+    background: var(--select); border-radius: 99px; max-width: 100%; }
+  .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 52ch; }
+  .chip button { border: 0; background: none; cursor: pointer; display: grid; place-items: center;
+    width: 20px; height: 20px; border-radius: 50%; color: var(--ink2); }
+  .chip button:hover { background: var(--hover); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .card-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-bottom: 10px; }
+  .card-h h3, .section-h { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: -.01em; }
+  .card-h .hint { color: var(--muted); font-size: 12.5px; }
+  .legend { margin-left: auto; display: flex; gap: 14px; font-size: 12.5px; color: var(--ink2); }
+  .legend i { display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+  .legend .ln { width: 14px; height: 2px; border-radius: 2px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .stack { display: grid; gap: 12px; align-content: start; min-width: 0; }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
+  .kpi { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-content: start; }
+  .kpi .label { display: flex; align-items: center; gap: 7px; color: var(--ink2); font-size: 13px; grid-column: 1 / -1; }
+  .kpi .value { font-size: 30px; font-weight: 650; letter-spacing: -.025em; line-height: 1.15; margin-top: 4px; }
+  .kpi .value small { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-left: 3px; }
+  .kpi .note { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; }
+  .kpi svg.spark { align-self: end; }
+  .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }
+  .status.good { color: var(--good-text); } .status.warn { color: var(--ink); } .status.crit { color: var(--critical); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 12px; margin-bottom: 12px; }
+
+  .chart { position: relative; height: 230px; }
+  .chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .chart .gridline { stroke: var(--grid); stroke-width: 1; }
+  .chart .axis { stroke: var(--axis); stroke-width: 1; }
+  .chart text { fill: var(--muted); font-size: 11px; }
+  .chart .bars g.hot { opacity: .78; }
+  .empty { display: grid; place-items: center; height: 100%; color: var(--muted); text-align: center; padding: 20px; }
+  .tip { position: fixed; z-index: 30; pointer-events: none; min-width: 150px; padding: 9px 11px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,.14); font-size: 12.5px; }
+  .tip .t { color: var(--muted); margin-bottom: 4px; }
+  .tip .r { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .tip .r i { display: inline-block; width: 10px; height: 2px; border-radius: 2px; }
+  .tip .r b { margin-left: auto; padding-left: 14px; font-weight: 650; }
+  details.twin { margin-top: 10px; color: var(--ink2); font-size: 12.5px; }
+  details.twin summary { cursor: pointer; }
+  details.twin .scroll { max-height: 220px; overflow: auto; margin-top: 8px; }
+
+  .rank { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 2px 12px; width: 100%; text-align: left;
+    padding: 7px 8px; margin: 0 -8px; border: 0; background: none; border-radius: 9px; cursor: pointer; width: calc(100% + 16px); }
+  .rank:hover { background: var(--hover); }
+  .rank .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank .val { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rank .track { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+  .rank .fill { height: 100%; background: var(--series1); border-radius: 0 4px 4px 0; }
+  .seg-bar { display: flex; gap: 2px; height: 8px; margin: 6px 0 12px; }
+  .seg-bar i { display: block; border-radius: 99px; min-width: 4px; }
+  .seg-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--ink2); }
+  .seg-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .seg-legend b { color: var(--ink); font-weight: 650; }
+
+  .issue-mini { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; width: calc(100% + 16px);
+    margin: 0 -8px; padding: 9px 8px; border: 0; background: none; text-align: left; border-radius: 9px; cursor: pointer; }
+  .issue-mini:hover { background: var(--hover); }
+  .issue-mini .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .issue-mini .m { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+  .sevicon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; color: #fff; }
+  .sev-critical { background: var(--critical); } .sev-serious { background: var(--serious); }
+  .sev-warning { background: var(--warning); color: #0b0b0b; } .sev-info { background: var(--series1); }
+
+  .sevbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .sevbar .seg button { display: inline-flex; align-items: center; gap: 7px; }
+  .issues { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); gap: 12px; }
+  .issue { display: flex; flex-direction: column; gap: 8px; }
+  .issue-head { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink2); }
+  .issue-head .sevlabel { font-weight: 650; color: var(--ink); }
+  .issue h3 { margin: 0; font-size: 14px; font-weight: 600; word-break: break-word; }
+  .issue .metric { font-size: 24px; font-weight: 650; letter-spacing: -.02em; }
+  .issue p { margin: 0; color: var(--ink2); }
+  .issue .advice { display: flex; gap: 9px; padding: 10px 12px; background: var(--hover); border-radius: 10px; color: var(--ink); font-size: 13px; }
+  .issue .advice .i { margin-top: 1px; color: var(--ink2); }
+  .issue .btn { align-self: flex-start; margin-top: auto; }
+  .allgood { display: grid; place-items: center; gap: 8px; padding: 48px 16px; text-align: center; color: var(--ink2); }
+  .allgood .i { width: 40px; height: 40px; color: var(--good); }
+
+  .tablewrap { overflow: auto; max-height: calc(100vh - 210px); border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th { position: sticky; top: 0; z-index: 2; background: var(--surface); text-align: left; font-weight: 600;
+    color: var(--ink2); padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: var(--ink); }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th .i { width: 12px; height: 12px; vertical-align: -1px; margin-left: 3px; opacity: .6; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--hover); }
+  tbody tr.sel { background: var(--select); }
+  td .name { font-weight: 550; word-break: break-all; }
+  td .subline { color: var(--muted); font-size: 12px; margin-top: 1px; word-break: break-all; }
+  td .share { height: 5px; border-radius: 3px; background: var(--track); margin-top: 6px; overflow: hidden; max-width: 260px; }
+  td .share i { display: block; height: 100%; background: var(--series1); border-radius: 0 3px 3px 0; }
+  .failcell { display: inline-flex; align-items: center; gap: 5px; }
+  .failcell .i { width: 13px; height: 13px; color: var(--critical); }
+  .tag { display: inline-block; padding: 0 7px; margin-left: 6px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    background: var(--hover); color: var(--ink2); vertical-align: 1px; }
+  .stcell { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+  .stcell.good { color: var(--good-text); } .stcell.crit { color: var(--critical); }
+  .stcell.serious { color: var(--ink); } .stcell.serious .i { color: var(--serious); }
+  .stcell.muted, .stcell.pend { color: var(--ink2); }
+  .more { padding: 12px; color: var(--muted); font-size: 12.5px; text-align: center; }
+
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); z-index: 20; background: var(--surface);
+    border-left: 1px solid var(--border); box-shadow: -12px 0 40px rgba(0,0,0,.12); display: none; flex-direction: column; }
+  .drawer.open { display: flex; }
+  .drawer-h { display: flex; gap: 10px; align-items: flex-start; padding: 16px 18px 8px; }
+  .drawer-h .ttl { min-width: 0; flex: 1; }
+  .drawer-h .ttl b { display: block; word-break: break-all; }
+  .tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border); }
+  .tab { padding: 9px 12px; cursor: pointer; border: 0; background: none; color: var(--ink2); border-bottom: 2px solid transparent; }
+  .tab.on { color: var(--ink); border-bottom-color: var(--series1); font-weight: 600; }
+  .drawer-b { padding: 16px 18px 28px; overflow: auto; flex: 1; }
+  .kv { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 6px 12px; margin: 0 0 14px; }
+  .kv dt { color: var(--muted); } .kv dd { margin: 0; word-break: break-all; }
+  pre { background: var(--code); padding: 12px; border-radius: 10px; overflow: auto; margin: 0 0 12px;
+    white-space: pre-wrap; word-break: break-all; max-height: 55vh; }
+  h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .frame { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--grid); }
+  .frame.app .m { font-weight: 650; }
+  .frame.lib, .frame.other { color: var(--ink2); }
+  .frame .o { font-size: 10.5px; text-transform: uppercase; padding: 0 6px; border-radius: 99px; background: var(--hover); color: var(--ink2); flex: none; }
+  .frame.app .o { background: var(--series1); color: #fff; }
+  .scrim { position: fixed; inset: 0; z-index: 19; background: rgba(0,0,0,.28); display: none; }
+  .scrim.open { display: block; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40; background: var(--ink);
+    color: var(--surface); padding: 9px 16px; border-radius: 10px; font-size: 13px; }
+
+  @media (max-width: 880px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .side { position: static; height: auto; flex-direction: row; align-items: center; overflow-x: auto; padding: 8px 12px; border-right: 0;
+      border-bottom: 1px solid var(--border); }
+    .brand { padding: 0 8px 0 0; } .brand div, .foot, .nav-sep { display: none; }
+    .nav { flex-direction: row; } .nav button { width: auto; white-space: nowrap; }
+    main { padding: 0 16px 40px; }
+    .top { position: static; }
+    .tablewrap { max-height: none; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-alertcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-xcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+    <symbol id="i-braces" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5M3 12A9 9 0 0 1 18.5 5.8L21 8"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.3 17a9 9 0 1 1 17.4 0"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-redirect" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 4 12L16 12h5"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg class="i"><use href="#i-pulse"/></svg></div>
+      <div><b>Network Pulse</b><span>MetaMask Mobile · dev</span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="foot">
+      <div class="nav-sep" style="margin:0 0 4px"></div>
+      <div class="live"><span class="dot" id="dot"></span><span id="liveText">Connecting…</span></div>
+      <div id="sessionInfo"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div class="top-row">
+        <div><h1 id="pageTitle">Overview</h1><div class="sub" id="pageSub"></div></div>
+        <span class="spacer"></span>
+        <button class="btn" data-act="pause" id="pauseBtn"><svg class="i sm"><use href="#i-pause"/></svg><span>Pause</span></button>
+        <button class="btn" data-act="clear"><svg class="i sm"><use href="#i-trash"/></svg><span>Clear</span></button>
+        <button class="btn primary" data-act="report"><svg class="i sm"><use href="#i-copy"/></svg><span>Copy report</span></button>
+      </div>
+      <div class="top-row">
+        <div class="seg" id="winSeg" role="group" aria-label="Time window"></div>
+        <div class="seg" id="kindSeg" role="group" aria-label="Traffic type"></div>
+        <label class="search"><svg class="i sm"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Filter by URL, endpoint, caller, status…"></label>
+        <label class="device" id="deviceWrap" hidden><svg class="i sm"><use href="#i-phone"/></svg><select id="deviceSel" aria-label="Device"></select></label>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <section id="view"></section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim" data-act="closeDrawer"></div>
+<aside class="drawer" id="drawer" aria-label="Request details"></aside>
+<div class="tip" id="tip" hidden></div>
+
+<script src="/__network-inspector/analytics.js"></script>
+<script>
+(() => {
+  const A = window.NetAnalytics;
+  const BASE = '/__network-inspector';
+  // ?theme=dark|light overrides the OS setting.
+  const themeParam = new URLSearchParams(location.search).get('theme');
+  if (themeParam === 'dark' || themeParam === 'light') document.documentElement.dataset.theme = themeParam;
+  const MAX_ROWS = 400;
+  const records = new Map();
+  const baseFilter = () => ({ kinds: state.filter.kinds, windowMs: state.filter.windowMs, q: state.filter.q, session: state.filter.session });
+  const state = {
+    tab: 'overview',
+    filter: { kinds: ['http', 'ws'], windowMs: 0, q: '' },
+    sev: 'all',
+    sort: {
+      endpoints: { k: 'timeMs', d: -1 }, hosts: { k: 'count', d: -1 },
+      callers: { k: 'count', d: -1 }, rpc: { k: 'count', d: -1 },
+    },
+    paused: false, sel: null, dtab: 'overview', hover: false, connected: false,
+  };
+  const DRILL_KEYS = ['host', 'endpoint', 'caller', 'rpc', 'status', 'codes', 'dupKey', 'around'];
+  const NAV = [
+    ['overview', 'Overview', 'grid'], ['issues', 'Pain points', 'alert'], ['endpoints', 'Endpoints', 'link'],
+    ['hosts', 'Hosts', 'server'], ['callers', 'Callers', 'code'], ['rpc', 'JSON-RPC', 'braces'], ['requests', 'Requests', 'list'],
+  ];
+  const TITLES = {
+    overview: ['Overview', 'What the app is doing on the network right now'],
+    issues: ['Pain points', 'Ranked findings with what to try next'],
+    endpoints: ['Endpoints', 'Ids and hashes collapsed so repeated calls group together'],
+    hosts: ['Hosts', 'Which services the app depends on'],
+    callers: ['Callers', 'The code that triggered requests, library or app'],
+    rpc: ['JSON-RPC', 'Wallet node calls grouped by method'],
+    requests: ['Requests', 'Every call, newest first. Click one for headers, bodies and stack'],
+  };
+  const SEV = {
+    critical: { label: 'Critical', icon: 'xcircle' }, serious: { label: 'Needs attention', icon: 'alertcircle' },
+    warning: { label: 'Worth a look', icon: 'alert' }, info: { label: 'Good to know', icon: 'info' },
+  };
+  const WINDOWS = [[0, 'All'], [30000, '30 s'], [60000, '1 min'], [300000, '5 min']];
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const icon = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  const clock = (t, withMs) => {
+    const d = new Date(t);
+    const base = d.toTimeString().slice(0, 8);
+    return withMs ? `${base}.${String(d.getMilliseconds()).padStart(3, '0')}` : base;
+  };
+  const attr = (obj) => esc(JSON.stringify(obj));
+
+  // ---- data ---------------------------------------------------------------
+  function scoped(now) { return A.applyFilter([...records.values()], state.filter, now); }
+
+  // ---- chart helpers --------------------------------------------------------
+  function niceStep(raw) {
+    const exp = 10 ** Math.floor(Math.log10(raw));
+    const f = raw / exp;
+    if (f <= 1) return exp;
+    if (f <= 2) return 2 * exp;
+    if (f <= 5) return 5 * exp;
+    return 10 * exp;
+  }
+  function niceTicks(max, count, integer = false) {
+    const raw = niceStep(Math.max(max, 1) / count);
+    const step = integer ? Math.max(1, raw) : raw;
+    const top = Math.ceil(Math.max(max, 1) / step) * step;
+    const ticks = [];
+    for (let v = 0; v <= top + 1e-9; v += step) ticks.push(v);
+    return ticks;
+  }
+  function topRoundedBar(x, y, w, h, r) {
+    const radius = Math.min(r, h, w / 2);
+    return `M${x},${y + h}V${y + radius}Q${x},${y} ${x + radius},${y}H${x + w - radius}Q${x + w},${y} ${x + w},${y + radius}V${y + h}Z`;
+  }
+  function showTip(event, html) {
+    const tip = $('#tip');
+    tip.innerHTML = html;
+    tip.hidden = false;
+    const pad = 14;
+    const rect = tip.getBoundingClientRect();
+    let left = event.clientX + pad;
+    if (left + rect.width > window.innerWidth - 8) left = event.clientX - rect.width - pad;
+    tip.style.left = `${Math.max(8, left)}px`;
+    tip.style.top = `${Math.min(event.clientY + pad, window.innerHeight - rect.height - 8)}px`;
+  }
+  const hideTip = () => { $('#tip').hidden = true; };
+
+  function columnChart(host, tl) {
+    if (!tl.buckets.length) { host.innerHTML = '<div class="empty">Waiting for traffic…</div>'; return; }
+    const W = host.clientWidth || 600, H = host.clientHeight || 230;
+    const m = { l: 40, r: 8, t: 10, b: 26 };
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    const ticks = niceTicks(Math.max(...tl.buckets.map((b) => b.count)), 4, true);
+    const top = ticks[ticks.length - 1];
+    const band = pw / tl.buckets.length;
+    const bw = Math.min(24, Math.max(2, band - 2));
+    const y = (v) => m.t + ph - (v / top) * ph;
+    const labelEvery = Math.max(1, Math.ceil(tl.buckets.length / Math.max(2, Math.floor(pw / 78))));
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Requests over time">`;
+    for (const t of ticks) svg += `<line class="gridline" x1="${m.l}" x2="${W - m.r}" y1="${y(t)}" y2="${y(t)}"/><text x="${m.l - 8}" y="${y(t) + 4}" text-anchor="end">${A.formatCount(t)}</text>`;
+    svg += `<g class="bars">`;
+    tl.buckets.forEach((b, i) => {
+      const x = m.l + i * band + (band - bw) / 2;
+      const okH = ((b.count - b.failed) / top) * ph, failH = (b.failed / top) * ph;
+      let g = `<g data-i="${i}">`;
+      if (b.count - b.failed > 0) {
+        const squareTop = `M${x},${y(0)}V${y(0) - okH}H${x + bw}V${y(0)}Z`;
+        const bar = b.failed > 0 ? squareTop : topRoundedBar(x, y(0) - okH, bw, okH, 4);
+        g += `<path d="${bar}" fill="var(--series1)"/>`;
+      }
+      if (b.failed > 0) {
+        const fy = y(0) - okH - failH - (okH > 0 ? 2 : 0);
+        g += `<path d="${topRoundedBar(x, fy, bw, failH, 4)}" fill="var(--critical)"/>`;
+      }
+      svg += `${g}</g>`;
+    });
+    svg += `</g><line class="axis" x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+    tl.buckets.forEach((b, i) => {
+      if (i % labelEvery === 0) svg += `<text x="${m.l + i * band + band / 2}" y="${H - 6}" text-anchor="middle">${clock(b.t)}</text>`;
+    });
+    host.innerHTML = `${svg}</svg>`;
+    const el = $('svg', host);
+    const move = (event) => {
+      const rect = el.getBoundingClientRect();
+      const i = Math.floor(((event.clientX - rect.left) * (W / rect.width) - m.l) / band);
+      el.querySelectorAll('.bars g').forEach((g) => g.classList.toggle('hot', Number(g.dataset.i) === i));
+      const b = tl.buckets[i];
+      if (!b) { hideTip(); return; }
+      showTip(event, `<div class="t">${clock(b.t)} – ${clock(b.t + tl.bucketMs)}</div>
+        <div class="r"><i style="background:var(--series1)"></i>Requests<b>${b.count}</b></div>
+        <div class="r"><i style="background:var(--critical)"></i>Failed<b>${b.failed}</b></div>
+        <div class="r"><i style="background:var(--muted)"></i>p95 latency<b>${A.formatMs(b.p95)}</b></div>`);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerleave', () => { hideTip(); el.querySelectorAll('.bars g.hot').forEach((g) => g.classList.remove('hot')); });
+  }
+
+  function lineChart(host, tl) {
+    const points = tl.buckets.filter((b) => b.p95 !== undefined);
+    if (points.length < 2) { host.innerHTML = '<div class="empty">Needs a few seconds of traffic…</div>'; return; }
+    const W = host.clientWidth || 600, H = host.clientHeight || 230;
+    const m = { l: 46, r: 62, t: 10, b: 26 };
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    const ticks = niceTicks(Math.max(...points.map((b) => b.p95)), 4);
+    const top = ticks[ticks.length - 1];
+    const n = tl.buckets.length;
+    const x = (i) => m.l + (n === 1 ? pw / 2 : (i / (n - 1)) * pw);
+    const y = (v) => m.t + ph - (v / top) * ph;
+    const series = [['p95', 'var(--series2)'], ['p50', 'var(--series1)']];
+    const path = (key) => {
+      let d = '', pen = false;
+      tl.buckets.forEach((b, i) => {
+        if (b[key] === undefined) { pen = false; return; }
+        d += `${pen ? 'L' : 'M'}${x(i)},${y(b[key])}`;
+        pen = true;
+      });
+      return d;
+    };
+    const labelEvery = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(pw / 78))));
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Latency over time">`;
+    for (const t of ticks) svg += `<line class="gridline" x1="${m.l}" x2="${W - m.r}" y1="${y(t)}" y2="${y(t)}"/><text x="${m.l - 8}" y="${y(t) + 4}" text-anchor="end">${A.formatMs(t)}</text>`;
+    svg += `<line class="axis" x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+    const ends = [];
+    for (const [key, color] of series) {
+      svg += `<path d="${path(key)}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      // A point with no neighbours draws no segment, so mark it.
+      tl.buckets.forEach((b, i) => {
+        const alone = b[key] !== undefined && tl.buckets[i - 1]?.[key] === undefined && tl.buckets[i + 1]?.[key] === undefined;
+        if (alone) svg += `<circle cx="${x(i)}" cy="${y(b[key])}" r="3" fill="${color}"/>`;
+      });
+      let last = n - 1;
+      while (last >= 0 && tl.buckets[last][key] === undefined) last -= 1;
+      if (last >= 0) {
+        const v = tl.buckets[last][key];
+        svg += `<circle cx="${x(last)}" cy="${y(v)}" r="4.5" fill="${color}" stroke="var(--surface)" stroke-width="2"/>`;
+        ends.push({ key, x: x(last), y: y(v), v });
+      }
+    }
+    // Direct end labels only where they do not collide; the legend carries the rest.
+    ends.forEach((end, index) => {
+      const clash = ends.slice(0, index).some((other) => Math.abs(other.y - end.y) < 14);
+      if (!clash) svg += `<text x="${end.x + 10}" y="${end.y + 4}" style="fill:var(--ink2);font-weight:600">${end.key} ${A.formatMs(end.v)}</text>`;
+    });
+    tl.buckets.forEach((b, i) => {
+      if (i % labelEvery === 0) svg += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${clock(b.t)}</text>`;
+    });
+    svg += `<line id="cross" class="axis" y1="${m.t}" y2="${y(0)}" x1="0" x2="0" style="display:none"/></svg>`;
+    host.innerHTML = svg;
+    const el = $('svg', host), cross = $('#cross', host);
+    el.addEventListener('pointermove', (event) => {
+      const rect = el.getBoundingClientRect();
+      const px = (event.clientX - rect.left) * (W / rect.width);
+      const i = Math.min(n - 1, Math.max(0, Math.round(((px - m.l) / pw) * (n - 1))));
+      const b = tl.buckets[i];
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.style.display = '';
+      showTip(event, `<div class="t">${clock(b.t)} – ${clock(b.t + tl.bucketMs)}</div>
+        <div class="r"><i style="background:var(--series2)"></i>p95<b>${A.formatMs(b.p95)}</b></div>
+        <div class="r"><i style="background:var(--series1)"></i>p50<b>${A.formatMs(b.p50)}</b></div>
+        <div class="r"><i style="background:var(--muted)"></i>Requests<b>${b.count}</b></div>`);
+    });
+    el.addEventListener('pointerleave', () => { hideTip(); cross.style.display = 'none'; });
+  }
+
+  function sparkline(values, width = 132, height = 40) {
+    const pts = values.map((v, i) => [i, v]).filter(([, v]) => v !== undefined);
+    if (pts.length < 2) return '';
+    const max = Math.max(...pts.map(([, v]) => v), 1);
+    const n = values.length;
+    const d = pts.map(([i, v], k) => `${k ? 'L' : 'M'}${(i / (n - 1)) * (width - 6) + 3},${height - 4 - (v / max) * (height - 8)}`).join('');
+    return `<svg class="spark" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(--series1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  }
+
+  // ---- shared pieces -------------------------------------------------------
+  function rankList(rows, fieldName, fmt, valueOf) {
+    if (!rows.length) return '<div class="empty" style="height:120px">Nothing yet</div>';
+    const max = Math.max(...rows.map(valueOf), 1);
+    return rows.map((row) => `<button class="rank" data-act="drill" data-filter="${attr({ [fieldName]: row.key })}" title="${esc(row.key)}">
+      <span class="name mono">${esc(row.key)}</span><span class="val">${fmt(row)}</span>
+      <span class="track"><span class="fill" style="display:block;width:${Math.max(2, (valueOf(row) / max) * 100)}%"></span></span></button>`).join('');
+  }
+  function statusInfo(record) {
+    if (record.kind === 'ws') return { cls: 'muted', icon: 'bolt', text: 'WS' };
+    if (record.error) return { cls: 'crit', icon: 'xcircle', text: 'ERR' };
+    if (A.isPending(record)) return { cls: 'pend', icon: 'clock', text: '…' };
+    const s = record.status;
+    if (s >= 500) return { cls: 'crit', icon: 'xcircle', text: String(s) };
+    if (s >= 400) return { cls: 'serious', icon: 'alertcircle', text: String(s) };
+    if (s >= 300) return { cls: 'muted', icon: 'redirect', text: String(s) };
+    return { cls: 'good', icon: 'check', text: String(s) };
+  }
+  const stCell = (record) => { const s = statusInfo(record); return `<span class="stcell ${s.cls}">${icon(s.icon, 'sm')}${esc(s.text)}</span>`; };
+  function callerLabel(record) {
+    const c = record.caller;
+    if (!c) return record.frames ? '–' : 'resolving…';
+    return `${c.methodName} · ${c.relative.split('/').slice(-1)[0]}:${c.lineNumber}`;
+  }
+  function deviceLabels(list) { return Object.fromEntries(A.sessionsList(list).map((s) => [s.id, s.label])); }
+  function deviceCard(list) {
+    const rows = A.groupRows(list.filter(A.isHttp), A.sessionOf);
+    if (rows.length < 2) return '';
+    const labels = deviceLabels(list);
+    const body = rows.sort((a, b) => b.count - a.count).map((r) => {
+      const fail = r.failed ? `<span class="failcell">${icon('alertcircle')}${r.failed} · ${A.formatPercent(r.failRate)}</span>` : '<span class="muted">0</span>';
+      return `<tr data-act="device" data-id="${esc(r.key)}"><td><div class="name">${esc(labels[r.key] || r.key)}</div></td><td class="num">${r.count}</td><td class="num">${fail}</td><td class="num">${A.formatMs(r.p95)}</td><td class="num">${A.formatBytes(r.bytes)}</td></tr>`;
+    }).join('');
+    return `<div class="card" style="margin-bottom:12px"><div class="card-h"><h3>By device</h3><span class="hint">click one to scope everything to it</span></div>
+      <div class="tablewrap" style="max-height:none;border:0"><table><thead><tr><th>Device</th><th class="num">Requests</th><th class="num">Failed</th><th class="num">p95</th><th class="num">Data</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  }
+  function emptyState(text) { return `<div class="card"><div class="empty" style="height:180px">${esc(text)}</div></div>`; }
+
+  // ---- views ---------------------------------------------------------------
+  function viewOverview(list, now) {
+    const s = A.summarize(list, now), tl = A.timeline(list, now), issues = A.insights(list, now);
+    const http = list.filter(A.isHttp);
+    const tail = (fn) => tl.buckets.slice(-24).map(fn);
+    const rate = s.failRate;
+    let health = { cls: 'good', icon: 'check', text: 'Healthy' };
+    if (rate > 0.1) health = { cls: 'crit', icon: 'xcircle', text: 'Critical' };
+    else if (rate > 0.02) health = { cls: 'warn', icon: 'alert', text: 'Needs attention' };
+    const kpi = (ic, label, value, note, extra = '') => `<div class="card kpi"><div class="label">${icon(ic, 'sm')}${label}</div>
+      <div class="value">${value}</div>${extra}<div class="note">${note}</div></div>`;
+    const kpis = [
+      kpi('activity', 'Requests', `${A.formatCount(s.total)}`, `${s.perMinute.toFixed(1)} per minute${s.sockets ? ` · ${s.sockets} sockets` : ''}`, sparkline(tail((b) => b.count))),
+      kpi(health.icon, 'Failure rate', A.formatPercent(s.failRate), `<span class="status ${health.cls}">${health.text}</span> · ${s.failed} failed`, sparkline(tail((b) => (b.count ? b.failed / b.count : undefined)))),
+      kpi('gauge', 'p95 latency', A.formatMs(s.p95), `median ${A.formatMs(s.p50)} · slowest ${A.formatMs(s.max)}`, sparkline(tail((b) => b.p95))),
+      kpi('repeat', 'Redundant requests', String(s.redundant), `${A.formatPercent(s.redundantRate)} of all requests`),
+      kpi('database', 'Data received', A.formatBytes(s.bytes), `${A.formatBytes(s.avgBytes)} per request`),
+      kpi('bolt', 'In flight now', String(s.inFlight), `peak ${s.peak.peak} at once`),
+    ].join('');
+    const bands = { ok: 0, redirect: 0, client: 0, server: 0 };
+    for (const r of http) {
+      if (r.error || r.status >= 500) bands.server += 1;
+      else if (r.status >= 400) bands.client += 1;
+      else if (r.status >= 300) bands.redirect += 1;
+      else if (r.status) bands.ok += 1;
+    }
+    const mix = [['ok', 'check', 'Success', 'var(--good)'], ['redirect', 'redirect', 'Redirect', 'var(--axis)'],
+      ['client', 'alertcircle', 'Client error', 'var(--serious)'], ['server', 'xcircle', 'Server or network error', 'var(--critical)']].filter(([k]) => bands[k] > 0);
+    const mixTotal = mix.reduce((sum, [k]) => sum + bands[k], 0) || 1;
+    const mixBar = `<div class="seg-bar" role="img" aria-label="Status mix">${mix.map(([k, , label, color]) => `<i style="flex:${bands[k]};background:${color}" title="${esc(label)}: ${bands[k]}"></i>`).join('')}</div>
+      <div class="seg-legend">${mix.map(([k, ic, label, color]) => `<span><i style="color:${color}">${icon(ic, 'sm')}</i>${esc(label)} <b>${bands[k]}</b> (${A.formatPercent(bands[k] / mixTotal)})</span>`).join('')}</div>`;
+    const sinks = A.groupRows(http, A.endpointLabel).sort((a, b) => b.timeMs - a.timeMs).slice(0, 7);
+    const callers = A.groupRows(http, (r) => A.callerInfo(r).key).filter((r) => r.key !== '(unknown)').sort((a, b) => b.count - a.count).slice(0, 7);
+    const top = issues.slice(0, 5).map((it) => `<button class="issue-mini" data-act="goIssues"><span class="sevicon sev-${it.severity}">${icon(SEV[it.severity].icon, 'sm')}</span>
+      <span class="t mono" title="${esc(it.title)}">${esc(it.title)}</span><span class="m">${esc(it.metric)}</span></button>`).join('');
+    return `<div class="kpis">${kpis}</div>
+      <div class="grid2">
+        <div class="card"><div class="card-h"><h3>Requests over time</h3>
+          <div class="legend"><span><i class="sw" style="background:var(--series1)"></i>Requests</span><span><i class="sw" style="background:var(--critical)"></i>Failed</span></div></div>
+          <div class="chart" id="c-req" data-chart></div></div>
+        <div class="card"><div class="card-h"><h3>Latency over time</h3>
+          <div class="legend"><span><i class="ln" style="background:var(--series2)"></i>p95</span><span><i class="ln" style="background:var(--series1)"></i>p50</span></div></div>
+          <div class="chart" id="c-lat" data-chart></div></div>
+      </div>
+      ${deviceCard(list)}
+      <div class="grid2">
+        <div class="stack">
+          <div class="card"><div class="card-h"><h3>Top pain points</h3><span class="hint">${issues.length} found</span></div>
+            ${top || `<div class="allgood">${icon('check')}<b>No pain points detected</b><span>Nothing failing, repeated or slow in this window.</span></div>`}</div>
+          <div class="card"><div class="card-h"><h3>Status mix</h3></div>${mix.length ? mixBar : '<div class="empty" style="height:80px">Nothing yet</div>'}</div>
+        </div>
+        <div class="stack">
+          <div class="card"><div class="card-h"><h3>Where the time goes</h3><span class="hint">cumulative request time</span></div>
+            ${rankList(sinks, 'endpoint', (r) => A.formatMs(r.timeMs), (r) => r.timeMs)}</div>
+          <div class="card"><div class="card-h"><h3>Busiest callers</h3><span class="hint">who triggers the most requests</span></div>
+            ${rankList(callers, 'caller', (r) => `${r.count}`, (r) => r.count)}</div>
+        </div>
+      </div>
+      <details class="twin card" style="margin-top:12px"><summary>Table view of the charts</summary><div class="scroll"><table><thead><tr><th>Time</th><th class="num">Requests</th><th class="num">Failed</th><th class="num">p50</th><th class="num">p95</th></tr></thead><tbody>
+        ${tl.buckets.map((b) => `<tr style="cursor:default"><td>${clock(b.t)}</td><td class="num">${b.count}</td><td class="num">${b.failed}</td><td class="num">${A.formatMs(b.p50)}</td><td class="num">${A.formatMs(b.p95)}</td></tr>`).join('')}</tbody></table></div></details>`;
+  }
+
+  function viewIssues(list, now) {
+    const all = A.insights(list, now);
+    const counts = all.reduce((acc, it) => ({ ...acc, [it.severity]: (acc[it.severity] || 0) + 1 }), {});
+    const shown = state.sev === 'all' ? all : all.filter((it) => it.severity === state.sev);
+    const seg = ['all', 'critical', 'serious', 'warning', 'info'].map((k) => {
+      const label = k === 'all' ? 'All' : SEV[k].label;
+      const n = k === 'all' ? all.length : counts[k] || 0;
+      return `<button class="${state.sev === k ? 'on' : ''}" data-act="sev" data-sev="${k}">${label} <b>${n}</b></button>`;
+    }).join('');
+    if (!all.length) return `<div class="card"><div class="allgood">${icon('check')}<b>No pain points detected</b><span>Nothing failing, repeated, slow or heavy in this window.</span></div></div>`;
+    const cards = shown.map((it) => `<article class="card issue"><div class="issue-head"><span class="sevicon sev-${it.severity}">${icon(SEV[it.severity].icon, 'sm')}</span>
+      <span class="sevlabel">${SEV[it.severity].label}</span><span>·</span><span>${esc(it.kind)}</span>${it.device ? `<span class="tag" title="Device">${icon('phone', 'sm')} ${esc(it.device)}</span>` : ''}</div>
+      <h3 class="mono">${esc(it.title)}</h3><div class="metric">${esc(it.metric)}</div><p>${esc(it.detail)}</p>
+      <div class="advice">${icon('bulb', 'sm')}<span>${esc(it.advice)}</span></div>
+      <button class="btn" data-act="drill" data-filter="${attr(it.filter)}">Inspect ${it.affected} request${it.affected === 1 ? '' : 's'} ${icon('arrow', 'sm')}</button></article>`).join('');
+    return `<div class="sevbar"><div class="seg">${seg}</div></div><div class="issues">${cards}</div>`;
+  }
+
+  const COLS = {
+    endpoints: [
+      { k: 'key', label: 'Endpoint', text: true, val: (r) => r.key },
+      { k: 'count', label: 'Requests', num: true, val: (r) => r.count },
+      { k: 'failRate', label: 'Failed', num: true, val: (r) => r.failRate },
+      { k: 'p50', label: 'p50', num: true, val: (r) => r.p50 ?? -1 },
+      { k: 'p95', label: 'p95', num: true, val: (r) => r.p95 ?? -1 },
+      { k: 'timeMs', label: 'Time spent', num: true, val: (r) => r.timeMs },
+      { k: 'bytes', label: 'Data', num: true, val: (r) => r.bytes },
+    ],
+  };
+  COLS.hosts = [{ ...COLS.endpoints[0], label: 'Host' }, ...COLS.endpoints.slice(1)];
+  COLS.callers = [{ ...COLS.endpoints[0], label: 'Caller' }, ...COLS.endpoints.slice(1)];
+  COLS.rpc = [{ ...COLS.endpoints[0], label: 'JSON-RPC method' }, ...COLS.endpoints.slice(1)];
+
+  function topOf(row, pick) {
+    const tally = {};
+    for (const r of row.records) { const key = pick(r); if (key) tally[key] = (tally[key] || 0) + 1; }
+    const best = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+    return best ? best[0] : '';
+  }
+  function failureSummary(row) {
+    const parts = Object.entries(row.statusCodes).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([c, n]) => `${c} ×${n}`);
+    return parts.join(' · ');
+  }
+  function breakdown(name, rows, fieldName, subline) {
+    const sort = state.sort[name];
+    const cols = COLS[name];
+    const col = cols.find((c) => c.k === sort.k) || cols[1];
+    const sorted = [...rows].sort((a, b) => (col.val(a) > col.val(b) ? 1 : -1) * sort.d || b.count - a.count);
+    if (!sorted.length) return emptyState('No data in this window.');
+    const maxTime = Math.max(...rows.map((r) => r.timeMs), 1);
+    const head = cols.map((c) => `<th class="sortable ${c.num ? 'num' : ''}" data-act="sort" data-table="${name}" data-k="${c.k}">${c.label}${sort.k === c.k ? icon('down') : ''}</th>`).join('');
+    const body = sorted.map((r) => {
+      const tag = name === 'callers' ? `<span class="tag">${esc(A.callerInfo(r.records[0]).origin === 'lib' ? 'library' : 'app')}</span>` : '';
+      const fail = r.failed ? `<span class="failcell">${icon('alertcircle')}${r.failed} · ${A.formatPercent(r.failRate)}</span>` : '<span class="muted">0</span>';
+      return `<tr data-act="drill" data-filter="${attr({ [fieldName]: r.key })}"><td><div class="name mono">${esc(r.key)}${tag}</div>
+        <div class="subline">${esc(subline(r))}</div><div class="share"><i style="width:${Math.max(2, (r.timeMs / maxTime) * 100)}%"></i></div></td>
+        <td class="num">${r.count}</td><td class="num">${fail}</td><td class="num">${A.formatMs(r.p50)}</td><td class="num">${A.formatMs(r.p95)}</td>
+        <td class="num">${A.formatMs(r.timeMs)}</td><td class="num">${A.formatBytes(r.bytes)}</td></tr>`;
+    }).join('');
+    return `<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+  }
+  function viewEndpoints(list) {
+    const rows = A.groupRows(list.filter(A.isHttp), A.endpointLabel);
+    return breakdown('endpoints', rows, 'endpoint', (r) => failureSummary(r) || `slowest ${A.formatMs(r.max)}`);
+  }
+  function viewHosts(list) {
+    const rows = A.groupRows(list.filter(A.isHttp), A.hostOf);
+    return breakdown('hosts', rows, 'host', (r) => failureSummary(r) || `${new Set(r.records.map(A.endpointBase)).size} endpoints`);
+  }
+  function viewCallers(list) {
+    const rows = A.groupRows(list.filter(A.isHttp), (r) => A.callerInfo(r).key);
+    return breakdown('callers', rows, 'caller', (r) => topOf(r, (rec) => (rec.caller ? `${rec.caller.methodName}:${rec.caller.lineNumber}` : '')) || 'caller unresolved');
+  }
+  function viewRpc(list) {
+    const rows = A.groupRows(list.filter((r) => A.isHttp(r) && A.rpcLabel(r)), A.rpcLabel);
+    if (!rows.length) return emptyState('No JSON-RPC calls in this window.');
+    return breakdown('rpc', rows, 'rpc', (r) => `${new Set(r.records.map(A.hostOf)).size} node${new Set(r.records.map(A.hostOf)).size === 1 ? '' : 's'} · ${failureSummary(r) || 'all ok'}`);
+  }
+
+  function viewRequests(list, now) {
+    if (!list.length) return emptyState('No requests match this filter.');
+    const shown = [...list].sort((a, b) => b.startedAt - a.startedAt).slice(0, MAX_ROWS);
+    const labels = deviceLabels(list);
+    const multi = Object.keys(labels).length > 1;
+    const rows = shown.map((r) => {
+      const ms = A.latencyOf(r);
+      const device = multi ? `<span class="tag">${esc(labels[A.sessionOf(r)] || '')}</span>` : '';
+      return `<tr data-act="open" data-id="${esc(r.id)}" class="${r.id === state.sel ? 'sel' : ''}" tabindex="0"><td class="mono muted">${clock(r.startedAt, true)}</td>
+        <td>${stCell(r)}</td><td><div class="name mono">${esc(A.endpointLabel(r))}${device}</div></td>
+        <td class="mono muted">${esc(callerLabel(r))}</td>
+        <td class="num">${ms === undefined ? '' : A.formatMs(ms)}</td><td class="num">${r.resSize === undefined ? '' : A.formatBytes(r.resSize)}</td></tr>`;
+    }).join('');
+    return `<div class="tablewrap"><table><thead><tr><th>Time</th><th>Status</th><th>Endpoint</th><th>Called from</th><th class="num">Duration</th><th class="num">Size</th></tr></thead><tbody>${rows}</tbody></table>
+      ${list.length > MAX_ROWS ? `<div class="more">Showing the newest ${MAX_ROWS} of ${list.length}. Narrow the filter to see the rest.</div>` : ''}</div>`;
+  }
+
+  // ---- drawer ---------------------------------------------------------------
+  const prettyBody = (text) => {
+    if (text == null || text === '') return '<span class="muted">(empty)</span>';
+    try { return `<pre class="mono">${esc(JSON.stringify(JSON.parse(text), null, 2))}</pre>`; } catch { return `<pre class="mono">${esc(text)}</pre>`; }
+  };
+  const headerKv = (h) => {
+    const entries = Object.entries(h || {});
+    return entries.length ? `<dl class="kv mono">${entries.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '<span class="muted">(none)</span>';
+  };
+  function curl(r) {
+    const headers = Object.entries(r.reqHeaders || {}).map(([k, v]) => ` -H '${k}: ${v}'`).join('');
+    const body = r.reqBody ? ` --data '${String(r.reqBody).replace(/'/g, "'\\''")}'` : '';
+    return `curl -X ${r.method} '${r.url}'${headers}${body}`;
+  }
+  function renderDrawer() {
+    const r = records.get(state.sel), el = $('#drawer'), scrim = $('#scrim');
+    if (!r) { el.classList.remove('open'); scrim.classList.remove('open'); return; }
+    el.classList.add('open'); scrim.classList.add('open');
+    const frames = (r.frames || []).filter((f) => f.origin !== 'inspector');
+    const tabs = [['overview', 'Overview'], ['headers', 'Headers'], ['request', 'Request'], ['response', 'Response'], ['stack', 'Called from']];
+    if (r.kind === 'ws') tabs.push(['messages', `Messages (${r.messages.length})`]);
+    const parsed = A.parseUrl(r.url);
+    const sections = {
+      overview: `<dl class="kv"><dt>Status</dt><dd>${stCell(r)} ${esc(r.statusText || r.error || '')}</dd><dt>Endpoint</dt><dd class="mono">${esc(A.endpointLabel(r))}</dd>
+        <dt>URL</dt><dd class="mono">${esc(r.url)}</dd><dt>Host</dt><dd>${esc(parsed.host)}</dd>
+        <dt>Called from</dt><dd class="mono">${esc(callerLabel(r))}${r.caller ? `<div class="muted">${esc(r.caller.relative)}:${r.caller.lineNumber}</div>` : ''}</dd>
+        <dt>Started</dt><dd>${new Date(r.startedAt).toISOString()}</dd><dt>First byte</dt><dd>${A.formatMs(r.ttfbMs)}</dd><dt>Total</dt><dd>${A.formatMs(r.durationMs)}</dd>
+        <dt>Size</dt><dd>${r.resSize === undefined ? '–' : A.formatBytes(r.resSize)}</dd><dt>Device</dt><dd>${esc(r.platform)} ${esc(r.osVersion || '')} · session ${esc(r.session)}</dd></dl>
+        <button class="btn" data-act="copycurl">${icon('copy', 'sm')} Copy cURL</button> <button class="btn" data-act="copyurl">${icon('copy', 'sm')} Copy URL</button>`,
+      headers: `<h4>Request</h4>${headerKv(r.reqHeaders)}<h4>Response</h4>${headerKv(r.resHeaders)}`,
+      request: prettyBody(r.reqBody),
+      response: r.error ? `<pre class="mono">${esc(r.error)}</pre>` : prettyBody(r.resBody),
+      stack: frames.length ? frames.map((f, i) => `<div class="frame ${f.origin}"><span class="o">${f.origin}</span><span class="m mono">${esc(f.methodName)}</span>
+        <span class="mono muted" style="flex:1;word-break:break-all">${esc(f.relative)}:${f.lineNumber}</span>${f.origin === 'app' ? `<button class="btn" style="height:26px;padding:0 9px" data-act="editor" data-i="${i}">Open</button>` : ''}</div>`).join('') : '<span class="muted">Symbolicating…</span>',
+      messages: (r.messages || []).map((m) => `<div class="frame"><span class="mono muted">${clock(m.t, true)}</span><b>${esc(m.dir)}</b><span class="mono" style="word-break:break-all">${esc(m.data ?? '')}</span></div>`).join('') || '<span class="muted">(none)</span>',
+    };
+    el.innerHTML = `<div class="drawer-h"><div class="ttl"><b class="mono">${esc(A.endpointLabel(r))}</b><span class="muted">${stCell(r)}</span></div>
+      <button class="btn" data-act="closeDrawer" aria-label="Close">${icon('x', 'sm')}</button></div>
+      <div class="tabs">${tabs.map(([k, label]) => `<button class="tab ${state.dtab === k ? 'on' : ''}" data-act="dtab" data-k="${k}">${label}</button>`).join('')}</div>
+      <div class="drawer-b">${sections[state.dtab] || sections.overview}</div>`;
+  }
+
+  // ---- shell ---------------------------------------------------------------
+  function chipText(key, raw) {
+    if (key === 'around') return clock(raw, true);
+    if (key === 'codes') return raw.join(' / ');
+    if (key === 'dupKey') return String(raw).replace(/^\S+ /, '');
+    return raw;
+  }
+  function renderShell(list, now) {
+    const issues = A.insights(list, now);
+    const crit = issues.filter((it) => it.severity === 'critical' || it.severity === 'serious').length;
+    $('#nav').innerHTML = NAV.map(([k, label, ic]) => {
+      let count = '';
+      if (k === 'issues' && issues.length) count = `<span class="count ${crit ? '' : 'soft'}">${issues.length}</span>`;
+      return `<button class="${state.tab === k ? 'on' : ''}" data-act="tab" data-tab="${k}">${icon(ic)}<span>${label}</span>${count}</button>`;
+    }).join('');
+    const [title, sub] = TITLES[state.tab];
+    $('#pageTitle').textContent = title;
+    $('#pageSub').textContent = sub;
+    $('#winSeg').innerHTML = WINDOWS.map(([ms, label]) => `<button class="${state.filter.windowMs === ms ? 'on' : ''}" data-act="win" data-ms="${ms}">${label}</button>`).join('');
+    const kinds = state.filter.kinds;
+    $('#kindSeg').innerHTML = [['http', 'HTTP'], ['ws', 'Sockets']].map(([k, label]) => `<button class="${kinds.includes(k) ? 'on' : ''}" data-act="kind" data-k="${k}">${label}</button>`).join('');
+    const labels = { host: 'Host', endpoint: 'Endpoint', caller: 'Caller', rpc: 'Method', status: 'Status', codes: 'HTTP status', dupKey: 'Repeated call', around: 'At moment' };
+    $('#chips').innerHTML = DRILL_KEYS.filter((k) => state.filter[k] !== undefined).map((k) => {
+      const text = chipText(k, state.filter[k]);
+      return `<span class="chip"><span title="${esc(text)}">${labels[k]}: <b>${esc(text)}</b></span><button data-act="unfilter" data-k="${k}" aria-label="Remove filter">${icon('x', 'sm')}</button></span>`;
+    }).join('');
+    const summary = A.summarize(list, now);
+    // Device picker: only worth showing once a second device or launch has reported.
+    const sessions = A.sessionsList([...records.values()]);
+    const wrap = $('#deviceWrap'), select = $('#deviceSel');
+    wrap.hidden = sessions.length < 2;
+    const signature = sessions.map((s) => s.id).join();
+    if (select.dataset.sig !== signature) {
+      select.dataset.sig = signature;
+      select.innerHTML = `<option value="">All devices (${sessions.length})</option>${sessions.map((s) => `<option value="${esc(s.id)}">${esc(s.label)}</option>`).join('')}`;
+    }
+    if (state.filter.session && !sessions.some((s) => s.id === state.filter.session)) delete state.filter.session;
+    select.value = state.filter.session || '';
+    const devices = sessions.length > 1 ? `${sessions.length} devices · ` : '';
+    $('#sessionInfo').textContent = `${devices}${list.length} records · ${summary.hosts} hosts`;
+  }
+
+  let lastRender = 0, scheduled = false;
+  // Live updates go through tick(); a paused view or a hovered chart is left alone.
+  function schedule() {
+    if (scheduled) return;
+    scheduled = true;
+    const wait = Math.max(0, 450 - (performance.now() - lastRender));
+    setTimeout(() => requestAnimationFrame(tick), wait);
+  }
+  function tick() {
+    scheduled = false;
+    if (state.paused) return;
+    if (state.hover) { schedule(); return; }
+    render();
+  }
+  // Explicit user actions always render.
+  function render() {
+    lastRender = performance.now();
+    const now = Date.now(), list = scoped(now);
+    renderShell(list, now);
+    const view = $('#view');
+    const views = { overview: viewOverview, issues: viewIssues, endpoints: viewEndpoints, hosts: viewHosts, callers: viewCallers, rpc: viewRpc, requests: viewRequests };
+    const scrollTop = $('.tablewrap') ? $('.tablewrap').scrollTop : 0;
+    view.innerHTML = views[state.tab](list, now);
+    if (state.tab === 'overview') {
+      const tl = A.timeline(list, now);
+      columnChart($('#c-req'), tl);
+      lineChart($('#c-lat'), tl);
+    }
+    if ($('.tablewrap') && scrollTop) $('.tablewrap').scrollTop = scrollTop;
+    if (state.sel) renderDrawer();
+  }
+
+  // ---- actions --------------------------------------------------------------
+  function toast(text) {
+    const el = document.createElement('div');
+    el.className = 'toast'; el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1800);
+  }
+  async function copy(text, done) {
+    try { await navigator.clipboard.writeText(text); toast(done); } catch {
+      const area = document.createElement('textarea');
+      area.value = text; document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove(); toast(done);
+    }
+  }
+  function drill(filter) {
+    state.filter = { ...baseFilter(), ...filter };
+    state.tab = 'requests';
+    render();
+    window.scrollTo(0, 0);
+  }
+  const actions = {
+    tab: (t) => {
+      state.tab = t.dataset.tab; state.sel = null;
+      history.replaceState(null, '', `#${state.tab}`);
+      render(); window.scrollTo(0, 0);
+    },
+    goIssues: () => { state.tab = 'issues'; render(); },
+    device: (t) => { state.filter.session = t.dataset.id; render(); },
+    sev: (t) => { state.sev = t.dataset.sev; render(); },
+    win: (t) => { state.filter.windowMs = Number(t.dataset.ms); render(); },
+    kind: (t) => {
+      const k = t.dataset.k, on = state.filter.kinds.includes(k);
+      const next = on ? state.filter.kinds.filter((x) => x !== k) : [...state.filter.kinds, k];
+      state.filter.kinds = next.length ? next : [k];
+      render();
+    },
+    drill: (t) => drill(JSON.parse(t.dataset.filter)),
+    unfilter: (t) => { delete state.filter[t.dataset.k]; render(); },
+    sort: (t) => {
+      const s = state.sort[t.dataset.table];
+      s.d = s.k === t.dataset.k ? -s.d : -1; s.k = t.dataset.k; render();
+    },
+    open: (t) => { state.sel = t.dataset.id; state.dtab = 'overview'; renderDrawer(); },
+    closeDrawer: () => { state.sel = null; renderDrawer(); },
+    dtab: (t) => { state.dtab = t.dataset.k; renderDrawer(); },
+    copycurl: () => copy(curl(records.get(state.sel)), 'cURL copied'),
+    copyurl: () => copy(records.get(state.sel).url, 'URL copied'),
+    editor: (t) => {
+      const frames = (records.get(state.sel).frames || []).filter((f) => f.origin !== 'inspector');
+      const f = frames[Number(t.dataset.i)];
+      fetch('/open-stack-frame', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ file: f.file, lineNumber: f.lineNumber }) });
+    },
+    pause: () => {
+      state.paused = !state.paused;
+      $('#pauseBtn').classList.toggle('on', state.paused);
+      $('#pauseBtn').innerHTML = `${icon(state.paused ? 'play' : 'pause', 'sm')}<span>${state.paused ? 'Resume' : 'Pause'}</span>`;
+      if (!state.paused) render();
+    },
+    clear: () => fetch(`${BASE}/clear`, { method: 'POST' }),
+    report: () => { const now = Date.now(); copy(A.toMarkdown(scoped(now), now), 'Report copied as Markdown'); },
+  };
+  document.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-act]');
+    if (target && actions[target.dataset.act]) actions[target.dataset.act](target);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && state.sel) actions.closeDrawer();
+    if (event.key === 'Enter' && event.target.matches('tr[data-act]')) actions[event.target.dataset.act](event.target);
+  });
+  document.addEventListener('pointerover', (event) => { if (event.target.closest('.chart')) state.hover = true; });
+  document.addEventListener('pointerout', (event) => { if (event.target.closest('.chart') && !event.relatedTarget?.closest?.('.chart')) { state.hover = false; schedule(); } });
+  $('#q').addEventListener('input', (event) => { state.filter.q = event.target.value; render(); });
+  $('#deviceSel').addEventListener('change', (event) => { state.filter.session = event.target.value || undefined; render(); });
+  window.addEventListener('resize', () => schedule());
+
+  // ---- live data --------------------------------------------------------------
+  function applyPatch(patch) {
+    if (patch.clear) { records.clear(); state.sel = null; renderDrawer(); schedule(); return; }
+    const { id, wsEvent, ...fields } = patch;
+    if (!id) return;
+    let record = records.get(id);
+    if (!record) { record = { id, messages: [] }; records.set(id, record); }
+    Object.assign(record, fields);
+    if (wsEvent) record.messages.push(wsEvent);
+    schedule();
+  }
+  async function boot() {
+    const fromHash = location.hash.slice(1);
+    if (TITLES[fromHash]) state.tab = fromHash;
+    const snapshot = await (await fetch(`${BASE}/events`)).json();
+    snapshot.forEach((record) => records.set(record.id, record));
+    render();
+    // ?static renders the snapshot only: no live stream, handy for screenshots.
+    if (location.search.includes('static')) return;
+    const source = new EventSource(`${BASE}/stream`);
+    source.onopen = () => { $('#dot').classList.add('on'); $('#liveText').textContent = 'Live'; };
+    source.onerror = () => { $('#dot').classList.remove('on'); $('#liveText').textContent = 'Reconnecting…'; };
+    source.onmessage = (event) => applyPatch(JSON.parse(event.data));
+    setInterval(schedule, 2000);
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
