@@ -20,6 +20,7 @@ import { renderTokenDetailsV1View } from '../../../../../tests/component-view/re
 import { installDefaultApiMocks } from '../../../../../tests/component-view/api-mocking/defaults';
 import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 import { createStateFixture } from '../../../../../tests/component-view/stateFixture';
+import { CV_SOCIAL_PROFILE } from '../../../../../tests/component-view/presets/socialLeaderboard';
 import {
   clearQuickBuyApiMocks,
   setupQuickBuyApiMock,
@@ -646,6 +647,7 @@ describeForPlatforms('TokenDetailsV1', () => {
             engine: {
               backgroundState: {
                 GeolocationController: { location: 'FR', status: 'complete' },
+                ProfileController: { profile: CV_SOCIAL_PROFILE },
               },
             },
           })
