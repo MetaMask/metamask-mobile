@@ -107,10 +107,10 @@ describe('PredictSearchScreen', () => {
     );
     expect(
       within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'yes')),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('42%');
     expect(
       within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'no')),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('58%');
     expect(
       within(card).queryByTestId(PredictHomeTestIds.category(event.id)),
     ).not.toBeOnTheScreen();

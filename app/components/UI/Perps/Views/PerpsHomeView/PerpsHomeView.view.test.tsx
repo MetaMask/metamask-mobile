@@ -93,8 +93,6 @@ import {
   resetSocialTermsAcceptance,
 } from '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
-const TIMEOUT_MS = 5000;
-
 const eligibleOverrides = {
   engine: {
     backgroundState: {
@@ -182,8 +180,6 @@ describe('PerpsHomeView', () => {
 
     const addFundsButton = await screen.findByTestId(
       PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
-      {},
-      { timeout: TIMEOUT_MS },
     );
 
     expect(
@@ -289,8 +285,6 @@ describe('PerpsHomeView', () => {
     expect(
       await screen.findByTestId(
         PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toHaveTextContent('$100');
 
@@ -388,8 +382,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -400,13 +392,7 @@ describe('PerpsHomeView', () => {
     it('shows the HyperLiquid logo beside the available balance', async () => {
       renderFundedHome('hyperliquid');
 
-      expect(
-        await screen.findByLabelText(
-          'HyperLiquid',
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
+      expect(await screen.findByLabelText('HyperLiquid')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
       ).toBeNull();
@@ -427,9 +413,7 @@ describe('PerpsHomeView', () => {
     it('shows the Lighter logo when Lighter is the active provider', async () => {
       renderFundedHome('lighter');
 
-      expect(
-        await screen.findByLabelText('Lighter', {}, { timeout: TIMEOUT_MS }),
-      ).toBeOnTheScreen();
+      expect(await screen.findByLabelText('Lighter')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
       ).toBeNull();
@@ -439,11 +423,7 @@ describe('PerpsHomeView', () => {
       renderFundedHome('aggregated');
 
       expect(
-        await screen.findByLabelText(
-          'HyperLiquid, Lighter',
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByLabelText('HyperLiquid, Lighter'),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
@@ -467,8 +447,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -507,13 +485,7 @@ describe('PerpsHomeView', () => {
         },
       });
 
-      expect(
-        await screen.findByLabelText(
-          'HyperLiquid',
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
+      expect(await screen.findByLabelText('HyperLiquid')).toBeOnTheScreen();
       expect(screen.queryByText(formatPerpsBalance('40'))).toBeNull();
       expect(screen.queryByText(formatPerpsBalance('100'))).toBeNull();
       expect(screen.getByText(strings('perps.available'))).toBeOnTheScreen();
@@ -558,8 +530,6 @@ describe('PerpsHomeView', () => {
       fireEvent.press(
         await screen.findByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
@@ -591,11 +561,7 @@ describe('PerpsHomeView', () => {
 
       // Act – non-empty balance exposes the fixed footer; press its Add Funds button
       fireEvent.press(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
       );
 
       // Assert – home-view eligibility modal appears (separate from the balance-actions one)
@@ -621,11 +587,7 @@ describe('PerpsHomeView', () => {
 
       // Act – press the footer Withdraw button (visible because balance is non-empty)
       fireEvent.press(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
       );
 
       // Assert – neither geo-block tooltip path may appear; withdrawal proceeds unblocked
@@ -654,11 +616,7 @@ describe('PerpsHomeView', () => {
       });
 
       // Wait for the position card to confirm the positions section rendered
-      await screen.findByTestId(
-        `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      await screen.findByTestId(`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`);
 
       // Act – press the positions-section "⋯" action button (Close All entry point)
       fireEvent.press(
@@ -726,8 +684,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
     });
@@ -748,11 +704,7 @@ describe('PerpsHomeView', () => {
       });
 
       // Wait for the position card, then verify the subtitle is shown with a positive value
-      await screen.findByTestId(
-        `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      await screen.findByTestId(`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`);
       const pnlLabel = screen.getByTestId(
         PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE,
       );
@@ -767,14 +719,11 @@ describe('PerpsHomeView', () => {
       });
 
       // Assert – the subtitle updates to reflect the loss
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE),
-          ).toHaveTextContent(/^-/);
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE),
+        ).toHaveTextContent(/^-/);
+      });
     });
 
     it('balance display updates in real time when the account stream delivers a new total balance', async () => {
@@ -793,8 +742,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toHaveTextContent('$100');
 
@@ -804,16 +751,13 @@ describe('PerpsHomeView', () => {
       });
 
       // Assert – balance display reflects the new value
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(
-              PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
-            ),
-          ).toHaveTextContent('$350');
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+          ),
+        ).toHaveTextContent('$350');
+      });
     });
 
     it('fixed footer disappears and re-appears as balance crosses zero threshold', async () => {
@@ -829,11 +773,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.FIXED_FOOTER,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER),
       ).toBeOnTheScreen();
 
       // Act – account balance drops to zero (all funds withdrawn)
@@ -842,14 +782,11 @@ describe('PerpsHomeView', () => {
       });
 
       // Assert – fixed footer is hidden because balance is empty
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER),
-          ).not.toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER),
+        ).not.toBeOnTheScreen();
+      });
 
       // Act – funds arrive again
       act(() => {
@@ -857,14 +794,11 @@ describe('PerpsHomeView', () => {
       });
 
       // Assert – fixed footer re-appears
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER),
-          ).toBeOnTheScreen();
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER),
+        ).toBeOnTheScreen();
+      });
     });
   });
 
@@ -925,11 +859,7 @@ describe('PerpsHomeView', () => {
     );
 
     const findSection = () =>
-      screen.findByTestId(
-        PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SECTION,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      screen.findByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SECTION);
 
     const openTopTraders = async () => {
       await findSection();
@@ -964,8 +894,6 @@ describe('PerpsHomeView', () => {
         expect(
           await screen.findByTestId(
             `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${id}`,
-            {},
-            { timeout: TIMEOUT_MS },
           ),
         ).toBeOnTheScreen();
       }
@@ -1052,11 +980,7 @@ describe('PerpsHomeView', () => {
           socialEnabled: true,
         });
 
-        const highRow = await screen.findByTestId(
-          rowIdOf(highWinRateTrade),
-          {},
-          { timeout: TIMEOUT_MS },
-        );
+        const highRow = await screen.findByTestId(rowIdOf(highWinRateTrade));
         expect(within(highRow).getByText('MoonMochi')).toBeOnTheScreen();
         expect(within(highRow).getByText('72%')).toBeOnTheScreen();
         expect(
@@ -1107,13 +1031,7 @@ describe('PerpsHomeView', () => {
           ],
         });
 
-        fireEvent.press(
-          await screen.findByTestId(
-            rowIdOf(highWinRateTrade),
-            {},
-            { timeout: TIMEOUT_MS },
-          ),
-        );
+        fireEvent.press(await screen.findByTestId(rowIdOf(highWinRateTrade)));
         const sheetProbe = await screen.findByTestId(
           getRouteParamsProbeTestId(Routes.SOCIAL.POSITION_SHEET),
         );
@@ -1137,20 +1055,10 @@ describe('PerpsHomeView', () => {
           socialEnabled: true,
         });
 
-        fireEvent.press(
-          await screen.findByTestId(
-            SOCIAL_FEED_RETRY_TEST_ID,
-            {},
-            { timeout: TIMEOUT_MS },
-          ),
-        );
+        fireEvent.press(await screen.findByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
         expect(
-          await screen.findByTestId(
-            rowIdOf(highWinRateTrade),
-            {},
-            { timeout: TIMEOUT_MS },
-          ),
+          await screen.findByTestId(rowIdOf(highWinRateTrade)),
         ).toBeOnTheScreen();
       });
 
@@ -1166,11 +1074,7 @@ describe('PerpsHomeView', () => {
         });
 
         expect(
-          await screen.findByTestId(
-            SOCIAL_FEED_EMPTY_TEST_ID,
-            {},
-            { timeout: TIMEOUT_MS },
-          ),
+          await screen.findByTestId(SOCIAL_FEED_EMPTY_TEST_ID),
         ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
@@ -1195,8 +1099,6 @@ describe('PerpsHomeView', () => {
         expect(
           await screen.findByTestId(
             PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
-            {},
-            { timeout: TIMEOUT_MS },
           ),
         ).toBeOnTheScreen();
         await act(async () => {
@@ -1225,11 +1127,7 @@ describe('PerpsHomeView', () => {
           socialEnabled: true,
         });
 
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST,
-          {},
-          { timeout: TIMEOUT_MS },
-        );
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST);
         fireEvent.press(
           screen.getByTestId(
             PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL,
@@ -1242,8 +1140,6 @@ describe('PerpsHomeView', () => {
         expect(
           await screen.findByTestId(
             `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`,
-            {},
-            { timeout: TIMEOUT_MS },
           ),
         ).toBeOnTheScreen();
       });
@@ -1257,9 +1153,7 @@ describe('PerpsHomeView', () => {
         socialEnabled: true,
       });
       const firstPostId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`;
-      expect(
-        await screen.findByTestId(firstPostId, {}, { timeout: TIMEOUT_MS }),
-      ).toBeOnTheScreen();
+      expect(await screen.findByTestId(firstPostId)).toBeOnTheScreen();
       await openTopTraders();
 
       for (const id of topFiveIds) {
@@ -1337,8 +1231,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.CONTAINER,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -1364,22 +1256,14 @@ describe('PerpsHomeView', () => {
       await openTopTraders();
 
       expect(
-        await screen.findByTestId(
-          SocialLeaderboardSelectorsIDs.ERROR,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(SocialLeaderboardSelectorsIDs.ERROR),
       ).toBeOnTheScreen();
       fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
 
       // Retry refetches the leaderboard and the viewer profile together, and the
       // error message stays up until the leaderboard rows arrive.
       expect(
-        await screen.findByTestId(
-          getTraderRowTestId(topFiveIds[0]),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
       ).toBeOnTheScreen();
     });
 
@@ -1396,11 +1280,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          SOCIAL_FEED_ERROR_TEST_ID,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(SOCIAL_FEED_ERROR_TEST_ID),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID),
@@ -1411,8 +1291,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -1433,8 +1311,6 @@ describe('PerpsHomeView', () => {
       await findSection();
       await screen.findByTestId(
         PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION,
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       const orderedIds = screen.UNSAFE_root.findAll(
@@ -1470,8 +1346,6 @@ describe('PerpsHomeView', () => {
       fireEvent.press(
         await screen.findByTestId(
           `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${postId}`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       const profileProbe = await screen.findByTestId(
@@ -1527,8 +1401,6 @@ describe('PerpsHomeView', () => {
       fireEvent.press(
         await screen.findByTestId(
           `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${postId}`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       const profileProbe = await screen.findByTestId(
@@ -1577,8 +1449,6 @@ describe('PerpsHomeView', () => {
       fireEvent.press(
         await screen.findByTestId(
           `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${postId}`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       const profileProbe = await screen.findByTestId(
@@ -1607,8 +1477,6 @@ describe('PerpsHomeView', () => {
       fireEvent.press(
         await screen.findByTestId(
           `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${postId}`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       const sheetProbe = await screen.findByTestId(
@@ -1667,8 +1535,6 @@ describe('PerpsHomeView', () => {
       fireEvent.press(
         await screen.findByTestId(
           `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${openPostId}`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       const sheetProbe = await screen.findByTestId(
@@ -2017,8 +1883,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
 
@@ -2039,11 +1903,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.EXPLORE_SECTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
       ).toBeOnTheScreen();
 
       stackedSectionIds.forEach((sectionId) => {
@@ -2060,11 +1920,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.EXPLORE_SECTION,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
       ).toBeOnTheScreen();
       expect(screen.queryByTestId(exploreTab(CRYPTO_TAB_ID))).toBeNull();
       expect(
@@ -2085,11 +1941,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(EXPLORE_WATCHLIST_TAB_ID)),
       ).toBeOnTheScreen();
 
       expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
@@ -2126,11 +1978,7 @@ describe('PerpsHomeView', () => {
       });
 
       await userEvent.press(
-        await screen.findByTestId(
-          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(EXPLORE_WATCHLIST_TAB_ID)),
       );
 
       expect(
@@ -2179,11 +2027,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(EXPLORE_WATCHLIST_TAB_ID)),
       ).toBeOnTheScreen();
 
       expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
@@ -2211,11 +2055,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(CRYPTO_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(CRYPTO_TAB_ID)),
       ).toBeOnTheScreen();
 
       expectTabSelected(CRYPTO_TAB_ID, true);
@@ -2251,8 +2091,6 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(
           getPerpsMarketRowItemSelector.rowItem(markets[0].symbol),
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
 
@@ -2279,11 +2117,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(CRYPTO_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(CRYPTO_TAB_ID)),
       ).toBeOnTheScreen();
 
       expect(
@@ -2300,11 +2134,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(CRYPTO_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(CRYPTO_TAB_ID)),
       ).toBeOnTheScreen();
 
       expect(screen.getByTestId(exploreTab(STOCK_TAB_ID))).toBeOnTheScreen();
@@ -2318,11 +2148,7 @@ describe('PerpsHomeView', () => {
       });
 
       await userEvent.press(
-        await screen.findByTestId(
-          exploreTab(STOCK_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(STOCK_TAB_ID)),
       );
 
       expect(
@@ -2339,11 +2165,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(STOCK_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(STOCK_TAB_ID)),
       ).toBeOnTheScreen();
       expectTabSelected(STOCK_TAB_ID, true);
       expectTabSelected(CRYPTO_TAB_ID, false);
@@ -2357,11 +2179,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(CRYPTO_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(CRYPTO_TAB_ID)),
       ).toBeOnTheScreen();
       expectTabSelected(CRYPTO_TAB_ID, true);
     });
@@ -2376,17 +2194,11 @@ describe('PerpsHomeView', () => {
       await userEvent.press(
         await screen.findByTestId(
           `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-header`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
       expect(
-        await screen.findByTestId(
-          `route-${Routes.PERPS.MARKET_LIST}`,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
       ).toBeOnTheScreen();
       expect(screen.getByText(CRYPTO_TAB_ID)).toBeOnTheScreen();
       expect(screen.getByText('browse-all')).toBeOnTheScreen();
@@ -2406,17 +2218,11 @@ describe('PerpsHomeView', () => {
       await userEvent.press(
         await screen.findByTestId(
           `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-see-more`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
       expect(
-        await screen.findByTestId(
-          `route-${Routes.PERPS.MARKET_LIST}`,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
       ).toBeOnTheScreen();
       expect(screen.getByText(CRYPTO_TAB_ID)).toBeOnTheScreen();
       expect(
@@ -2435,17 +2241,11 @@ describe('PerpsHomeView', () => {
       await userEvent.press(
         await screen.findByTestId(
           `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-see-more`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
       expect(
-        await screen.findByTestId(
-          `route-${Routes.PERPS.MARKET_LIST}`,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
       ).toBeOnTheScreen();
       expect(screen.getByText(WATCHLIST_ONLY_LABEL)).toBeOnTheScreen();
       expect(screen.queryByText(CRYPTO_TAB_ID)).toBeNull();
@@ -2465,19 +2265,11 @@ describe('PerpsHomeView', () => {
       await userEvent.press(
         await screen.findByTestId(
           `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-header`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
       expect(
-        await screen.findByText(
-          JSON.stringify(transactionActiveAbTests),
-          {},
-          {
-            timeout: TIMEOUT_MS,
-          },
-        ),
+        await screen.findByText(JSON.stringify(transactionActiveAbTests)),
       ).toBeOnTheScreen();
       expect(screen.getByText(CRYPTO_TAB_ID)).toBeOnTheScreen();
 
@@ -2493,17 +2285,11 @@ describe('PerpsHomeView', () => {
       await userEvent.press(
         await screen.findByTestId(
           getPerpsMarketRowItemSelector.rowItem(btcMarket.symbol),
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
 
       expect(
-        await screen.findByTestId(
-          `route-${Routes.PERPS.MARKET_DETAILS}`,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
       ).toBeOnTheScreen();
       expect(screen.getByText(btcMarket.symbol)).toBeOnTheScreen();
       expect(
@@ -2525,11 +2311,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
@@ -2544,11 +2326,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(exploreTab(EXPLORE_WATCHLIST_TAB_ID)),
       ).toBeOnTheScreen();
 
       expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
@@ -2593,15 +2371,7 @@ describe('PerpsHomeView', () => {
         terminalEnabled: true,
       });
 
-      await userEvent.press(
-        await screen.findByTestId(
-          exploreTab(NEW_TAB_ID),
-          {},
-          {
-            timeout: TIMEOUT_MS,
-          },
-        ),
-      );
+      await userEvent.press(await screen.findByTestId(exploreTab(NEW_TAB_ID)));
 
       expect(
         screen.getByTestId(
@@ -2629,11 +2399,7 @@ describe('PerpsHomeView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),

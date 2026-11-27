@@ -87,8 +87,6 @@ import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBad
 import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 
-const TIMEOUT_MS = 5000;
-
 const GRANT_FEE_QUOTE = {
   feeRate: 0.0007,
   feeAmount: 0.7,
@@ -157,12 +155,9 @@ const waitForDeferredOrderData = async (): Promise<void> => {
 const waitForEnabledPlaceOrderButton = async (
   testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
 ): Promise<ReturnType<typeof screen.getByTestId>> => {
-  await waitFor(
-    () => {
-      expect(screen.getByTestId(testId)).not.toBeDisabled();
-    },
-    { timeout: TIMEOUT_MS },
-  );
+  await waitFor(() => {
+    expect(screen.getByTestId(testId)).not.toBeDisabled();
+  });
   return screen.getByTestId(testId);
 };
 
@@ -271,11 +266,7 @@ describe('PerpsOrderView', () => {
     });
 
     expect(
-      await screen.findByTestId(
-        PerpsOrderHeaderSelectorsIDs.HEADER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
 
     await waitForDeferredOrderData();
@@ -315,14 +306,11 @@ describe('PerpsOrderView', () => {
         }),
       );
     });
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.PerpsController.clearPendingTradeConfiguration,
-        ).toHaveBeenCalledWith('ETH');
-      },
-      { timeout: TIMEOUT_MS },
-    );
+    await waitFor(() => {
+      expect(
+        Engine.context.PerpsController.clearPendingTradeConfiguration,
+      ).toHaveBeenCalledWith('ETH');
+    });
     await waitForDeferredOrderData();
   });
 
@@ -469,11 +457,7 @@ describe('PerpsOrderView', () => {
       },
     });
 
-    await screen.findByTestId(
-      PerpsOrderHeaderSelectorsIDs.HEADER,
-      {},
-      { timeout: TIMEOUT_MS },
-    );
+    await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.HEADER);
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
@@ -609,13 +593,7 @@ describe('PerpsOrderView', () => {
       expect(
         await screen.findByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
       ).toBeOnTheScreen();
-      expect(
-        await screen.findByText(
-          strings(messageKey),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
+      expect(await screen.findByText(strings(messageKey))).toBeOnTheScreen();
       expect(placeOrder).toHaveBeenCalledTimes(1);
       expect(updatePositionTPSL).toHaveBeenCalledTimes(1);
       expect(updatePositionTPSL).toHaveBeenCalledWith({
@@ -679,8 +657,6 @@ describe('PerpsOrderView', () => {
           direction: strings('perps.tpsl.above'),
           priceType: 'current',
         }),
-        {},
-        { timeout: TIMEOUT_MS },
       ),
     ).toBeOnTheScreen();
     const placeOrderButton = await screen.findByTestId(
@@ -761,11 +737,7 @@ describe('PerpsOrderView', () => {
     });
 
     expect(
-      await screen.findByText(
-        strings('perps.errors.postOnlyWindow'),
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByText(strings('perps.errors.postOnlyWindow')),
     ).toBeOnTheScreen();
     expect(placeOrder).toHaveBeenCalledTimes(1);
     expect(
@@ -906,11 +878,7 @@ describe('PerpsOrderView', () => {
     emitEthPrice(stream, '-1');
 
     fireEvent.press(
-      await screen.findByTestId(
-        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
     );
     await act(async () => {
       fireEvent.press(
@@ -921,11 +889,7 @@ describe('PerpsOrderView', () => {
     });
 
     expect(
-      await screen.findByText(
-        strings('perps.order.limit_price_modal.title'),
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
+      await screen.findByText(strings('perps.order.limit_price_modal.title')),
     ).toBeOnTheScreen();
     fireEvent.press(
       screen.getByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID),
@@ -1213,8 +1177,6 @@ describe('PerpsOrderView', () => {
 
       const rampParams = await screen.findByTestId(
         `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       // No preset asset: Ramp opens its token picker first.
       expect(rampParams).not.toHaveTextContent('assetId', { exact: false });
@@ -1269,8 +1231,6 @@ describe('PerpsOrderView', () => {
       expect(
         await screen.findByTestId(
           `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -1287,11 +1247,7 @@ describe('PerpsOrderView', () => {
       emitEthPrice(stream);
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.FEE_TEXT,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
       ).toHaveTextContent(
         strings('perps.trade_sheet.includes_fee_after_promo', {
           originalFeePercentage: '0.145',
@@ -1345,8 +1301,6 @@ describe('PerpsOrderView', () => {
           `${strings('confirm.label.pay_with')}, ${strings(
             'perps.adjust_margin.perps_balance',
           )} (${availableLabel})`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
     });
@@ -1409,8 +1363,6 @@ describe('PerpsOrderView', () => {
           `${strings('confirm.label.pay_with')}, ${strings(
             'perps.adjust_margin.perps_balance',
           )} (${availableLabel})`,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
       expect(
@@ -1442,11 +1394,7 @@ describe('PerpsOrderView', () => {
 
       // The market page shows while execution is still pending.
       expect(
-        await screen.findByTestId(
-          `route-${Routes.PERPS.MARKET_DETAILS}`,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
       ).toBeOnTheScreen();
       expect(placeOrder).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1532,14 +1480,11 @@ describe('PerpsOrderView', () => {
       holdValidation = true;
       const validationCallsBefore = validateOrder.mock.calls.length;
       emitEthPrice(stream, '2', '2510');
-      await waitFor(
-        () => {
-          expect(validateOrder.mock.calls.length).toBeGreaterThan(
-            validationCallsBefore,
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(validateOrder.mock.calls.length).toBeGreaterThan(
+          validationCallsBefore,
+        );
+      });
       await act(async () => {
         fireEvent.press(submitButton);
       });
@@ -1561,11 +1506,7 @@ describe('PerpsOrderView', () => {
       renderTradeSheet({ streamOverrides: headerCache });
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
       ).toHaveTextContent(headerPriceText(2737.9));
       expect(
         screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
@@ -1581,11 +1522,7 @@ describe('PerpsOrderView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
       ).toHaveTextContent(headerPriceText(2700));
       expect(
         screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
@@ -1609,11 +1546,7 @@ describe('PerpsOrderView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
       ).toHaveTextContent(headerPriceText(2715));
       expect(
         screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
@@ -1632,11 +1565,7 @@ describe('PerpsOrderView', () => {
       });
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
       ).toHaveTextContent(headerPriceText(2700));
       expect(
         screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
@@ -1647,11 +1576,7 @@ describe('PerpsOrderView', () => {
       renderTradeSheet();
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.HEADER_SKELETON,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
@@ -1662,26 +1587,19 @@ describe('PerpsOrderView', () => {
       const { stream } = renderTradeSheet({ streamOverrides: headerCache });
 
       expect(
-        await screen.findByTestId(
-          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
       ).toHaveTextContent(headerPriceText(2737.9));
 
       emitEthPrice(stream, '1.5', '2740');
 
-      await waitFor(
-        () => {
-          expect(
-            screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
-          ).toHaveTextContent(headerPriceText(2740));
-          expect(
-            screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
-          ).toHaveTextContent(headerChangeText(1.5));
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
+        ).toHaveTextContent(headerPriceText(2740));
+        expect(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+        ).toHaveTextContent(headerChangeText(1.5));
+      });
       expect(
         screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
       ).not.toBeOnTheScreen();
@@ -1704,9 +1622,7 @@ describe('PerpsOrderView', () => {
       );
 
     const waitForDisplayedAmount = (expected: number): Promise<void> =>
-      waitFor(() => expect(readDisplayedAmount()).toBe(expected), {
-        timeout: TIMEOUT_MS,
-      });
+      waitFor(() => expect(readDisplayedAmount()).toBe(expected));
 
     const renderShortTradeSheet = async (amount: string): Promise<void> => {
       const { stream } = renderPerpsOrderView({
@@ -1730,11 +1646,7 @@ describe('PerpsOrderView', () => {
       emitEthPrice(stream, '-2.14', SHORT_PRICE);
 
       expect(
-        await screen.findByTestId(
-          PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
       ).toBeOnTheScreen();
     };
 
@@ -1761,8 +1673,6 @@ describe('PerpsOrderView', () => {
       expect(
         await screen.findByTestId(
           PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
     };
@@ -1818,12 +1728,9 @@ describe('PerpsOrderView', () => {
       fireEvent(amountSlider(), 'valueChange', 25);
       fireEvent(amountSlider(), 'dragEnd', 25);
 
-      await waitFor(
-        () => {
-          expect(readDisplayedAmount()).toBeGreaterThan(0);
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        expect(readDisplayedAmount()).toBeGreaterThan(0);
+      });
 
       await openAmountKeypad();
       await clearKeypadAmount();
@@ -1929,9 +1836,7 @@ describe('PerpsOrderView', () => {
     const waitForDisplayedAmount = (
       matches: (amount: number) => boolean,
     ): Promise<void> =>
-      waitFor(() => expect(matches(readDisplayedAmount())).toBe(true), {
-        timeout: TIMEOUT_MS,
-      });
+      waitFor(() => expect(matches(readDisplayedAmount())).toBe(true));
 
     const placeOrderAndReadAmount = async (): Promise<number> => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
@@ -2830,17 +2735,15 @@ describe('PerpsOrderView', () => {
         await act(async () => {
           fireEvent.press(screen.getByTestId(submitId));
         });
-        await waitFor(
-          () =>
-            expect(placeOrder).toHaveBeenCalledWith(
-              expect.objectContaining({
-                symbol: 'ETH',
-                isBuy: direction === 'long',
-                orderType: 'market',
-                usdAmount: '120',
-              }),
-            ),
-          { timeout: TIMEOUT_MS },
+        await waitFor(() =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              isBuy: direction === 'long',
+              orderType: 'market',
+              usdAmount: '120',
+            }),
+          ),
         );
       },
     );
@@ -2888,8 +2791,6 @@ describe('PerpsOrderView', () => {
       fireEvent.press(
         await screen.findByTestId(
           PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
-          {},
-          { timeout: TIMEOUT_MS },
         ),
       );
       fireEvent.press(
@@ -3023,19 +2924,14 @@ describe('PerpsOrderView', () => {
         }),
       ).toBeOnTheScreen();
 
-      await waitFor(
-        () => {
-          const considered = sizeUnitEvents(
-            events,
-            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
-          );
-          expect(considered.length).toBeGreaterThan(0);
-          expect(considered[0].properties[PERPS_ANALYTICS_SIZE_UNIT]).toBe(
-            'usd',
-          );
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const considered = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+        );
+        expect(considered.length).toBeGreaterThan(0);
+        expect(considered[0].properties[PERPS_ANALYTICS_SIZE_UNIT]).toBe('usd');
+      });
 
       emitEthPrice(stream);
 
@@ -3116,21 +3012,18 @@ describe('PerpsOrderView', () => {
         }),
       ).toBeOnTheScreen();
 
-      await waitFor(
-        () => {
-          const considered = sizeUnitEvents(
-            events,
-            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
-          );
-          expect(considered.length).toBeGreaterThan(0);
-          expect(
-            considered.every(
-              (event) => event.properties[PERPS_ANALYTICS_SIZE_UNIT] === 'usd',
-            ),
-          ).toBe(true);
-        },
-        { timeout: TIMEOUT_MS },
-      );
+      await waitFor(() => {
+        const considered = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+        );
+        expect(considered.length).toBeGreaterThan(0);
+        expect(
+          considered.every(
+            (event) => event.properties[PERPS_ANALYTICS_SIZE_UNIT] === 'usd',
+          ),
+        ).toBe(true);
+      });
 
       trackEventSpy.mockRestore();
     });
@@ -3170,11 +3063,7 @@ describe('PerpsOrderView', () => {
         // The header can paint a cached mid before order sizing has a price.
         // The coin subtitle appears only once that price can project USD, which
         // is also when the toggle is allowed to persist coin.
-        await screen.findByText(
-          `${coinAmount} ETH`,
-          {},
-          { timeout: TIMEOUT_MS },
-        );
+        await screen.findByText(`${coinAmount} ETH`);
 
         fireEvent.press(
           screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE),
