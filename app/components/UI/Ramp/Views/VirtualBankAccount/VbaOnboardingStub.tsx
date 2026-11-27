@@ -97,18 +97,18 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={`${VbaOnboardingStubSelectorsIDs.CONTAINER}-${variant}`}
       >
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-2">
+        <Text variant={TextVariant.HeadingLg} className="mt-2">
           {strings(`virtual_bank_account.${variant}.title`)}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
+          className="mt-2"
         >
           {strings(`virtual_bank_account.${variant}.description`)}
         </Text>
       </ScrollView>
-      <Box twClassName="p-4">
+      <Box className="p-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

@@ -26,7 +26,7 @@ interface MoneyApyInfoSheetParams {
 }
 
 const ApySection = ({ title, body }: { title: string; body: string }) => (
-  <Box twClassName="gap-1">
+  <Box className="gap-1">
     <Text
       variant={TextVariant.HeadingSm}
       color={TextColor.TextDefault}
@@ -81,8 +81,8 @@ const MoneyApyInfoSheet = () => {
         showsVerticalScrollIndicator={false}
         testID={MoneyApyInfoSheetTestIds.SCROLL_VIEW}
       >
-        <Box twClassName="px-4 pt-4 pb-4 gap-5">
-          <Box twClassName="gap-1">
+        <Box className="gap-5 p-4">
+          <Box className="gap-1">
             {hasApy ? (
               <Text
                 variant={TextVariant.HeadingLg}
@@ -140,7 +140,7 @@ const MoneyApyInfoSheet = () => {
             title={strings('money.apy_tooltip.where_it_comes_from_title')}
             body={strings('money.apy_tooltip.where_it_comes_from_body')}
           />
-          <Box twClassName="gap-1">
+          <Box className="gap-1">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

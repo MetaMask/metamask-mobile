@@ -69,7 +69,7 @@ export const MoneyAssetOverviewBalanceDescription = ({
   return (
     <Box
       testID={MoneyAssetOverviewBalanceCtaTestIds.CONTAINER}
-      twClassName="mb-3 mt-2"
+      className="mb-3 mt-2"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -128,7 +128,7 @@ export interface MoneyAssetOverviewBalanceCtaProps {
 export const MoneyAssetOverviewBalanceCta = ({
   onStartEarning,
 }: MoneyAssetOverviewBalanceCtaProps) => (
-  <Box twClassName="mt-3">
+  <Box className="mt-3">
     <Button
       isFullWidth
       onPress={onStartEarning}
@@ -142,13 +142,13 @@ export const MoneyAssetOverviewBalanceCta = ({
 );
 
 export const MoneyAssetOverviewBalanceDescriptionSkeleton = () => (
-  <Box twClassName="mb-3 mt-2">
+  <Box className="mb-3 mt-2">
     <Skeleton height={30} width="100%" twClassName="rounded-lg" />
   </Box>
 );
 
 export const MoneyAssetOverviewBalanceCtaSkeleton = () => (
-  <Box testID="money-asset-overview-balance-cta-skeleton" twClassName="mt-3">
+  <Box testID="money-asset-overview-balance-cta-skeleton" className="mt-3">
     <Skeleton height={48} width="100%" twClassName="rounded-lg" />
   </Box>
 );

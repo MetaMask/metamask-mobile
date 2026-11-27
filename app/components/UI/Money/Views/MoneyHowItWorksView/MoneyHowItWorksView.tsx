@@ -41,7 +41,7 @@ const localStyles = StyleSheet.create({
   headerSpacer: { width: 40 },
 });
 
-const SectionDivider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+const SectionDivider = () => <Box className="my-5 h-px bg-border-muted" />;
 
 const MoneyHowItWorksView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -82,14 +82,14 @@ const MoneyHowItWorksView = () => {
           backgroundColor: themeColors.background.default,
         },
       ]}
-      twClassName="flex-1"
+      className="flex-1"
       testID={MoneyHowItWorksViewTestIds.CONTAINER}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-1 py-2"
+        className="px-1 py-2"
       >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -109,7 +109,7 @@ const MoneyHowItWorksView = () => {
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         testID={MoneyHowItWorksViewTestIds.SCROLL_VIEW}
       >
-        <Box twClassName="px-4 pt-6 pb-3 gap-3">
+        <Box className="gap-3 px-4 pb-3 pt-6">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
@@ -144,7 +144,7 @@ const MoneyHowItWorksView = () => {
 
         <SectionDivider />
 
-        <Box twClassName="py-5 px-4">
+        <Box className="px-4 py-5">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
@@ -164,7 +164,7 @@ const MoneyHowItWorksView = () => {
 
         <SectionDivider />
 
-        <Box twClassName="py-5 px-4 gap-3">
+        <Box className="gap-3 px-4 py-5">
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}

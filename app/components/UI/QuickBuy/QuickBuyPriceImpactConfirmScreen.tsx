@@ -55,11 +55,11 @@ const QuickBuyPriceImpactConfirmScreen: React.FC = () => {
         content="bridge.price_impact_error_title"
       />
 
-      <Box twClassName="px-4 py-2" gap={4}>
+      <Box className="px-4 py-2" gap={4}>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={QuickBuySheetSelectorsIDs.PRICE_IMPACT_DESCRIPTION}
         >
           {strings('bridge.price_impact_error_description', {
@@ -69,7 +69,7 @@ const QuickBuyPriceImpactConfirmScreen: React.FC = () => {
 
         {formattedPriceImpactFiat && (
           <Box
-            twClassName="bg-error-muted rounded-2xl pl-6 pr-4 py-3"
+            className="rounded-2xl bg-error-muted py-3 pl-6 pr-4"
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={4}
@@ -83,7 +83,7 @@ const QuickBuyPriceImpactConfirmScreen: React.FC = () => {
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.ErrorDefault}
-              twClassName="flex-1"
+              className="flex-1"
               testID="price-impact-fiat-text"
             >
               {strings('bridge.price_impact_fiat_alert', {

@@ -83,7 +83,7 @@ const QuickBuyActionFooter: React.FC = () => {
   }, [dispatch, tradeMode, selectedReceiveToken, setActiveScreen]);
 
   return (
-    <Box twClassName="px-4">
+    <Box className="px-4">
       <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
       {/* Everything between the banners and the CTA depends on a quote that can
@@ -99,7 +99,7 @@ const QuickBuyActionFooter: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mb-4 min-h-6"
+          className="mb-4 min-h-6"
           testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_ROW}
         >
           {isEstReceiveLoading || estimatedReceiveFiat ? (
@@ -152,7 +152,7 @@ const QuickBuyActionFooter: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="pb-5"
+          className="pb-5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {tradeMode === 'sell'

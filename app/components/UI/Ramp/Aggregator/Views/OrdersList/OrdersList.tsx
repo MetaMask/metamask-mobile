@@ -305,7 +305,7 @@ function OrdersList() {
   return (
     <FlatList
       ListHeaderComponent={
-        <Box twClassName="px-4 py-2 bg-default">
+        <Box className="bg-default px-4 py-2">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -345,7 +345,7 @@ function OrdersList() {
       renderItem={renderItem}
       keyExtractor={(item) => `${item.source}-${item.id}`}
       ListEmptyComponent={
-        <Box twClassName="w-full items-center py-10">
+        <Box className="w-full items-center py-10">
           <TabEmptyState
             description={
               currentFilter === 'ALL'

@@ -129,7 +129,7 @@ export function BalanceProjection({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="shrink"
+            className="shrink"
           >
             {`${labelText} `}
           </Text>

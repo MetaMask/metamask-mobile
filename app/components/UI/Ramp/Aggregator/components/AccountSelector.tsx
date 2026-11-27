@@ -61,7 +61,7 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
       onPress={openAccountSelector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
       accessibilityRole="button"
-      twClassName="shrink min-w-0"
+      className="min-w-0 shrink"
       textProps={{
         numberOfLines: 1,
         ellipsizeMode: 'middle',

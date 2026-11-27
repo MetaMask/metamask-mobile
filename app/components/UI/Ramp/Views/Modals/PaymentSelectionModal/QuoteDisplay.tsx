@@ -45,7 +45,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <Box twClassName="items-end">
+      <Box className="items-end">
         <Skeleton
           width={SKELETON_TOKEN_WIDTH}
           height={SKELETON_HEIGHT}
@@ -63,7 +63,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
 
   if (showWarningIcon) {
     return (
-      <Box twClassName="items-end justify-center">
+      <Box className="items-end justify-center">
         <Icon
           name={IconName.Warning}
           size={IconSize.Sm}
@@ -75,7 +75,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
 
   if (quoteUnavailable) {
     return (
-      <Box twClassName="items-end justify-center">
+      <Box className="items-end justify-center">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings('fiat_on_ramp.quote_unavailable')}
         </Text>
@@ -88,7 +88,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
   }
 
   return (
-    <Box twClassName="items-end">
+    <Box className="items-end">
       {cryptoAmount ? (
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cryptoAmount}

@@ -65,7 +65,7 @@ function ActivityRowIcon({
   );
 
   if (!showNetworkBadge) {
-    return <Box twClassName="self-center">{avatar}</Box>;
+    return <Box className="self-center">{avatar}</Box>;
   }
 
   return (
@@ -98,11 +98,11 @@ function ActivityRowLabel({ display }: ActivityRowLabelProps) {
   const isPending = display.status === 'pending';
 
   return (
-    <Box twClassName="min-w-0 flex-1 gap-0.5">
+    <Box className="min-w-0 flex-1 gap-0.5">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        className="gap-2"
       >
         <Text
           variant={TextVariant.BodyMd}
@@ -110,7 +110,7 @@ function ActivityRowLabel({ display }: ActivityRowLabelProps) {
           color={isFailed ? TextColor.ErrorDefault : TextColor.TextDefault}
           numberOfLines={1}
           testID={MoneyActivityItemTestIds.LABEL}
-          twClassName="shrink"
+          className="shrink"
         >
           {display.label}
         </Text>
@@ -155,7 +155,7 @@ function ActivityRowAmounts({ display, privacyMode }: ActivityRowAmountsProps) {
           color={amountColor}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
-          twClassName={
+          className={
             display.isPrimaryAmountPending
               ? 'text-right opacity-30'
               : 'text-right'
@@ -184,7 +184,7 @@ function ActivityRowAmounts({ display, privacyMode }: ActivityRowAmountsProps) {
           }
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
-          twClassName="text-right"
+          className="text-right"
           testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
         >
           {display.fiatAmount}

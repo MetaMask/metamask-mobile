@@ -120,7 +120,7 @@ const EarningsTab = (): React.ReactElement => {
         setScrollEnabled={setScrollEnabled}
       />
       {hasHistoricalEarnings && selectedRangeData ? (
-        <Box twClassName="pb-4">
+        <Box className="pb-4">
           <EarningsSummary
             points={chartPoints}
             locale={locale}

@@ -91,7 +91,7 @@ const MoneyBalanceSummary = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        className="gap-1"
         testID={MoneyBalanceSummaryTestIds.UPGRADE_PILL}
       >
         <PendingSpinner size={IconSize.Xs} />
@@ -111,12 +111,12 @@ const MoneyBalanceSummary = ({
 
   const apyLabel =
     hasApy || pendingPill ? (
-      <Box twClassName="gap-1">
+      <Box className="gap-1">
         {hasApy ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
             testID={MoneyBalanceSummaryTestIds.APY}
           >
             <Pressable
@@ -249,7 +249,7 @@ const MoneyBalanceSummary = ({
   // bar and leaves 12px under "Money". 4px here makes that gap 16px.
   return (
     <Box
-      twClassName="px-4 pt-1 gap-1"
+      className="gap-1 px-4 pt-1"
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}

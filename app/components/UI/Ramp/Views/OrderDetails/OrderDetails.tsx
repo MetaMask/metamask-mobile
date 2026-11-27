@@ -406,7 +406,7 @@ const OrderDetails = () => {
             }}
             includesTopInset
           />
-          <Box twClassName="flex-1 items-center justify-center px-16 py-16">
+          <Box className="flex-1 items-center justify-center p-16">
             <Icon
               name={IconName.Danger}
               size={IconSize.Xl}
@@ -415,13 +415,13 @@ const OrderDetails = () => {
             <Text
               variant={TextVariant.HeadingSm}
               fontWeight={FontWeight.Bold}
-              twClassName="text-center mb-2"
+              className="mb-2 text-center"
             >
               {strings('ramps_order_details.error_title')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-alternative text-center mb-8"
+              className="mb-8 text-center text-alternative"
             >
               {error}
             </Text>

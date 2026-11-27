@@ -44,7 +44,7 @@ const QuickAmounts: React.FC<QuickAmountsProps> = ({
             onPress={() => onAmountPress(amount)}
             testID={`${testID}-button-${amount}`}
             isFullWidth
-            twClassName="px-0 rounded-xl"
+            className="rounded-xl px-0"
             textProps={{
               adjustsFontSizeToFit: true,
               numberOfLines: 1,

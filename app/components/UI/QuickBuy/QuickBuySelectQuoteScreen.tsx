@@ -89,7 +89,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
         onBack={() => setActiveScreen('quoteDetails')}
       />
       {isEmpty ? (
-        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+        <Box className="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('social_leaderboard.quick_buy.no_quotes')}
           </Text>
@@ -100,7 +100,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
-          <Box twClassName="px-4 pb-2 mb-2">
+          <Box className="mb-2 px-4 pb-2">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

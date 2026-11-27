@@ -364,7 +364,7 @@ function TokenSelection() {
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
             includesTopInset
           />
-          <Box twClassName="flex-1 items-center justify-center">
+          <Box className="flex-1 items-center justify-center">
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
@@ -388,8 +388,8 @@ function TokenSelection() {
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
             includesTopInset
           />
-          <Box twClassName="flex-1 items-center justify-center px-4">
-            <Box twClassName="text-center">
+          <Box className="flex-1 items-center justify-center px-4">
+            <Box className="text-center">
               <Text variant={TextVariant.BodyMd}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
@@ -417,7 +417,7 @@ function TokenSelection() {
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
           includesTopInset
         />
-        <Box twClassName="px-4 pt-1 pb-3">
+        <Box className="px-4 pb-3 pt-1">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}
@@ -429,7 +429,7 @@ function TokenSelection() {
             )}
           />
         </Box>
-        <Box twClassName="pt-2 pb-4 pl-4">
+        <Box className="pb-4 pl-4 pt-2">
           <TokenNetworkFilterBar
             networks={uniqueNetworks}
             networkFilter={networkFilter}

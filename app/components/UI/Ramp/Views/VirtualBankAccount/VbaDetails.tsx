@@ -978,7 +978,7 @@ const VbaDetails = () => {
           <Box
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
             marginTop={6}
-            twClassName="overflow-hidden rounded-xl"
+            className="overflow-hidden rounded-xl"
           >
             {rows.map((row) => (
               <ListItem
@@ -1016,7 +1016,7 @@ const VbaDetails = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
-            twClassName="mt-6 text-center"
+            className="mt-6 text-center"
             testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
@@ -1027,7 +1027,7 @@ const VbaDetails = () => {
           <Box
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
             marginTop={6}
-            twClassName="overflow-hidden rounded-xl"
+            className="overflow-hidden rounded-xl"
             accessible
             accessibilityRole="progressbar"
             accessibilityLabel={strings(
@@ -1080,7 +1080,7 @@ const VbaDetails = () => {
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE}
           >
             {strings('virtual_bank_account.vba_details.provider_disclosure')}{' '}
@@ -1099,7 +1099,7 @@ const VbaDetails = () => {
           <Text
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE}
           >
             {strings('virtual_bank_account.vba_details.risk_disclosure')}{' '}

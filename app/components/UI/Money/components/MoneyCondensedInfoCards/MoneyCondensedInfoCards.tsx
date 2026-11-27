@@ -46,7 +46,7 @@ const CondensedCard = ({
     <>
       <Box
         alignItems={BoxAlignItems.Center}
-        twClassName="bg-muted rounded-xl size-[78px] justify-center"
+        className="size-[78px] justify-center rounded-xl bg-muted"
       >
         {image?.source ? (
           <Image
@@ -62,7 +62,7 @@ const CondensedCard = ({
           />
         )}
       </Box>
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {title}
         </Text>
@@ -92,7 +92,7 @@ const MoneyCondensedInfoCards = ({
   isGlass = false,
 }: MoneyCondensedInfoCardsProps) => (
   <Box
-    twClassName="px-4 py-3 gap-3"
+    className="gap-3 px-4 py-3"
     testID={MoneyCondensedInfoCardsTestIds.CONTAINER}
   >
     <CondensedCard

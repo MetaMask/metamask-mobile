@@ -55,14 +55,14 @@ const EarningsChartPlot = ({
 
   return (
     <Box
-      twClassName="relative"
+      className="relative"
       style={{ height: CHART_CONTAINER_HEIGHT }}
       testID={MoneyEarningsViewTestIds.CHART}
     >
       <Box
         {...panResponder.panHandlers}
         testID={MoneyEarningsViewTestIds.CHART_PLOT}
-        twClassName="absolute left-0 right-12 top-0 h-40"
+        className="absolute left-0 right-12 top-0 h-40"
         onLayout={({ nativeEvent: { layout } }) => onPlotLayout(layout.width)}
         onTouchStart={() => setScrollEnabled?.(false)}
         onTouchEnd={() => setScrollEnabled?.(true)}
@@ -72,7 +72,7 @@ const EarningsChartPlot = ({
           <Box
             key={`gridline-${CHART_LEVEL_IDS[index]}`}
             testID={MoneyEarningsViewTestIds.CHART_GRIDLINE(index)}
-            twClassName={`absolute left-0 right-0 h-px bg-border-muted ${
+            className={`absolute inset-x-0 h-px bg-border-muted ${
               index === 0 ? 'top-0' : 'top-1/2'
             }`}
           />
@@ -81,7 +81,7 @@ const EarningsChartPlot = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.End}
-          twClassName="absolute bottom-0 left-0 right-0 h-40"
+          className="absolute inset-x-0 bottom-0 h-40"
         >
           {points.map((point, index) => {
             const isAvailable = isAvailableBucket(point);
@@ -124,7 +124,7 @@ const EarningsChartPlot = ({
                 {isAvailable ? (
                   <Box
                     testID={MoneyEarningsViewTestIds.CHART_FILL(index)}
-                    twClassName="w-1/2 max-w-7 bg-text-default"
+                    className="w-1/2 max-w-7 bg-text-default"
                     style={[
                       { height: barHeight },
                       activeIndex !== null && !isSelected
@@ -139,14 +139,14 @@ const EarningsChartPlot = ({
         </Box>
       </Box>
 
-      <Box twClassName="absolute bottom-0 left-0 right-12 h-10 flex-row">
+      <Box className="absolute bottom-0 left-0 right-12 h-10 flex-row">
         {points.map((point, index) => (
           <Text
             key={`x-label-${point.start}-${point.periodEndExclusive}`}
             testID={MoneyEarningsViewTestIds.CHART_X_LABEL(index)}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="min-w-0 flex-1 text-center"
+            className="min-w-0 flex-1 text-center"
             numberOfLines={2}
           >
             {xAxisLabels[index]}
@@ -154,14 +154,14 @@ const EarningsChartPlot = ({
         ))}
       </Box>
 
-      <Box twClassName="absolute right-0 top-0 h-40 w-12">
+      <Box className="absolute right-0 top-0 h-40 w-12">
         {yAxisValuesUsd.map((valueUsd, index) => (
           <Text
             key={`y-label-${CHART_LEVEL_IDS[index]}`}
             testID={MoneyEarningsViewTestIds.CHART_Y_LABEL(index)}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName={`absolute right-0 text-right ${
+            className={`absolute right-0 text-right ${
               index === 0 ? '-top-3' : 'top-1/2 -mt-3'
             }`}
             numberOfLines={1}

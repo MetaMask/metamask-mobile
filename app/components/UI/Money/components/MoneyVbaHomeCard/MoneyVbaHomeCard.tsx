@@ -287,7 +287,7 @@ const MoneyVbaHomeCard = ({
     <ButtonBase
       size={ButtonBaseSize.Lg}
       isFullWidth
-      twClassName={cta.className}
+      className={cta.className}
       textClassName={() => cta.textClassName}
       isLoading={isRouting}
       onPress={handleCtaPress}
@@ -300,7 +300,7 @@ const MoneyVbaHomeCard = ({
   return (
     <Box
       testID={testIds.CONTAINER}
-      twClassName="mx-4 mt-2 rounded-2xl bg-muted p-4"
+      className="mx-4 mt-2 rounded-2xl bg-muted p-4"
     >
       <LinearGradient
         colors={HERO_GRADIENT_COLORS}
@@ -325,7 +325,7 @@ const MoneyVbaHomeCard = ({
           />
         )}
       </LinearGradient>
-      <Box twClassName="gap-1 py-4">
+      <Box className="gap-1 py-4">
         <Text
           variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
@@ -344,12 +344,12 @@ const MoneyVbaHomeCard = ({
         </Text>
       </Box>
       {config.isDismissible ? (
-        <Box twClassName="flex-row gap-3">
-          <Box twClassName="flex-1">
+        <Box className="flex-row gap-3">
+          <Box className="flex-1">
             <ButtonBase
               size={ButtonBaseSize.Lg}
               isFullWidth
-              twClassName="bg-muted"
+              className="bg-muted"
               textProps={{ twClassName: 'text-default' }}
               onPress={handleDismissPress}
               testID={testIds.DISMISS_BUTTON}
@@ -357,7 +357,7 @@ const MoneyVbaHomeCard = ({
               {strings(`${config.i18nPrefix}.dismiss`)}
             </ButtonBase>
           </Box>
-          <Box twClassName="flex-1">{ctaButton}</Box>
+          <Box className="flex-1">{ctaButton}</Box>
         </Box>
       ) : (
         ctaButton

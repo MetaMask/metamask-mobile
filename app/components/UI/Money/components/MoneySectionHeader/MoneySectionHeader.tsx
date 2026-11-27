@@ -60,7 +60,7 @@ const MoneySectionHeader = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
+      className="gap-1"
     >
       <Text
         variant={TextVariant.HeadingMd}

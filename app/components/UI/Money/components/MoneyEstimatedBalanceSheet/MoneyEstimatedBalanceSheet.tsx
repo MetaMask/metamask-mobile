@@ -39,13 +39,13 @@ const CheckBulletRow = ({
   body: string;
   testID: string;
 }) => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4" testID={testID}>
+  <Box flexDirection={BoxFlexDirection.Row} className="gap-4" testID={testID}>
     <Icon
       name={IconName.Check}
       size={IconSize.Md}
       color={IconColor.SuccessDefault}
     />
-    <Box twClassName="flex-1 gap-1">
+    <Box className="flex-1 gap-1">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -90,8 +90,8 @@ const MoneyEstimatedBalanceSheet = () => {
         showsVerticalScrollIndicator={false}
         testID={MoneyEstimatedBalanceSheetTestIds.SCROLL_VIEW}
       >
-        <Box twClassName="px-4 pt-4 pb-4 gap-6">
-          <Box twClassName="gap-2">
+        <Box className="gap-6 p-4">
+          <Box className="gap-2">
             <Text
               variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
@@ -126,7 +126,7 @@ const MoneyEstimatedBalanceSheet = () => {
               )}
             </Text>
           </Box>
-          <Box twClassName="gap-5">
+          <Box className="gap-5">
             <CheckBulletRow
               title={strings(
                 'money.estimated_balance_sheet.bullet_compound_title',

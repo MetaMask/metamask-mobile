@@ -94,7 +94,7 @@ const MoneyDeeplinkModal = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={MoneyDeeplinkModalTestIds.DESCRIPTION}
-          twClassName="text-center"
+          className="text-center"
         >
           {description}
         </Text>
@@ -102,7 +102,7 @@ const MoneyDeeplinkModal = ({
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={primaryButtonProps}
-        twClassName="pt-6"
+        className="pt-6"
       />
     </BottomSheet>
   );

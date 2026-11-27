@@ -137,10 +137,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
   return (
     <>
-      <Box twClassName="mb-6 items-center">
-        <Box twClassName="mb-5 flex-row items-center gap-4">
+      <Box className="mb-6 items-center">
+        <Box className="mb-5 flex-row items-center gap-4">
           <Box
-            twClassName={`h-10 w-10 items-center justify-center rounded-full ${statusIconClassName}`}
+            className={`size-10 items-center justify-center rounded-full ${statusIconClassName}`}
           >
             {statusIcon}
           </Box>
@@ -173,7 +173,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
         <Text
           variant={TextVariant.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
-          twClassName="mb-4 text-center"
+          className="mb-4 text-center"
         >
           {order.cryptoAmount} {order.cryptocurrency}
         </Text>
@@ -184,14 +184,14 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {order.data.statusDescription}
           </Text>
         ) : null}
       </Box>
 
-      <Box twClassName="mb-4 rounded-3xl border border-muted bg-default py-2">
+      <Box className="mb-4 rounded-3xl border border-muted bg-default py-2">
         <KeyValueRow
           keyLabel={strings('deposit.order_processing.account')}
           value={accountName ?? ''}
@@ -229,7 +229,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           }}
         />
 
-        <Box twClassName="my-2 h-px bg-border-muted" />
+        <Box className="my-2 h-px bg-border-muted" />
 
         {Boolean(orderFee) && (
           <KeyValueRow

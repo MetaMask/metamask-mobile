@@ -150,7 +150,7 @@ const CopyableValueRow = ({
           testID={testID}
           variant={TextVariant.BodyMd}
           color={value ? TextColor.TextDefault : TextColor.TextAlternative}
-          twClassName="flex-1"
+          className="flex-1"
           selectable
         >
           {value ?? placeholder}
@@ -227,7 +227,7 @@ const MoneyAccountStatusContent = () => {
   return (
     <Box
       testID={MoneyAccountStatusViewTestIds.CONTAINER}
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       style={{ paddingTop: insets.top }}
     >
       <HeaderStandard

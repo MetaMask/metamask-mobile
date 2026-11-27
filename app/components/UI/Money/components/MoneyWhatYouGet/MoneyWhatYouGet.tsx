@@ -32,24 +32,24 @@ const BenefitRow = ({ children }: { children: React.ReactNode }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
-    twClassName="gap-3"
+    className="gap-3"
   >
-    <Box twClassName="shrink-0 pt-1">
+    <Box className="shrink-0 pt-1">
       <Icon
         name={IconName.Check}
         size={IconSize.Sm}
         color={IconColor.SuccessDefault}
       />
     </Box>
-    <Box twClassName="flex-1">{children}</Box>
+    <Box className="flex-1">{children}</Box>
   </Box>
 );
 
 const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
-  <Box twClassName="px-4 py-3" testID={MoneyWhatYouGetTestIds.CONTAINER}>
+  <Box className="px-4 py-3" testID={MoneyWhatYouGetTestIds.CONTAINER}>
     <MoneySectionHeader title={strings('money.what_you_get.title')} />
 
-    <Box twClassName="mt-3 mb-3 gap-3">
+    <Box className="my-3 gap-3">
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
           {`${strings('money.what_you_get.benefit_auto_earn')} `}
@@ -95,7 +95,7 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
     </Box>
 
     {onLearnMorePress ? (
-      <Box twClassName="pt-3">
+      <Box className="pt-3">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}

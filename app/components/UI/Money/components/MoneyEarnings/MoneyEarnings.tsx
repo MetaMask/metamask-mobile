@@ -119,18 +119,18 @@ const MoneyEarnings = ({
   onLifetimeInfoPress,
   privacyMode = false,
 }: MoneyEarningsProps) => (
-  <Box twClassName="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
+  <Box className="px-4 pb-3 pt-7" testID={MoneyEarningsTestIds.CONTAINER}>
     <MoneySectionHeader
       testID={MoneyEarningsTestIds.HEADER}
       title={strings('money.earnings.title')}
       onPress={onHeaderPress}
     />
 
-    <Box twClassName="mt-5 gap-4">
+    <Box className="mt-5 gap-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="justify-between"
+        className="justify-between"
         testID={MoneyEarningsTestIds.LAST_30_DAYS}
       >
         <DottedInfoLabel
@@ -160,7 +160,7 @@ const MoneyEarnings = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="justify-between"
+          className="justify-between"
           testID={MoneyEarningsTestIds.SINCE_INCEPTION}
         >
           <DottedInfoLabel

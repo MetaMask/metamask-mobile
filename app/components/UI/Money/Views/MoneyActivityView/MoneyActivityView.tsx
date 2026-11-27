@@ -223,7 +223,7 @@ const MoneyActivityView = () => {
   const sections = useMemo(() => buildSections(filtered), [filtered]);
 
   const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
-    <Box twClassName="px-4 pt-2 pb-1 bg-default">
+    <Box className="bg-default px-4 pb-1 pt-2">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -276,7 +276,7 @@ const MoneyActivityView = () => {
     <Box
       paddingVertical={4}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      className="gap-2"
       testID={MoneyActivityViewTestIds.LOAD_ERROR}
     >
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -308,7 +308,7 @@ const MoneyActivityView = () => {
         styles.safeArea,
         { paddingTop: insets.top, backgroundColor: colors.background.default },
       ]}
-      twClassName="flex-1 bg-default"
+      className="flex-1 bg-default"
       testID={MoneyActivityViewTestIds.CONTAINER}
     >
       <Box
@@ -316,7 +316,7 @@ const MoneyActivityView = () => {
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Start}
         paddingVertical={2}
-        twClassName="px-2"
+        className="px-2"
       >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -408,7 +408,7 @@ const MoneyActivityView = () => {
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
-          twClassName="flex-1 items-center justify-center px-6 pb-32"
+          className="flex-1 items-center justify-center px-6 pb-32"
           testID={MoneyActivityViewTestIds.EMPTY_LIST}
         >
           <Text
@@ -425,7 +425,7 @@ const MoneyActivityView = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="mt-4"
+              className="mt-4"
               onPress={refetch}
               testID={MoneyActivityViewTestIds.RETRY_BUTTON}
             >

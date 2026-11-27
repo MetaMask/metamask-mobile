@@ -44,7 +44,7 @@ const NO_APY_ANSWER_KEYS: Partial<Record<(typeof FAQ_KEYS)[number], string>> = {
 
 const ANIMATION_DURATION = 200;
 
-const FaqDivider = () => <Box twClassName="h-px bg-border-muted" />;
+const FaqDivider = () => <Box className="h-px bg-border-muted" />;
 
 const FaqItem = ({
   question,
@@ -76,14 +76,14 @@ const FaqItem = ({
 
   return (
     <Pressable onPress={handlePress} testID={testID}>
-      <Box twClassName="py-5 px-4">
+      <Box className="px-4 py-5">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-2"
+          className="gap-2"
         >
-          <Box twClassName="flex-1">
+          <Box className="flex-1">
             <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
               {question}
             </Text>
@@ -97,7 +97,7 @@ const FaqItem = ({
           </Animated.View>
         </Box>
         {expanded && (
-          <Box twClassName="mt-3">
+          <Box className="mt-3">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
