@@ -375,9 +375,13 @@ describe('MainNavigator', () => {
       )[0];
       const WalletTabStack = homeTabScreen?.props?.component;
 
-      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
-        state: initialRootState,
-      });
+      const { root: walletRoot } = renderWithProvider(
+        <WalletTabStack
+          route={{ params: {} }}
+          navigation={{ replaceParams: jest.fn() }}
+        />,
+        { state: initialRootState },
+      );
 
       const stackNavigator = walletRoot.findAll(
         (node: ReactTestInstance) =>
@@ -2410,9 +2414,14 @@ describe('MainNavigator', () => {
       Component: React.ComponentType<Record<string, unknown>>,
       props: Record<string, unknown> = {},
     ) =>
-      renderWithProvider(<Component route={{ params: {} }} {...props} />, {
-        state: initialRootState,
-      });
+      renderWithProvider(
+        <Component
+          route={{ params: {} }}
+          navigation={{ replaceParams: jest.fn() }}
+          {...props}
+        />,
+        { state: initialRootState },
+      );
 
     describe('MainNavigator top-level screens', () => {
       it('renders HomeTabs with tab navigation structure', () => {
@@ -2596,7 +2605,28 @@ describe('MainNavigator', () => {
           Routes.BROWSER.HOME,
           'TabScreen',
         );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        const params = { newTabUrl: 'https://browser.example', timestamp: 1 };
+        const replaceParams = jest.fn();
+        const navigation = { replaceParams };
+        const rendered = renderInner(Component, {
+          route: { params },
+          navigation,
+        });
+        const getAssetParams = () =>
+          rendered.root.findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Screen' &&
+              node.props?.name === Routes.BROWSER.ASSET_VIEW,
+          )[0].props.initialParams;
+
+        expect(getAssetParams()).toBe(params);
+        rendered.rerender(
+          <Component
+            route={{ params: replaceParams.mock.calls[0][0] }}
+            navigation={navigation}
+          />,
+        );
+        expect(getAssetParams()).toBe(params);
       });
 
       it('renders TransactionsHome', () => {
@@ -2754,9 +2784,6 @@ describe('MainNavigator', () => {
         // both the Rewards tab and REWARDS_FLOW without switching tabs.
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
-        expect(screenNames).not.toContain(
-          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
-        );
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
         );
@@ -2939,7 +2966,6 @@ describe('MainNavigator', () => {
 
         expect(screenNames).toEqual(
           expect.arrayContaining([
-            Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
@@ -2972,7 +2998,7 @@ describe('MainNavigator', () => {
           )
           .find((candidate) =>
             screenNamesIn(candidate).includes(
-              Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+              Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             ),
           );
 
@@ -2980,7 +3006,6 @@ describe('MainNavigator', () => {
           transparentModalStackOptions,
         );
         expect(screenNamesIn(group)).toEqual([
-          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
           Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,

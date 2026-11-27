@@ -7,10 +7,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { selectPerpsLighterProviderEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
-import {
-  isLighterProviderEnabled,
-  isPerpsLighterConfirmationEnabled,
-} from '../../../../../UI/Perps/utils/lighterFeatureFlags';
+import { isLighterProviderEnabled } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { useIsMoneyAccountPaymentOverride } from '../../../hooks/pay/useIsMoneyAccountPaymentOverride';
@@ -35,7 +32,6 @@ jest.mock('../../../../../UI/Perps/selectors/featureFlags', () => ({
 }));
 jest.mock('../../../../../UI/Perps/utils/lighterFeatureFlags', () => ({
   isLighterProviderEnabled: jest.fn(),
-  isPerpsLighterConfirmationEnabled: jest.fn(),
 }));
 jest.mock('../../token-icon', () => ({
   TokenIcon: (props: TokenIconProps) => (
@@ -64,9 +60,6 @@ const selectPerpsLighterProviderEnabledFlagMock = jest.mocked(
   selectPerpsLighterProviderEnabledFlag,
 );
 const isLighterProviderEnabledMock = jest.mocked(isLighterProviderEnabled);
-const isPerpsLighterConfirmationEnabledMock = jest.mocked(
-  isPerpsLighterConfirmationEnabled,
-);
 
 function renderRow(props?: { isResultReady?: boolean }) {
   return renderWithProvider(<DepositToRow {...props} />, {
@@ -86,7 +79,6 @@ describe('DepositToRow', () => {
     } as ReturnType<typeof useTransactionPayToken>);
     selectPerpsLighterProviderEnabledFlagMock.mockReturnValue(false);
     isLighterProviderEnabledMock.mockReturnValue(false);
-    isPerpsLighterConfirmationEnabledMock.mockReturnValue(false);
   });
 
   it('renders "To" -> "Perps balance" with the perps balance icon for perpsDeposit', () => {
@@ -226,7 +218,6 @@ describe('DepositToRow', () => {
     } as ReturnType<typeof useTransactionMetadataRequest>);
     selectPerpsLighterProviderEnabledFlagMock.mockReturnValue(true);
     isLighterProviderEnabledMock.mockReturnValue(true);
-    isPerpsLighterConfirmationEnabledMock.mockReturnValue(true);
 
     const { queryByTestId } = renderRow();
 

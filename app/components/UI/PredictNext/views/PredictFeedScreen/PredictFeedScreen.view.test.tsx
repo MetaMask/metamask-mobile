@@ -997,8 +997,8 @@ describe('PredictFeedScreen', () => {
       home: 'Steelers',
       awayScore: '17',
       homeScore: '21',
-      awayQuote: /^GB\s*· 42¢$/,
-      homeQuote: /^PIT\s*· 42¢$/,
+      awayQuote: '42%',
+      homeQuote: '42%',
     });
 
     const propsCard = view.getByTestId(
@@ -1031,10 +1031,10 @@ describe('PredictFeedScreen', () => {
       within(card).getByTestId(
         PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
       ),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('42%');
     expect(
       within(card).getByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'no')),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('58%');
     expect(
       within(card).queryByTestId(PredictHomeTestIds.category(propsEvent.id)),
     ).not.toBeOnTheScreen();
@@ -1122,7 +1122,7 @@ describe('PredictFeedScreen', () => {
     );
     expect(card.getByText('28')).toBeOnTheScreen();
     expect(card.getByText('24')).toBeOnTheScreen();
-    expect(card.getByText('Q4 · 01:12')).toBeOnTheScreen();
+    expect(card.getByText('Q4 01:12')).toBeOnTheScreen();
   });
 
   it('watches only the Events on the active tab', async () => {

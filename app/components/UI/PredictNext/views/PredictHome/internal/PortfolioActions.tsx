@@ -77,7 +77,8 @@ interface PortfolioActionsProps {
 }
 
 /**
- * Home's portfolio entry points. Only working actions appear: Add funds
+ * Home's portfolio entry points, in the order Positions, Add funds, Withdraw:
+ * the user's own positions come first. Only working actions appear: Add funds
  * shows when deposits are ready for the Venue, and Withdraw shows when the
  * Active Venue's descriptor lists it and this client implements the flow, so
  * a Venue without one shows nothing extra.
@@ -88,6 +89,12 @@ export const PortfolioActions = ({
   onWithdrawPress,
 }: PortfolioActionsProps) => (
   <Box twClassName="flex-row gap-3" testID={PredictHomeTestIds.ACTIONS}>
+    <PortfolioAction
+      iconName={IconName.Book}
+      label={strings('predict_next.portfolio.positions')}
+      onPress={onPositionsPress}
+      testID={PredictHomeTestIds.POSITIONS}
+    />
     {onAddFundsPress ? (
       <PortfolioAction
         iconName={IconName.Add}
@@ -96,12 +103,6 @@ export const PortfolioActions = ({
         testID={PredictHomeTestIds.ADD_FUNDS}
       />
     ) : null}
-    <PortfolioAction
-      iconName={IconName.Book}
-      label={strings('predict_next.portfolio.positions')}
-      onPress={onPositionsPress}
-      testID={PredictHomeTestIds.POSITIONS}
-    />
     {onWithdrawPress ? (
       <PortfolioAction
         iconName={IconName.Bank}

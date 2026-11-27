@@ -82,6 +82,11 @@ import {
   finishPerpsLoadingSession,
   resolvePerpsMarketSource,
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
+import {
+  PERPS_LOADING_CACHE_SOURCES,
+  type PerpsSessionAccountSource,
+  type PerpsSessionMarketSource,
+} from '../../../../UI/Perps/utils/perpsLoadingSessionModel';
 import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
 import { useHomepagePerpsSurfaceMetrics } from './hooks/useHomepagePerpsSurfaceMetrics';
 
@@ -109,14 +114,18 @@ const resolveContentState = (hasError: boolean, hasItems: boolean) => {
 };
 
 const resolveHomepagePerpsCacheState = (
-  sectionDataSource: string,
+  sectionDataSource: PerpsSessionMarketSource | PerpsSessionAccountSource,
   requiresFreshData: boolean,
 ): HomepageSectionCacheState => {
   if (sectionDataSource === 'unknown') {
     if (requiresFreshData) return 'cold';
     return 'unknown';
   }
-  if (sectionDataSource === 'memory_cache') return 'warm';
+  if (
+    (PERPS_LOADING_CACHE_SOURCES as ReadonlySet<string>).has(sectionDataSource)
+  ) {
+    return 'warm';
+  }
   return 'cold';
 };
 

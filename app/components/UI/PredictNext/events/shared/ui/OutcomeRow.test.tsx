@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { OutcomeRow } from './OutcomeRow';
 
@@ -51,6 +52,30 @@ describe('OutcomeRow', () => {
       );
 
       expect(screen.queryByTestId('line')).toBeNull();
+    });
+
+    it('uses BodyMd by default and accepts BodySm when specified', () => {
+      const { rerender } = render(
+        <OutcomeRow.Label label="Over" color={TEAM_COLOR} />,
+      );
+
+      expect(screen.getByText('Over')).toHaveStyle({
+        fontSize: 16,
+        lineHeight: 24,
+      });
+
+      rerender(
+        <OutcomeRow.Label
+          label="Over"
+          color={TEAM_COLOR}
+          variant={TextVariant.BodySm}
+        />,
+      );
+
+      expect(screen.getByText('Over')).toHaveStyle({
+        fontSize: 14,
+        lineHeight: 22,
+      });
     });
   });
 

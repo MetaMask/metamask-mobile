@@ -243,7 +243,6 @@ export const navigateToPerpsOrderEntry = async (
 export const openPerpsWithdrawPayConfirmation = async (): Promise<void> => {
   await openPerpsHomeFromWallet();
   await dismissPerpsOnboardingTutorialIfPresent();
-  await PerpsHomeView.tapExploreCryptoIfVisible();
   await PerpsHomeView.waitForWithdrawButton();
 
   await Utilities.executeWithRetry(

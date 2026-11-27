@@ -8,6 +8,7 @@ import {
   type TranslateCommentResult,
 } from '../translateComment';
 import type { SocialV1FeedPost } from '../types';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../utils/klipyGifComment';
 import SocialFeedPostTranslation from './SocialFeedPostTranslation';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
@@ -271,5 +272,75 @@ describe('SocialFeedPostTranslation', () => {
     });
     expect(screen.queryByText('See original')).not.toBeOnTheScreen();
     expect(screen.getByText('Original comment')).toBeOnTheScreen();
+  });
+
+  it('strips a Klipy GIF URL from a cached multi-line translation', () => {
+    renderTranslation(
+      createPost({
+        translations: {
+          en: `First line\nSecond line\n${KLIPY_STATIC_GIF_EXAMPLE}`,
+        },
+      }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    );
+
+    expect(screen.getByText('First line\nSecond line')).toBeOnTheScreen();
+    expect(
+      screen.queryByText(new RegExp(KLIPY_STATIC_GIF_EXAMPLE)),
+    ).not.toBeOnTheScreen();
+    expect(mockTranslateComment).not.toHaveBeenCalled();
+  });
+
+  it('strips a Klipy GIF URL from a fetched multi-line translation', async () => {
+    mockTranslateComment.mockResolvedValue({
+      state: 'translated',
+      sourceLanguage: 'zh',
+      translations: {
+        en: `First line\nSecond line\n${KLIPY_STATIC_GIF_EXAMPLE}`,
+      },
+    });
+    renderTranslation(createPost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('First line\nSecond line')).toBeOnTheScreen();
+    });
+    expect(
+      screen.queryByText(new RegExp(KLIPY_STATIC_GIF_EXAMPLE)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('treats a fetched translation that is only a Klipy URL as failed', async () => {
+    mockTranslateComment.mockResolvedValue({
+      state: 'translated',
+      sourceLanguage: 'zh',
+      translations: {
+        en: `${KLIPY_STATIC_GIF_EXAMPLE}\n${KLIPY_STATIC_GIF_EXAMPLE}`,
+      },
+    });
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    renderTranslation(createPost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TRANSLATE}-post-1`),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.TRANSLATION_RETRY}-post-1`,
+        ),
+      ).toBeOnTheScreen();
+    });
+    expect(screen.getByText('Original comment')).toBeOnTheScreen();
+    expect(screen.queryByText('Translated to English')).not.toBeOnTheScreen();
+    expect(announce).toHaveBeenLastCalledWith("Couldn't translate.");
+    announce.mockRestore();
   });
 });

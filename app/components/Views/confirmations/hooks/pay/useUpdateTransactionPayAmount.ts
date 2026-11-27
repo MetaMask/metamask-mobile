@@ -1,10 +1,15 @@
 import { useCallback, useRef } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
-import { updateEIP7702BatchData } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+  updateEIP7702BatchData,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { getTransactionPayAmountCalls } from '../../external/types/transaction-pay-amount';
+import { LIGHTER_WITHDRAW_FEE } from '../../constants/perps';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -21,10 +26,20 @@ export function useUpdateTransactionPayAmount() {
   const decimals = requiredTokens?.[0]?.decimals;
 
   const updateTransactionPayAmount = useCallback(
-    async (amountHuman: string): Promise<boolean> => {
+    async (enteredAmountHuman: string): Promise<boolean> => {
       if (!transactionMeta) {
         return false;
       }
+
+      // Lighter charges a flat fee on withdraw, which Pay adds on top of the
+      // transaction amount. Commit the amount net of that fee so the total
+      // matches what the user entered. Only the committed amount is reduced,
+      // the amount shown to the user is not.
+      const amountHuman = hasTransactionType(transactionMeta, [
+        TransactionType.perpsLighterWithdraw,
+      ])
+        ? subtractLighterWithdrawFee(enteredAmountHuman)
+        : enteredAmountHuman;
 
       latestAmountRef.current = amountHuman;
 
@@ -154,6 +169,14 @@ function commitPayAmountUpdate({
       }
     },
   });
+}
+
+function subtractLighterWithdrawFee(amountHuman: string): string {
+  const amount = new BigNumber(amountHuman || '0').minus(LIGHTER_WITHDRAW_FEE);
+
+  return amount.isFinite() && amount.isGreaterThan(0)
+    ? amount.toString(10)
+    : '0';
 }
 
 function getRequiredAssetAmount(

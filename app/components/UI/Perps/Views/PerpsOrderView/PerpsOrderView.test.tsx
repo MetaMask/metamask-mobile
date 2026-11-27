@@ -46,6 +46,14 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+const mockGoToBuy = jest.fn();
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
+}));
+const mockComplianceGate = jest.fn();
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockComplianceGate }),
+}));
 jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
   virtual: true,
 });
@@ -809,6 +817,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       subscribeToPrices: jest.fn(() => jest.fn()),
+      subscribeToAvailableToTrade: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
         spendableBalance: '1000',
@@ -1002,6 +1011,7 @@ interface MockTradeScreenProps {
   liquidationDistance?: string;
   isLiquidationLoading: boolean;
   onSubmit: () => void | Promise<void>;
+  closesSheetOnSubmit?: boolean;
 }
 
 interface MockLeverageScreenProps {
@@ -1247,6 +1257,8 @@ const defaultMockHooks = {
     maxPossibleAmount: 1000,
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
   },
 };
 
@@ -1566,6 +1578,8 @@ describe('PerpsOrderView', () => {
       maxPossibleAmount: 1000,
       setEstimatedFeeRate: jest.fn(),
       balanceForValidation: 1000,
+      perpsAvailableToTrade: 1000,
+      isAvailableToTradeLoading: false,
       calculations: {
         marginRequired: '11',
         positionSize: '0.0037',
@@ -2954,7 +2968,8 @@ describe('PerpsOrderView', () => {
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+    // Insufficient funds turns the submit button into an enabled Add funds CTA.
+    expect(getMockTradeScreenProps().isSubmitDisabled).toBe(false);
     expect(
       getMockTradeScreenProps().errorMessages.map(({ key }) => key),
     ).toEqual(
@@ -2968,6 +2983,119 @@ describe('PerpsOrderView', () => {
       getMockTradeScreenProps().errorMessages.map(({ key }) => key),
     ).not.toContain('execution-Order execution failed');
     expect(getMockTradeScreenProps().errorMessages).toHaveLength(5);
+  });
+
+  it('does not turn the submit button into Add funds while an order is being placed', () => {
+    (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+      isValid: false,
+      errors: ['Insufficient margin'],
+      warnings: [],
+      fieldIssues: [],
+      isValidating: false,
+      insufficientBalanceErrors: ['Insufficient margin'],
+      validateNow: jest.fn(),
+    });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: jest.fn(),
+      isPlacing: true,
+      error: null,
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().closesSheetOnSubmit).toBe(false);
+    expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+  });
+
+  describe('Add funds', () => {
+    const mockInsufficientFundsValidation = (): void => {
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: false,
+        errors: ['Insufficient margin'],
+        warnings: [],
+        fieldIssues: [],
+        isValidating: false,
+        insufficientBalanceErrors: ['Insufficient margin'],
+        validateNow: jest.fn(),
+      });
+    };
+
+    beforeEach(() => {
+      mockGoToBuy.mockReset();
+      mockCreateEventBuilder.mockClear();
+      mockComplianceGate.mockReset();
+      mockComplianceGate.mockImplementation(
+        async (action: () => Promise<unknown>) => action(),
+      );
+    });
+
+    it('opens Ramp after the sheet closes when the compliance gate allows it', async () => {
+      mockInsufficientFundsValidation();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        void getMockTradeScreenProps().onSubmit();
+      });
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+
+      await act(async () => {
+        mockTradeSheetOnClose?.();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+      const depositClicks = mockCreateEventBuilder.mock.results
+        .map(({ value }) => value.addProperties as jest.Mock)
+        .filter((addProperties) =>
+          addProperties.mock.calls.some(
+            ([props]) =>
+              props?.[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+              PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          ),
+        );
+      expect(depositClicks).toHaveLength(1);
+    });
+
+    it('does not open Ramp when the compliance gate blocks the wallet', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+      mockInsufficientFundsValidation();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        void getMockTradeScreenProps().onSubmit();
+      });
+      await act(async () => {
+        mockTradeSheetOnClose?.();
+      });
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+      expect(
+        mockCreateEventBuilder.mock.results.some(({ value }) =>
+          (value.addProperties as jest.Mock).mock.calls.some(
+            ([props]) =>
+              props?.[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+              PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+          ),
+        ),
+      ).toBe(false);
+    });
+
+    it('does not open Ramp when the sheet is dismissed without tapping Add funds', async () => {
+      mockInsufficientFundsValidation();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        mockTradeSheetOnClose?.();
+      });
+
+      expect(mockComplianceGate).not.toHaveBeenCalled();
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
   });
 
   it('awaits pending validation before submitting from the Trade sheet', async () => {
@@ -3531,6 +3659,8 @@ describe('PerpsOrderView', () => {
     maxPossibleAmount: 1000,
     setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
+    perpsAvailableToTrade: 1000,
+    isAvailableToTradeLoading: false,
     ...overrides,
   });
 
@@ -6423,16 +6553,6 @@ describe('PerpsOrderView', () => {
 
       expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
         disable: true,
-      });
-    });
-
-    it('allows money account selection once the Perps balance is known to be empty', () => {
-      mockEmptyPerpsBalance(false);
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(mockUseMoneyAccountDepositAndOrder).toHaveBeenCalledWith({
-        disable: false,
       });
     });
   });

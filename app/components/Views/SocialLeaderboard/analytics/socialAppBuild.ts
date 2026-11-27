@@ -1,5 +1,6 @@
 import { getVersion } from 'react-native-device-info';
 import { formatAnalyticsAppVersion } from '../../../../util/metrics/getAnalyticsAppVersion';
+import { applyOtaVersion } from '../../../../util/version';
 let socialAppBuild: string | undefined;
 let socialAppBuildRead = false;
 
@@ -13,7 +14,7 @@ export const readSocialAppBuild = (): string | undefined => {
     const formatted =
       typeof version === 'string' && version.length > 0
         ? formatAnalyticsAppVersion(
-            version,
+            applyOtaVersion(version),
             process.env.METAMASK_ENVIRONMENT,
             process.env.METAMASK_BUILD_ATTRIBUTION,
           )

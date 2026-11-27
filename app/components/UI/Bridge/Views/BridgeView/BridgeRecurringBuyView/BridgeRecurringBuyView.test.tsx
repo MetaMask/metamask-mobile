@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import {
+  AdvancedOrderMetricsEventName,
   FeatureId,
   MetaMetricsSwapsEventSource,
   MetricsSwapType,
@@ -26,6 +27,10 @@ import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersLi
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError';
+import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable';
 import type { UseOrderMinAmountResult } from '../../../hooks/useOrderMinAmount';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
@@ -34,6 +39,8 @@ import {
   RECURRING_ORDERS_REFETCH_INTERVAL,
 } from '../../../constants/recurringOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { BridgeTabKey } from '../BridgeView.constants';
+import { useBridgeQuoteEvents } from '../../../hooks/useBridgeQuoteEvents';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import BridgeRecurringBuyView from './index';
@@ -67,6 +74,27 @@ jest.mock('../../../../../../util/deviceCapability', () => ({
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useBridgeQuoteEvents', () => ({
+  useBridgeQuoteEvents: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useInsufficientNativeReserveError', () => ({
+  useInsufficientNativeReserveError: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useIsNetworkFeeUnavailable', () => ({
+  useIsNetworkFeeUnavailable: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useRecurringOrders', () => ({
@@ -290,8 +318,13 @@ describe('BridgeRecurringBuyView', () => {
     mockUseIsFocused.mockReturnValue(true);
     jest.mocked(getHardwareTier).mockReturnValue('HIGH');
     jest.mocked(useNetworkTier).mockReturnValue('WIFI');
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
+    jest.mocked(useIsNetworkFeeUnavailable).mockReturnValue(false);
     jest.mocked(useBridgeSession).mockReturnValue({
       latestSourceBalance: { displayBalance: '1.0' },
+      renderedTab: BridgeTabKey.Recurring,
       recurringOrdersTab: 'open',
       setRecurringOrdersTab: jest.fn(),
     } as never);
@@ -325,6 +358,24 @@ describe('BridgeRecurringBuyView', () => {
       keypadProps: { value: '1', currency: 'ETH', decimals: 18 },
       keypadRef: { current: null },
     } as never);
+  });
+
+  it('tracks successful quote fetches as Advanced recurring-order events', () => {
+    renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      {
+        state: createBridgeTestState(),
+      },
+    );
+
+    expect(useBridgeQuoteEvents).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        eventName: AdvancedOrderMetricsEventName.QuotesReceived,
+      }),
+    );
   });
 
   it('tracks ADVANCED_ORDER_SUBMITTED with an order_type key when previewing an order', () => {

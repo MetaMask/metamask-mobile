@@ -36,12 +36,22 @@ import {
 } from '../../../../selectors/bridge/featureFlags';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../Views/ActivityView/ActivitiesView.testIds';
 import {
   selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1PriceApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 import { usePriceApiHost } from '../context/PriceApiHostContext';
+
+jest.mock('../hooks/useTokenSecurityData', () => ({
+  useTokenSecurityData: () => ({
+    securityData: null,
+    isLoading: false,
+    error: null,
+  }),
+}));
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -63,6 +73,8 @@ const defaultSelectorImpl = (selector: unknown): unknown => {
   if (selector === selectCurrencyRates)
     // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
     return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+  if (selector === selectMemecoinTdpV1TabConfigOrder)
+    return ['overview', 'security'];
   if (selector === getRampNetworks) return [];
   if (selector === selectDepositActiveFlag) return false;
   if (selector === selectDepositMinimumVersionFlag) return null;
@@ -206,7 +218,7 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockHandleStickySwapPress = jest.fn();
-const mockOnBuy = jest.fn();
+const mockOnBuy = jest.fn().mockResolvedValue(undefined);
 const mockOnSend = jest.fn();
 const mockOnReceive = jest.fn();
 const mockUseTokenActions = jest.fn();
@@ -289,7 +301,6 @@ jest.mock('../components/ShareTokenBottomSheet', () => {
   };
 });
 
-let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
 let mockLatestOnBuy: (() => void) | undefined;
 let mockLatestOnSend: (() => Promise<void> | void) | undefined;
 let mockLatestOnMarketInsightsDisclaimerPress: (() => void) | undefined;
@@ -322,15 +333,19 @@ const triggerPerpsResolved = (result: {
 
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
   const AssetOverviewContentMock = ({
+    headerSpacer,
+    renderTabs,
     onMarketInsightsDisplayResolved,
     onPerpsMarketResolved,
-    onPriceDirectionChange,
     onBuy,
     onSend,
     onMarketInsightsDisclaimerPress,
     token,
   }: {
+    headerSpacer?: React.ReactNode;
+    renderTabs?: (overview: React.ReactNode) => React.ReactNode;
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
       severity: string | undefined;
@@ -339,7 +354,6 @@ jest.mock('../components/AssetOverviewContent', () => {
       hasPerpsMarket: boolean;
       isLoading: boolean;
     }) => void;
-    onPriceDirectionChange?: (isPositive: boolean) => void;
     onBuy?: () => void;
     onSend?: () => Promise<void> | void;
     onMarketInsightsDisclaimerPress?: () => void;
@@ -356,7 +370,6 @@ jest.mock('../components/AssetOverviewContent', () => {
         onMarketInsightsDisclaimerPress;
     });
     ReactLib.useEffect(() => {
-      mockLatestPriceDirectionChange = onPriceDirectionChange;
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
       mockLatestPerpsResolver = onPerpsMarketResolved;
       if (mockAutoResolvePerps) {
@@ -372,11 +385,15 @@ jest.mock('../components/AssetOverviewContent', () => {
     }, [
       onMarketInsightsDisplayResolved,
       onPerpsMarketResolved,
-      onPriceDirectionChange,
       insightsTokenKey,
     ]);
 
-    return null;
+    return (
+      <View>
+        {headerSpacer}
+        {renderTabs?.(null)}
+      </View>
+    );
   };
 
   return {
@@ -385,28 +402,7 @@ jest.mock('../components/AssetOverviewContent', () => {
   };
 });
 
-jest.mock('../../../Views/Asset/ActivityHeader', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
-jest.mock('../../Transactions', () => ({
-  __esModule: true,
-  default: (props: { header?: React.ReactNode; loading?: boolean }) => {
-    mockTransactions(props);
-    // Mirrors Transactions, which shows only its loader while loading.
-    return props.loading ? null : (props.header ?? null);
-  },
-}));
-
-jest.mock(
-  '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
+jest.mock('../components/sections/ActivitySection', () => () => null);
 
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurationByChainId: jest.fn(() => ({ name: 'Ethereum' })),
@@ -486,6 +482,24 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
 }));
 
+jest.mock('../hooks/useTokenDetailsFeedCopyTrade', () => ({
+  useTokenDetailsFeedCopyTrade: () => ({
+    handleFeedCopyTrade: jest.fn(),
+    feedCopyTradeSheet: null,
+  }),
+}));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery',
+  () => ({
+    useQuoteTokensQuery: () => ({
+      data: undefined,
+      error: null,
+      isSuccess: false,
+    }),
+  }),
+);
+
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
@@ -550,7 +564,6 @@ describe('TokenDetails', () => {
     mockAutoResolvePerps = true;
     mockLatestMarketInsightsResolver = undefined;
     mockLatestPerpsResolver = undefined;
-    mockLatestPriceDirectionChange = undefined;
     mockLatestOnBuy = undefined;
     mockLatestOnSend = undefined;
     mockLatestOnMarketInsightsDisclaimerPress = undefined;
@@ -670,6 +683,68 @@ describe('TokenDetails', () => {
       // position line waits for the position to resolve.
       expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
+
+    // The dialog's KeyboardAvoidingView forwards onLayout after an await.
+    const layoutFooter = async (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+      height: number,
+    ) => {
+      await act(async () => {
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          persist: jest.fn(),
+          nativeEvent: { layout: { x: 0, y: 0, width: 390, height } },
+        });
+      });
+    };
+
+    it('reserves the floating footer height at the end of the activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$7.92',
+          pnl: { amount: '+$0.10', percentage: '+1.28%', isProfit: true },
+        },
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(
+          getByTestId(ActivitiesViewSelectorsIDs.CONTAINER).props
+            .contentContainerStyle,
+        ).toStrictEqual({ paddingBottom: 137 }),
+      );
+    });
+
+    it('reserves the floating footer height at the end of the non-EVM activity list', async () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+      await layoutFooter(getByTestId, 137);
+
+      await waitFor(() =>
+        expect(
+          getByTestId(ActivitiesViewSelectorsIDs.CONTAINER).props
+            .contentContainerStyle,
+        ).toStrictEqual({ paddingBottom: 137 }),
+      );
+    });
+
+    it('keeps the default list padding when the footer sits in the page flow', () => {
+      applySelectorsWithMemeFlag(false);
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.CONTAINER).props
+          .contentContainerStyle,
+      ).toStrictEqual({ paddingBottom: 0 });
     });
   });
 
@@ -995,6 +1070,8 @@ describe('TokenDetails', () => {
         return { '0x1': { nativeCurrency: 'ETH' } };
       if (selector === selectCurrencyRates)
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+      if (selector === selectMemecoinTdpV1TabConfigOrder)
+        return ['overview', 'security'];
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
@@ -1172,6 +1249,8 @@ describe('TokenDetails', () => {
         if (selector === selectNetworkConfigurations)
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates) return {};
+        if (selector === selectMemecoinTdpV1TabConfigOrder)
+          return ['overview', 'security'];
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
@@ -1277,6 +1356,8 @@ describe('TokenDetails', () => {
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates)
           return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
+        if (selector === selectMemecoinTdpV1TabConfigOrder)
+          return ['overview', 'security'];
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
@@ -1520,32 +1601,6 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('non-EVM asset', () => {
-    it('renders without crashing and shows sticky footer for non-EVM assets', () => {
-      mockUseTokenTransactions.mockReturnValue({
-        ...defaultUseTokenTransactionsReturn,
-        isNonEvmAsset: true,
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      // Sticky footer is still rendered for non-EVM assets (not inside the EVM/non-EVM branch)
-      expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
-    });
-
-    it('does not render loader for non-EVM assets when not loading', () => {
-      mockUseTokenTransactions.mockReturnValue({
-        ...defaultUseTokenTransactionsReturn,
-        isNonEvmAsset: true,
-        loading: false,
-      });
-
-      const { UNSAFE_queryAllByType } = render(<TokenDetails />);
-
-      expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
-    });
-  });
-
   describe('TOKEN_DETAILS_OPENED tracking details', () => {
     it('tags the legacy page with tdp_version v2 and token_category standard', async () => {
       mockRouteParams.mockReturnValue(defaultRouteParams);
@@ -1786,6 +1841,8 @@ describe('TokenDetails', () => {
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates)
           return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+        if (selector === selectMemecoinTdpV1TabConfigOrder)
+          return ['overview', 'security'];
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
@@ -1909,10 +1966,14 @@ describe('TokenDetails', () => {
   });
 
   describe('header live price on scroll', () => {
-    const getScrollHandler = () =>
-      (mockTransactions.mock.calls.at(-1)?.[0] ?? {}) as {
-        onScrollThroughContent?: (y: number) => void;
-      };
+    const scrollTo = (
+      getByTestId: (id: string) => Parameters<typeof fireEvent.scroll>[0],
+      y: number,
+    ) => {
+      fireEvent.scroll(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER), {
+        nativeEvent: { contentOffset: { y } },
+      });
+    };
 
     it('shows the contract address (no description) before scrolling', () => {
       render(<TokenDetails />);
@@ -1923,19 +1984,15 @@ describe('TokenDetails', () => {
     });
 
     it('swaps the header subtitle to the live price once scrolled, and back when returning to top', () => {
-      render(<TokenDetails />);
+      const { getByTestId } = render(<TokenDetails />);
 
-      act(() => {
-        getScrollHandler().onScrollThroughContent?.(120);
-      });
+      scrollTo(getByTestId, 120);
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ description: expect.anything() }),
       );
 
-      act(() => {
-        getScrollHandler().onScrollThroughContent?.(0);
-      });
+      scrollTo(getByTestId, 0);
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ description: undefined }),
@@ -1948,11 +2005,9 @@ describe('TokenDetails', () => {
         currentPrice: 0,
       });
 
-      render(<TokenDetails />);
+      const { getByTestId } = render(<TokenDetails />);
 
-      act(() => {
-        getScrollHandler().onScrollThroughContent?.(120);
-      });
+      scrollTo(getByTestId, 120);
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ description: undefined }),
@@ -2006,33 +2061,6 @@ describe('TokenDetails', () => {
       });
     });
 
-    it('keeps the transactions loader below the glass header', () => {
-      withBrandRefresh();
-      mockUseTokenTransactions.mockReturnValue({
-        ...defaultUseTokenTransactionsReturn,
-        transactionsUpdated: false,
-      });
-      const { getByTestId } = render(<TokenDetails />);
-
-      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
-        nativeEvent: { layout: { height: 120 } },
-      });
-
-      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
-        height: 120,
-      });
-    });
-
-    it('adds no spacer above the transactions loader with the plain header', () => {
-      mockUseTokenTransactions.mockReturnValue({
-        ...defaultUseTokenTransactionsReturn,
-        transactionsUpdated: false,
-      });
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
-    });
-
     it('renders the Quick Buy sheet above the glass header', () => {
       withBrandRefresh();
       const { getByTestId } = render(<TokenDetails />);
@@ -2060,9 +2088,11 @@ describe('TokenDetails', () => {
 
     it('fades the header backdrop with the list scroll', () => {
       withBrandRefresh();
-      render(<TokenDetails />);
+      const { getByTestId } = render(<TokenDetails />);
 
-      callProp(mockTransactions, 'onScrollThroughContent', 64);
+      fireEvent.scroll(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER), {
+        nativeEvent: { contentOffset: { y: 64 } },
+      });
 
       expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
         expect.objectContaining({

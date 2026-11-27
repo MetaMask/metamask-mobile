@@ -26,7 +26,7 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_send': 'Send' })[key] ?? key,
+    ({ 'confirm.title.money_account_move': 'Move' })[key] ?? key,
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
@@ -62,7 +62,7 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     render(<MoneyAccountWithdrawInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith('Send');
+    expect(useNavbar).toHaveBeenCalledWith('Move');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {

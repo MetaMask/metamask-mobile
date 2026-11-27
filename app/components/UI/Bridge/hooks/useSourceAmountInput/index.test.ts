@@ -195,7 +195,10 @@ describe('useSourceAmountInput analytics', () => {
 
     expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
       UnifiedSwapBridgeEventName.FiatCryptoToggleClicked,
-      expect.objectContaining({ feature_id: FeatureId.LIMIT_ORDER }),
+      expect.objectContaining({
+        feature_id: FeatureId.LIMIT_ORDER,
+        money_account_action: undefined,
+      }),
     );
   });
 });

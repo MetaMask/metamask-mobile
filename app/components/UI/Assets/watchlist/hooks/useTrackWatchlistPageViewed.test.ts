@@ -94,4 +94,27 @@ describe('useTrackWatchlistPageViewed', () => {
       expect.objectContaining({ source: 'custom_source' }),
     );
   });
+
+  it('derives unified emptiness from total membership, not the active filter', async () => {
+    renderHook(() =>
+      useTrackWatchlistPageViewed({
+        tokenCount: 0,
+        perpsCount: 1,
+        isEmpty: true,
+        isLoading: false,
+        activeTab: 'tokens',
+        isUnified: true,
+      }),
+    );
+
+    await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token_count: 0,
+        perps_count: 1,
+        is_empty: false,
+        active_filter: 'tokens',
+      }),
+    );
+  });
 });

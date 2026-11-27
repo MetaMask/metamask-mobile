@@ -62,6 +62,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.push_provisioning.open_in_apple_wallet': 'Open in Apple Wallet',
       'card.card_home.messages.setup_incomplete.title':
         'Finish setting up your card',
+      'card.card_home.messages.setup_incomplete.rejected_title':
+        "We couldn't complete your card application",
       'card.card_home.messages.setup_incomplete.descriptions.contact':
         'Add your contact details to continue.',
       'card.card_home.messages.setup_incomplete.descriptions.kyc':
@@ -71,7 +73,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.messages.setup_incomplete.descriptions.funding':
         'Approve funding so you can start spending.',
       'card.card_home.messages.setup_incomplete.descriptions.rejected':
-        "We couldn't verify your identity. Try again to continue.",
+        'Continue to see details or contact support.',
       'card.card_home.messages.setup_incomplete.confirm_button_label':
         'Continue',
     };
@@ -426,15 +428,24 @@ describe('CardMessageBox', () => {
   });
 
   describe('SetupIncomplete warning', () => {
+    const finishTitle = 'Finish setting up your card';
     it.each([
-      ['contact', 'Add your contact details to continue.'],
-      ['kyc', 'Verify your identity to continue.'],
-      ['expected_spend', 'Tell us how you plan to use your card to continue.'],
-      ['funding', 'Approve funding so you can start spending.'],
-      ['rejected', "We couldn't verify your identity. Try again to continue."],
+      ['contact', finishTitle, 'Add your contact details to continue.'],
+      ['kyc', finishTitle, 'Verify your identity to continue.'],
+      [
+        'expected_spend',
+        finishTitle,
+        'Tell us how you plan to use your card to continue.',
+      ],
+      ['funding', finishTitle, 'Approve funding so you can start spending.'],
+      [
+        'rejected',
+        "We couldn't complete your card application",
+        'Continue to see details or contact support.',
+      ],
     ] as const)(
       'describes the %s setup step and continues',
-      (step, description) => {
+      (step, title, description) => {
         const { getByText, getByTestId } = renderWithProvider(() => (
           <CardMessageBox
             messageType={CardMessageBoxType.SetupIncomplete}
@@ -443,7 +454,7 @@ describe('CardMessageBox', () => {
           />
         ));
 
-        expect(getByText('Finish setting up your card')).toBeOnTheScreen();
+        expect(getByText(title)).toBeOnTheScreen();
         expect(getByText(description)).toBeOnTheScreen();
 
         fireEvent.press(getByTestId('confirm-button'));

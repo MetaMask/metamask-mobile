@@ -551,6 +551,38 @@ describe('SwapsMarketOrderConfirmButton', () => {
       expect(button.props.accessibilityState?.disabled).toBe(true);
     });
 
+    it('disables button for hardware wallet with a money source token', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+      const moneySourceState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: {
+            address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: '0x1' as Hex,
+            decimals: 6,
+            image: '',
+            name: 'Money',
+            symbol: 'MUSD',
+            isMoneyToken: true,
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsMarketOrderConfirmButton
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: moneySourceState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
     it('disables button when blockaid error exists', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
