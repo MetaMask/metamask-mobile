@@ -49,6 +49,9 @@ jest.mock('./multichainAccounts/accountTreeController', () => ({
 jest.mock('./accountsController', () => ({
   selectEvmAddress: (state: { fallbackEvmAddress?: string }) =>
     state.fallbackEvmAddress,
+  selectInternalAccountsById: (state: {
+    internalAccountsById?: Record<string, { address: string }>;
+  }) => state.internalAccountsById ?? {},
 }));
 
 describe('TransactionController Selectors', () => {
@@ -464,9 +467,11 @@ describe('TransactionController Selectors', () => {
 
     const buildLocalTxState = ({
       groupEvmAccount = { address: evmAddress },
+      internalAccountsById,
       transactions,
     }: {
       groupEvmAccount?: { address: string } | null;
+      internalAccountsById?: Record<string, { address: string }>;
       transactions?: unknown[];
     } = {}) =>
       ({
@@ -494,6 +499,7 @@ describe('TransactionController Selectors', () => {
           },
         },
         groupEvmAccount,
+        internalAccountsById,
         pendingSmartTransactionsForGroup: [],
       }) as unknown as RootState;
 
@@ -528,6 +534,44 @@ describe('TransactionController Selectors', () => {
         expect.objectContaining({ id: 'money-deposit' }),
       ]);
     });
+
+    it.each([
+      ['includes', 'the EOA', evmAddress, 1],
+      ['excludes', 'a different EOA', otherEvmAddress, 0],
+    ])(
+      '%s a Money deposit paid with a non-EVM token by %s through its MetaMask Pay account override',
+      (_action, _payer, payerAddress, count) => {
+        const state = buildLocalTxState({
+          internalAccountsById: { 'payer-id': { address: payerAddress } },
+          transactions: [
+            {
+              id: 'second-leg',
+              chainId: '0x8f',
+              time: 200,
+              txParams: { from: moneyAddress },
+            },
+            {
+              id: 'money-deposit',
+              chainId: '0x8f',
+              metamaskPay: {
+                accountOverride: 'payer-id',
+                sourceHash:
+                  '5Bh1twPMendihZMAeRNwZQX7DfirsRkwMadGBqMG2aEF4A56ydvdZQgBstotiSQExLe2UdNF7SEPKVsBtX1MjpRk',
+              },
+              requiredTransactionIds: ['second-leg'],
+              nestedTransactions: [
+                { type: TransactionType.moneyAccountDeposit },
+              ],
+              time: 100,
+              type: TransactionType.batch,
+              txParams: { from: moneyAddress },
+            },
+          ],
+        });
+
+        expect(selectLocalTransactions(state)).toHaveLength(count);
+      },
+    );
 
     it('includes a Money withdrawal whose nested transfer targets the EOA', () => {
       const state = buildLocalTxState({

@@ -4,7 +4,10 @@ import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
-import { selectEvmAddress } from './accountsController';
+import {
+  selectEvmAddress,
+  selectInternalAccountsById,
+} from './accountsController';
 import { selectFirstPendingApproval } from './approvalController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
@@ -13,7 +16,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, isStrictHexString } from '@metamask/utils';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { isMusdOnMoneyAccountChain } from '@metamask/money-account-utils';
 import { areAddressesEqual } from '../util/address';
@@ -265,11 +268,14 @@ function getMoneyWithdrawRecipients(transaction: TransactionMeta): string[] {
  * MetaMask Pay parent transactions can be signed by a product account rather
  * than the EOA shown in Activity. Required child senders identify the EOA that
  * funded a Money deposit, while the nested ERC-20 recipient identifies the EOA
- * receiving a Money withdrawal.
+ * receiving a Money withdrawal. A Money deposit paid with a non-EVM token, such
+ * as SOL, has no EVM funding transaction, so its payer is the MetaMask Pay
+ * account override.
  */
 const selectRelatedAddressesByTransactionId = createSelector(
   selectTransactions,
-  (transactions) => {
+  selectInternalAccountsById,
+  (transactions, internalAccountsById) => {
     const transactionsById = new Map<string, TransactionMeta>(
       transactions.map((transaction) => [transaction.id, transaction]),
     );
@@ -293,8 +299,16 @@ const selectRelatedAddressesByTransactionId = createSelector(
                 transactionsById.get(transactionId)?.txParams?.from,
             )
           : [];
+        const { accountOverride, sourceHash } = transaction.metamaskPay ?? {};
+        const isNonEvmSource =
+          Boolean(sourceHash) && !isStrictHexString(sourceHash);
+        const payer =
+          isMoneyDeposit && isNonEvmSource
+            ? internalAccountsById[accountOverride ?? '']?.address
+            : undefined;
         const addresses = [
           ...requiredTransactionSenders,
+          payer,
           ...(isMoneyWithdraw ? getMoneyWithdrawRecipients(transaction) : []),
         ]
           .filter((address): address is string => Boolean(address))
