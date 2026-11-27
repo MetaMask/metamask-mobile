@@ -67,9 +67,6 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
   // APIs that are not available under Detox).
   tradeTO880AbtestOnboardingInterestQuestion: 'control',
-  // Production serves a threshold array. Pin a boolean so AccountActivity
-  // subscribe tests do not depend on canonical or MetaMetrics IDs.
-  backendWebSocketConnection: true,
   // 2026-10-06 prod sync turned these on at versions the 8.14.0 E2E build
   // meets. Keep the registry at the prod values; pin the pre-sync UI here so
   // smoke tests do not pick up the new chrome, account set, or notices.
