@@ -5568,6 +5568,21 @@
       "info_ranking": "Packs are ranked by how many cards have been pulled since their last Epic, compared with the average number of pulls per Epic.",
       "info_gauge": "The number on each pack shows how far it is from that average. A negative number means fewer pulls than average, a positive one means more.",
       "info_independent": "Every pull is independent: past pulls don't change the odds of the next one."
+    },
+    "collection": {
+      "value_label": "Collection value",
+      "no_value": "-",
+      "search": "Search cards",
+      "newest": "Newest",
+      "filter": "Filter cards",
+      "sort": "Sort cards",
+      "card_label": "{{name}}, {{value}}",
+      "buyback_hours": "Buyback · {{count}}h left",
+      "buyback_minutes": "Buyback · {{count}}m left",
+      "empty": "No cards in your collection yet",
+      "browse_packs": "Browse packs",
+      "no_results": "No cards found",
+      "error": "Couldn't load your cards. Try again later."
     }
   },
   "collectible": {

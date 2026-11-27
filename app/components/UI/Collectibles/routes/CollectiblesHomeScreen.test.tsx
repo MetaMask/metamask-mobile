@@ -18,6 +18,10 @@ jest.mock('#app/components/UI/Collectibles/hooks/useEpicHuntPacks', () => ({
   useEpicHuntPacks: () => ({ data: [], isPending: true }),
 }));
 
+jest.mock('#app/components/UI/Collectibles/hooks/useCollectionCards', () => ({
+  useCollectionCards: () => ({ data: [], isPending: false, isError: false }),
+}));
+
 describe('CollectiblesHomeScreen', () => {
   beforeEach(() => {
     mockGoBack.mockClear();

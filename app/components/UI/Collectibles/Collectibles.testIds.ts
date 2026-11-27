@@ -33,4 +33,21 @@ export const collectiblesTestIds = {
   epicHuntInfoSheet: 'collectibles-epic-hunt-info-sheet',
   epicHuntInfoClose: 'collectibles-epic-hunt-info-close',
   epicHuntGauge: (code: string) => `collectibles-epic-hunt-gauge-${code}`,
+  collectionValue: 'collectibles-collection-value',
+  collectionSearch: 'collectibles-collection-search',
+  collectionFilterSortLine: 'collectibles-collection-filter-sort-line',
+  collectionFilterButton: 'collectibles-collection-filter-button',
+  collectionSortButton: 'collectibles-collection-sort-button',
+  collectionGrid: 'collectibles-collection-grid',
+  collectionSkeleton: 'collectibles-collection-skeleton',
+  collectionEmpty: 'collectibles-collection-empty',
+  collectionNoResults: 'collectibles-collection-no-results',
+  collectionError: 'collectibles-collection-error',
+  collectionTile: (mint: string) => `collectibles-collection-tile-${mint}`,
+  collectionBuyback: (mint: string) =>
+    `collectibles-collection-buyback-${mint}`,
+  collectionTileArt: (mint: string) =>
+    `collectibles-collection-tile-art-${mint}`,
+  collectionTileArtFallback: (mint: string) =>
+    `collectibles-collection-tile-art-fallback-${mint}`,
 } as const;
