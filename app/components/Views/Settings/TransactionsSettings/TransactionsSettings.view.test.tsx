@@ -75,7 +75,7 @@ describeForPlatforms('Transactions Settings component view', () => {
   });
 
   it('updates the show hex data switch in the store', async () => {
-    const { findByTestId } = renderTransactionsSettings();
+    const { findByTestId, getByTestId } = renderTransactionsSettings();
     const hexSwitch = await findByTestId(
       TransactionsViewSelectorsIDs.SHOW_HEX_DATA_SWITCH,
     );
@@ -83,10 +83,10 @@ describeForPlatforms('Transactions Settings component view', () => {
 
     fireEvent(hexSwitch, 'valueChange', false);
 
-    await waitFor(async () => {
+    await waitFor(() => {
       expect(
         getSwitchValue(
-          await findByTestId(TransactionsViewSelectorsIDs.SHOW_HEX_DATA_SWITCH),
+          getByTestId(TransactionsViewSelectorsIDs.SHOW_HEX_DATA_SWITCH),
         ),
       ).toBe(false);
     });
