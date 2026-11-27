@@ -135,6 +135,59 @@ describe('useEarnHighestRate', () => {
     });
   });
 
+  it('disables all rate sources when disabled', () => {
+    const { result } = renderHook(() => useEarnHighestRate({ enabled: false }));
+
+    expect(result.current.highestRate).toBeUndefined();
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseEarnSectionLendingMarkets).toHaveBeenCalledWith({
+      enabled: false,
+    });
+    expect(mockUseTronStakeApy).toHaveBeenCalledWith({
+      chainId: ChainId.TRON_MAINNET,
+      fetchOnMount: false,
+    });
+  });
+
+  it('retains source rates when re-enabled', () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useEarnHighestRate({ enabled }),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(result.current.highestRate).toBeUndefined();
+
+    rerender({ enabled: true });
+
+    expect(result.current.highestRate).toEqual({
+      type: 'APR',
+      percentage: 8.1,
+      status: 'ready',
+    });
+  });
+
+  it('uses updated source rates when re-enabled', () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useEarnHighestRate({ enabled }),
+      { initialProps: { enabled: false } },
+    );
+    mockUseTronStakeApy.mockReturnValue({
+      fetchStatus: FetchStatus.Fetched,
+      errorMessage: null,
+      apyDecimal: '9.4',
+      apyPercent: '9.4%',
+      refetch: jest.fn(),
+    });
+
+    rerender({ enabled: true });
+
+    expect(result.current.highestRate).toEqual({
+      type: 'APR',
+      percentage: 9.4,
+      status: 'ready',
+    });
+  });
+
   it('returns no rate while all available sources are pending', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       ...createMoneyApyResult(),

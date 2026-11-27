@@ -4,4 +4,5 @@ export enum WatchlistSearchContentTestIds {
   LIST = 'watchlist-search-list',
   SKELETON_OVERLAY = 'watchlist-search-skeleton-overlay',
   EMPTY_STATE = 'watchlist-search-empty-state',
+  ERROR_STATE = 'watchlist-search-error-state',
 }

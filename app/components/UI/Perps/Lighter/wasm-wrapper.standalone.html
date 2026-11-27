@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Yed0BHzHXJQ9cyoxuoR+WSNPskhE8cVak56F74ehLRs=' 'sha256-VAodnNKhyo8p4/2kLG3wD/5n6lifdu/Q0UlGw5PfGHY=' 'sha256-+FKCsiQ4lHXrEXSAefuYnKks9+aviGQOyCgvuNCuS8k=' 'sha256-pe6exnmuvIsoWM/R4ldXIVgs37LD4Po1WRWeIzKSKqA=' 'wasm-unsafe-eval'; connect-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Yed0BHzHXJQ9cyoxuoR+WSNPskhE8cVak56F74ehLRs=' 'sha256-VAodnNKhyo8p4/2kLG3wD/5n6lifdu/Q0UlGw5PfGHY=' 'sha256-e3nTL+G6Z4N5kxpmHC9yzfRDqls9rPuddkQ33J9xEZg=' 'sha256-pe6exnmuvIsoWM/R4ldXIVgs37LD4Po1WRWeIzKSKqA=' 'wasm-unsafe-eval'; connect-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
   <meta http-equiv="x-dns-prefetch-control" content="off">
   <title>Lighter WASM signer</title>
 </head>
@@ -616,6 +616,9 @@
       if (!((orderCount === 2 && (groupingType === 1 || groupingType === 2)) || (orderCount === 3 && groupingType === 3))) return null;
       return [unsigned, unsigned, (value) => value === orderCount, ...Array.from({ length: orderCount }, () => orderParams).flat(), unsigned];
     }
+    // Transfer (Relay Lighter withdrawal): amount and fee are JS numbers, memo is 32 bytes.
+    const transferMemo = (value) => Array.isArray(value) && value.length === 32 && value.every((byte) => unsigned(byte) && byte <= 255);
+    const transferParams = [unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, transferMemo];
     const signerOperations = Object.freeze({
       _createClient: [(value) => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value), (value) => value === 300 || value === 304, unsigned, unsigned, keyIndex],
       _signChangePubKey: [unsigned, (value) => typeof value === 'string' && /^0x[0-9a-f]{130}$/i.test(value), unsigned, keyIndex],
@@ -626,6 +629,8 @@
       _signUpdateLeverage: [unsigned, unsigned, unsigned, flag, unsigned],
       _signUpdateMargin: [unsigned, unsigned, unsigned, flag, unsigned],
       _signWithdraw: [unsigned, unsigned, unsigned, decimal, unsigned],
+      _getTransferTransaction: [unsigned, unsigned, keyIndex, ...transferParams],
+      _signTransfer: [unsigned, (value) => typeof value === 'string' && /^0x[0-9a-f]{130}$/i.test(value), unsigned, keyIndex, ...transferParams],
       _createAuthToken: [unsigned, keyIndex],
     });
     let signerFunctions = null;

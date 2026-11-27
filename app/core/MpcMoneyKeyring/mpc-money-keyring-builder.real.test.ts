@@ -1,12 +1,6 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
 import {
-  getMfaRequirement,
-  type MfaRequirement,
-} from '@metamask/money-account-mfa-whitelist';
-import { sha256 } from '@noble/hashes/sha2';
-import {
   buildRealMpcMoneyKeyringBuilder,
-  MPC_MFA_WHITELIST_CONFIG,
   setMpcTwoFactorTokenProvider,
 } from './mpc-money-keyring-builder';
 
@@ -17,29 +11,29 @@ jest.mock('@metamask/eth-money-mpc-keyring', () => ({
   ),
 }));
 
-jest.mock('@metamask/money-account-mfa-whitelist', () => ({
-  getMfaRequirement: jest.fn(),
-}));
-
 jest.mock('@metamask/mpc-react-native', () => ({
   cl24Lib: { name: 'cl24' },
   dkls23Lib: { name: 'dkls23' },
 }));
 
-const toBase64Url = (value: object) =>
-  Buffer.from(JSON.stringify(value)).toString('base64url');
-const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
-const HASH = `0x${'22'.repeat(32)}` as const;
-const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1' })}.sig`;
+const TOKEN = 'profile-token';
 
-const buildKeyring = () => {
+const buildKeyring = (
+  build = buildRealMpcMoneyKeyringBuilder,
+): {
+  options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+  getBearerToken: jest.Mock<Promise<string>>;
+  getPrimaryMnemonic: jest.Mock<Promise<number[]>>;
+} => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
-  const keyring = buildRealMpcMoneyKeyringBuilder({
+  const getPrimaryMnemonic = jest.fn().mockResolvedValue([109, 110, 101]);
+  const keyring = build({
     getBearerToken,
+    getPrimaryMnemonic,
   })() as unknown as {
     options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
   };
-  return { options: keyring.options, getBearerToken };
+  return { options: keyring.options, getBearerToken, getPrimaryMnemonic };
 };
 
 describe('buildRealMpcMoneyKeyringBuilder', () => {
@@ -51,6 +45,7 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
   it('is keyed by the MPC money keyring type', () => {
     const builder = buildRealMpcMoneyKeyringBuilder({
       getBearerToken: jest.fn(),
+      getPrimaryMnemonic: jest.fn(),
     });
 
     expect(builder.type).toBe('MPC Money Keyring');
@@ -62,40 +57,62 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(options).toMatchObject({
       cl24Lib: { name: 'cl24' },
       dkls23Lib: { name: 'dkls23' },
-      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v2',
+      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v1',
       relayerURL:
         'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     });
   });
 
-  it('falls back to the dev MPC service when the URL overrides are empty', () => {
-    const original = {
-      cloud: process.env.MM_MONEY_MPC_CLOUD_URL,
-      relayer: process.env.MM_MONEY_MPC_RELAYER_URL,
-    };
-    process.env.MM_MONEY_MPC_CLOUD_URL = '';
-    process.env.MM_MONEY_MPC_RELAYER_URL = '';
-    let options: Record<string, unknown> = {};
+  it.each([
+    [
+      'unset',
+      undefined,
+      undefined,
+      'https://mpc-service.dev-api.cx.metamask.io/v1',
+      'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
+    ],
+    [
+      'empty',
+      '',
+      '',
+      'https://mpc-service.dev-api.cx.metamask.io/v1',
+      'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
+    ],
+    [
+      'custom',
+      'https://mpc.example/v2',
+      'wss://relay.example/websocket',
+      'https://mpc.example/v2',
+      'wss://relay.example/websocket',
+    ],
+  ])(
+    'uses the expected endpoints for %s URL overrides',
+    (_label, cloudURL, relayerURL, expectedCloudURL, expectedRelayerURL) => {
+      const env = { ...process.env };
+      if (cloudURL === undefined) {
+        delete env.MM_MONEY_MPC_CLOUD_URL;
+      } else {
+        env.MM_MONEY_MPC_CLOUD_URL = cloudURL;
+      }
+      if (relayerURL === undefined) {
+        delete env.MM_MONEY_MPC_RELAYER_URL;
+      } else {
+        env.MM_MONEY_MPC_RELAYER_URL = relayerURL;
+      }
+      jest.replaceProperty(process, 'env', env);
 
-    jest.isolateModules(() => {
-      const { buildRealMpcMoneyKeyringBuilder: build } = jest.requireActual<
-        typeof import('./mpc-money-keyring-builder')
-      >('./mpc-money-keyring-builder');
-      options = (
-        build({ getBearerToken: jest.fn() })() as unknown as {
-          options: Record<string, unknown>;
-        }
-      ).options;
-    });
+      jest.isolateModules(() => {
+        const { buildRealMpcMoneyKeyringBuilder: build } = jest.requireActual<
+          typeof import('./mpc-money-keyring-builder')
+        >('./mpc-money-keyring-builder');
 
-    process.env.MM_MONEY_MPC_CLOUD_URL = original.cloud;
-    process.env.MM_MONEY_MPC_RELAYER_URL = original.relayer;
-    expect(options).toMatchObject({
-      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v2',
-      relayerURL:
-        'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
-    });
-  });
+        const { options } = buildKeyring(build);
+
+        expect(options.cloudURL).toBe(expectedCloudURL);
+        expect(options.relayerURL).toBe(expectedRelayerURL);
+      });
+    },
+  );
 
   it('uses the bearer token as the profile token', async () => {
     const { options, getBearerToken } = buildKeyring();
@@ -115,70 +132,21 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(getBearerToken).toHaveBeenCalledTimes(1);
   });
 
-  it('checks signatures against the pinned whitelist config', async () => {
-    const requirement = { mfaRequired: false, rule: 'chomp-authentication' };
-    jest
-      .mocked(getMfaRequirement)
-      .mockReturnValue(requirement as MfaRequirement);
-    const { options } = buildKeyring();
-    const request = {
-      method: 'signPersonalMessage',
-      address: ADDRESS,
-      message: '0x00',
-    } as const;
-
-    const result = await options.isMfaRequired?.(request, {
-      address: ADDRESS,
-      hash: HASH,
-    });
-
-    expect(result).toBe(false);
-    expect(getMfaRequirement).toHaveBeenCalledWith(request, {
-      address: ADDRESS,
-      hash: HASH,
-      config: MPC_MFA_WHITELIST_CONFIG,
-    });
-  });
-
-  it('requires MFA when the whitelist does not match', async () => {
-    jest
-      .mocked(getMfaRequirement)
-      .mockReturnValue({ mfaRequired: true, reason: 'not whitelisted' });
+  it('leaves MFA decisions to the backend', () => {
     const { options } = buildKeyring();
 
-    const result = await options.isMfaRequired?.(
-      { method: 'signPersonalMessage', address: ADDRESS, message: '0x00' },
-      { address: ADDRESS, hash: HASH },
-    );
-
-    expect(result).toBe(true);
+    expect(options).not.toHaveProperty('getMfaWhitelistConfig');
   });
 
-  it('derives a 32-byte backup key from the profile id', async () => {
-    const { options } = buildKeyring();
+  it('passes the primary mnemonic callback without deriving a backup key', async () => {
+    const { options, getPrimaryMnemonic, getBearerToken } = buildKeyring();
 
-    expect(await options.getBackupEncryptionKey()).toStrictEqual(
-      sha256(new TextEncoder().encode('mm-mobile-dev-backup:profile-1')),
-    );
-  });
+    const mnemonic = await options.getPrimaryMnemonic();
 
-  it('decodes a base64url profile token as base64', async () => {
-    const sub = 'profile-??>>';
-    const token = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub })}.sig`;
-    expect(token.split('.')[1]).toMatch(/[-_]/u);
-    const from = jest.spyOn(Buffer, 'from');
-    const keyring = buildRealMpcMoneyKeyringBuilder({
-      getBearerToken: jest.fn().mockResolvedValue(token),
-    })() as unknown as {
-      options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
-    };
-
-    expect(await keyring.options.getBackupEncryptionKey()).toStrictEqual(
-      sha256(new TextEncoder().encode(`mm-mobile-dev-backup:${sub}`)),
-    );
-    expect(from).toHaveBeenCalledWith(
-      expect.not.stringMatching(/[-_]/u),
-      'base64',
-    );
+    expect(options.getPrimaryMnemonic).toBe(getPrimaryMnemonic);
+    expect(mnemonic).toStrictEqual([109, 110, 101]);
+    expect(getPrimaryMnemonic).toHaveBeenCalledWith();
+    expect(getBearerToken).not.toHaveBeenCalled();
+    expect(options).not.toHaveProperty('getBackupEncryptionKey');
   });
 });

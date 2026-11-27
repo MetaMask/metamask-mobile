@@ -1,7 +1,21 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import {
+  parseVolume,
+  type PerpsMarketData,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
+import {
+  selectAvailableProviderIds,
+  selectEffectivePerpsVenueFilter,
+} from '../selectors/marketListPreferences';
+import { selectPerpsDefaultProvider } from '../selectors/perpsController';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import { usePerpsMarkets } from './usePerpsMarkets';
+
+// TAT-4407: the markets hook reads the venue filter from Redux. Default these
+// selectors to single-venue Hyperliquid for the legacy fixtures here.
+const DEFAULT_VENUE_FILTER: PerpsProviderType[] = ['hyperliquid'];
 
 let mockMarketContextReady = true;
 let mockMarketIdentityKey = 'testnet|hyperliquid|0';
@@ -31,9 +45,14 @@ let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
-  getSnapshot: () => mockChannelMarketsSnapshot,
+  getSnapshot: (): PerpsMarketData[] | null | undefined =>
+    mockChannelMarketsSnapshot,
   getLastDeliveredAt: jest.fn((): number | null => Date.now()),
 };
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
@@ -68,6 +87,15 @@ const mockLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 
 describe('usePerpsMarkets', () => {
   beforeEach(() => {
+    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      if (selector === selectEffectivePerpsVenueFilter) {
+        return DEFAULT_VENUE_FILTER;
+      }
+      if (selector === selectAvailableProviderIds) {
+        return DEFAULT_VENUE_FILTER;
+      }
+      return undefined;
+    });
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockChannelMarketsSnapshot = undefined;
@@ -114,6 +142,23 @@ describe('usePerpsMarkets', () => {
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refresh).toBe('function');
+    });
+
+    it('ends initial loading when the market stream fails', async () => {
+      mockSubscribe.mockImplementation(({ onError }) => {
+        setTimeout(() => onError(new Error('Market stream failed')), 0);
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasResolvedInitialData).toBe(true);
+      expect(result.current.error).toBe('Market stream failed');
     });
 
     it('returns initial state with loading false when skipInitialFetch is true', () => {
@@ -244,6 +289,9 @@ describe('usePerpsMarkets', () => {
           ...newMarketData[0],
           // used during sorting
           volumeNumber: 100000000,
+          // TAT-4407: grouped rows carry a stable rowId and their venue rows.
+          rowId: 'venue:hyperliquid:DOGE',
+          venues: [{ ...newMarketData[0], volumeNumber: 100000000 }],
         },
       ]);
     });
@@ -267,6 +315,32 @@ describe('usePerpsMarkets', () => {
       expect(result.current.markets).toEqual([]);
       expect(result.current.error).toBeNull();
       expect(result.current.hasResolvedInitialData).toBe(true);
+    });
+
+    it('clears a previous error when an empty market update succeeds', async () => {
+      let emitMarkets: ((marketData: PerpsMarketData[]) => void) | undefined;
+      let emitError: ((error: Error) => void) | undefined;
+      mockSubscribe.mockImplementation(({ callback, onError }) => {
+        emitMarkets = callback;
+        emitError = onError;
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        emitError?.(new Error('Market stream failed'));
+      });
+      expect(result.current.error).toBe('Market stream failed');
+
+      act(() => {
+        emitMarkets?.([]);
+      });
+
+      expect(result.current.error).toBeNull();
+      expect(result.current.markets).toEqual([]);
     });
 
     it('returns to unresolved when the current market channel is cleared', async () => {
@@ -894,5 +968,125 @@ describe('usePerpsMarkets', () => {
         expect(parseVolume('$1,000T')).toBe(1000000000000000);
       });
     });
+  });
+});
+
+describe('usePerpsMarkets › grouped market rows (TAT-4407)', () => {
+  const groupableRows = (defaultProvider: string): PerpsMarketData[] =>
+    [
+      {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        price: '$50,000.00',
+        change24h: '+2.5%',
+        change24hPercent: '2.5',
+        volume: '$1.2B',
+        openInterest: '$500M',
+        providerId: 'hyperliquid' as PerpsProviderType,
+      },
+      {
+        symbol: 'BTC',
+        name: 'Bitcoin (Lighter)',
+        maxLeverage: '25x',
+        price: '$50,050.00',
+        change24h: '+3.5%',
+        change24hPercent: '3.5',
+        volume: '$300M',
+        openInterest: '$100M',
+        providerId: 'lighter' as PerpsProviderType,
+      },
+      {
+        symbol: 'kPEPE',
+        name: 'Pepe',
+        maxLeverage: '20x',
+        price: '$0.50',
+        change24h: '+1.0%',
+        change24hPercent: '1.0',
+        volume: '$10M',
+        openInterest: '$5M',
+        providerId: 'lighter' as PerpsProviderType,
+      },
+    ].map((row) =>
+      // The backend gives the two BTC rows one market key; kPEPE stays its own.
+      row.symbol === 'BTC' ? { ...row, marketKey: 'BTC', priceScale: 1 } : row,
+    );
+
+  const defaultVenueFilter = ['hyperliquid' as PerpsProviderType];
+
+  function configureVenueSelectors(
+    filter: PerpsProviderType[],
+    defaultProvider: PerpsProviderType,
+  ) {
+    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      if (selector === selectEffectivePerpsVenueFilter) return filter;
+      if (selector === selectAvailableProviderIds) {
+        return ['hyperliquid', 'lighter'];
+      }
+      if (selector === selectPerpsDefaultProvider) return defaultProvider;
+      return undefined;
+    });
+  }
+
+  it('produces one row per backend marketKey, showing the default provider data', async () => {
+    // Both venues selected: the group keeps both members.
+    configureVenueSelectors(['hyperliquid', 'lighter'], 'hyperliquid');
+    mockChannelMarketsSnapshot = groupableRows('hyperliquid');
+
+    const { result } = renderHook(() => usePerpsMarkets());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const btcRows = result.current.markets.filter((m) => m.symbol === 'BTC');
+    // The two venue rows share the backend key: one list row.
+    expect(btcRows).toHaveLength(1);
+    const btc = btcRows[0];
+    // The display market is the default provider's.
+    expect(btc.price).toBe('$50,000.00');
+    expect(btc.providerId).toBe('hyperliquid');
+    // The row carries both venue rows, default venue first.
+    expect(btc.venues?.map((v) => v.providerId)).toEqual([
+      'hyperliquid',
+      'lighter',
+    ]);
+    // The single-venue Lighter market stays its own row with its own key.
+    const pepe = result.current.markets.find((m) => m.symbol === 'kPEPE');
+    expect(pepe?.rowId).toBe('venue:lighter:kPEPE');
+    // List keys are unique.
+    const rowIds = result.current.markets.map((m) => m.rowId);
+    expect(new Set(rowIds).size).toBe(rowIds.length);
+  });
+
+  it('retains both venue listings for enrichment even when one is hidden in the list', () => {
+    configureVenueSelectors(['hyperliquid'], 'hyperliquid');
+    mockChannelMarketsSnapshot = groupableRows('hyperliquid');
+    const { result } = renderHook(() => usePerpsMarkets({ fullCatalog: true }));
+    expect(
+      result.current.markets
+        .filter((m) => m.symbol === 'BTC')
+        .map((m) => m.providerId)
+        .sort(),
+    ).toEqual(['hyperliquid', 'lighter']);
+  });
+  it('shows the other provider data when the default provider is filtered out', async () => {
+    configureVenueSelectors(['lighter'], 'hyperliquid');
+    mockChannelMarketsSnapshot = groupableRows('hyperliquid');
+
+    const { result } = renderHook(() => usePerpsMarkets());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const btc = result.current.markets.find((m) => m.symbol === 'BTC');
+    // Hyperliquid is deselected: the group shows the remaining venue's data.
+    expect(btc?.providerId).toBe('lighter');
+    expect(btc?.price).toBe('$50,050.00');
+    // The hyperliquid-only rows drop out of the list entirely.
+    expect(
+      result.current.markets.find((m) => m.providerId === 'hyperliquid'),
+    ).toBeUndefined();
   });
 });

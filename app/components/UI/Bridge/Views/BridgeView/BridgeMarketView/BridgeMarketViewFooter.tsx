@@ -64,7 +64,7 @@ export const BridgeMarketViewFooter = ({
     discountBadge?.type === DiscountType.VIP ||
     discountBadge?.type === DiscountType.SUBSCRIPTION;
 
-  const isFreeBadge = discountBadge?.type === 'free';
+  const isFreeBadge = discountBadge?.type === DiscountType.FREE;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;

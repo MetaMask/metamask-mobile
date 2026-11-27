@@ -28,7 +28,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '111.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -50,7 +50,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '105.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -74,7 +74,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '110.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -96,7 +96,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '89.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -121,14 +121,14 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('returns isDeviatedAboveThreshold false when markPrice is missing', () => {
+  it('returns isDeviatedAboveThreshold false when oraclePrice is missing', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
         symbol: 'BTC',
         price: '111.00',
         timestamp: Date.now(),
         isTradable: true,
-        // markPrice is missing
+        // oraclePrice is missing
       },
     });
 
@@ -144,7 +144,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     mockUsePerpsPrices.mockReturnValue({
       BTC: {
         symbol: 'BTC',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
         // price is missing
@@ -175,7 +175,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '0',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -194,7 +194,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '100.00',
-        markPrice: '0',
+        oraclePrice: '0',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -213,7 +213,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '-100.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -232,7 +232,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '100.00',
-        markPrice: '-100.00',
+        oraclePrice: '-100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -253,7 +253,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '0.0012',
-        markPrice: '0.001',
+        oraclePrice: '0.001',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -274,7 +274,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '111000.00',
-        markPrice: '100000.00',
+        oraclePrice: '100000.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -294,7 +294,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '105.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -314,7 +314,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: '111.00',
-        markPrice: '100.00',
+        oraclePrice: '100.00',
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -337,7 +337,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       BTC: {
         symbol: 'BTC',
         price: perpsPrice.toFixed(2),
-        markPrice: spotPrice.toFixed(2),
+        oraclePrice: spotPrice.toFixed(2),
         timestamp: Date.now(),
         isTradable: true,
       },
@@ -354,7 +354,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     renderHook(() => useIsPriceDeviatedAboveThreshold('BTC'));
 
     expect(mockUsePerpsPrices).toHaveBeenCalledWith(['BTC'], {
-      includeMarketData: false,
+      includeMarketData: true,
       throttleMs: 1000,
     });
   });
@@ -363,7 +363,7 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
     renderHook(() => useIsPriceDeviatedAboveThreshold(undefined));
 
     expect(mockUsePerpsPrices).toHaveBeenCalledWith([], {
-      includeMarketData: false,
+      includeMarketData: true,
       throttleMs: 1000,
     });
   });

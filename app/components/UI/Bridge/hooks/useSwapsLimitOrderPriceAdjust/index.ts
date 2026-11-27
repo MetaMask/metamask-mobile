@@ -4,12 +4,12 @@ import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useLiveTokenFiatRateState } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
+import { getFiatPriceDecimals } from '../../utils/currencyUtils';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import {
   LIMIT_ORDER_PRICE_DECIMALS,
   formatLimitOrderFiatInputPriceFromTokenAmount,
   formatLimitOrderFiatPriceFromTokenAmount,
-  getLimitOrderFiatPriceDecimals,
   roundLimitOrderMarketFiatToInput,
 } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import {
@@ -30,6 +30,7 @@ import {
   LIMIT_ORDER_NEAR_MARKET_PERCENT,
   LimitOrderExecutionType,
 } from '../../constants/limitOrders';
+import { playSelection } from '../../../../../util/haptics';
 
 interface Params {
   destToken: BridgeToken | undefined;
@@ -93,7 +94,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
   // keypad and the market comparison. A fiat price follows the market price so
   // that a cheap quoted token is not rounded to cents; a counter-token price
   // is a rate, so it is not bound by the counter token's decimals.
-  const fiatPriceDecimals = getLimitOrderFiatPriceDecimals(quotedFiatRate);
+  const fiatPriceDecimals = getFiatPriceDecimals(quotedFiatRate);
   const limitPriceDecimals = isLimitFiatMode
     ? fiatPriceDecimals
     : LIMIT_ORDER_PRICE_DECIMALS;
@@ -123,27 +124,51 @@ export const useSwapsLimitOrderPriceAdjust = ({
   );
 
   const handleMarketPress = useCallback(() => {
+    const nextLimitPrice = getLimitPriceFromSignedPercent(0);
+    if (isCustomActive || !isTrackingMarket || nextLimitPrice !== limitPrice) {
+      playSelection().catch(() => undefined);
+    }
     dispatch({
       type: 'applyPreset',
-      limitPrice: getLimitPriceFromSignedPercent(0),
+      limitPrice: nextLimitPrice,
       isTrackingMarket: true,
     });
-  }, [getLimitPriceFromSignedPercent]);
+  }, [
+    getLimitPriceFromSignedPercent,
+    isCustomActive,
+    isTrackingMarket,
+    limitPrice,
+  ]);
 
   const handlePercentPress = useCallback(
     (percent: number) => {
+      const nextLimitPrice = getLimitPriceFromSignedPercent(
+        isSell ? percent : -percent,
+      );
+      if (isCustomActive || isTrackingMarket || nextLimitPrice !== limitPrice) {
+        playSelection().catch(() => undefined);
+      }
       dispatch({
         type: 'applyPreset',
-        limitPrice: getLimitPriceFromSignedPercent(isSell ? percent : -percent),
+        limitPrice: nextLimitPrice,
         isTrackingMarket: false,
       });
     },
-    [getLimitPriceFromSignedPercent, isSell],
+    [
+      getLimitPriceFromSignedPercent,
+      isCustomActive,
+      isSell,
+      isTrackingMarket,
+      limitPrice,
+    ],
   );
 
   const handleCustomPress = useCallback(() => {
+    if (!isCustomActive) {
+      playSelection().catch(() => undefined);
+    }
     dispatch({ type: 'enterCustom' });
-  }, []);
+  }, [isCustomActive]);
 
   const handleCustomValueChange = useCallback((value: string | undefined) => {
     dispatch({ type: 'setCustomValue', value });
@@ -238,6 +263,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     // Flipping the side swaps which token the price is expressed in, so the
     // denomination follows whichever token becomes the counter token.
     const nextCounterToken = isSell ? sourceToken : destToken;
+    playSelection().catch(() => undefined);
     dispatch({
       type: 'flipSide',
       isLimitFiatMode: !getIsSwapsLimitOrderStablecoin(nextCounterToken),
@@ -249,6 +275,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
+    playSelection().catch(() => undefined);
     dispatch({
       type: 'toggleFiatMode',
       convertLimitPrice: (currentLimitPrice) =>

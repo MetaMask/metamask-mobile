@@ -144,7 +144,23 @@ export function getKeyringBuilders(
     keyrings.push(
       buildRealMpcMoneyKeyringBuilder({
         getBearerToken: async () =>
-          messenger.call('AuthenticationController:getBearerToken'),
+          await messenger.call('AuthenticationController:getBearerToken'),
+        getPrimaryMnemonic: async () =>
+          await (messenger.call(
+            'KeyringController:withKeyringV2Unsafe',
+            { type: KeyringType.Hd, index: 0 },
+            async ({
+              keyring,
+            }) /* NOSONAR: this messenger action requires async */ => {
+              const hdKeyring = keyring as HdKeyringV2;
+              if (!hdKeyring.mnemonic) {
+                throw new Error(
+                  'Primary keyring mnemonic unavailable for MPC backups.',
+                );
+              }
+              return encodeMnemonic(hdKeyring.mnemonic);
+            },
+          ) as Promise<number[]>),
       }),
     );
   }

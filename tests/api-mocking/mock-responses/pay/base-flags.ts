@@ -577,8 +577,14 @@ const BASE_CONFIRMATIONS_FLAGS = [
             {
               name: 'USDC',
               successRate: 100,
-              address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
               chainId: '0xa4b1',
+            },
+            {
+              name: 'USDC',
+              successRate: 100,
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
+              chainId: '0x1',
             },
           ],
         },
@@ -861,12 +867,6 @@ const BASE_MONEY_ACCOUNT_FLAGS = [
     moneyEnableMoneyAccount: {
       enabled: true,
       minimumVersion: '0.0.0',
-    },
-  },
-  {
-    moneyEnableOnboardingStepperAnimation: {
-      minimumVersion: '8.0.0',
-      enabled: true,
     },
   },
   {
@@ -1279,18 +1279,6 @@ const BASE_STX_FLAGS = [
 ];
 
 const BASE_TMCU_FLAGS = [
-  {
-    tmcuActivityRedesignEnabled: {
-      enabled: true,
-      minimumVersion: '8.5.0',
-    },
-  },
-  {
-    tmcuTransactionsRedesignEnabled: {
-      enabled: true,
-      minimumVersion: '8.5.0',
-    },
-  },
   {
     walletHomeOnboardingSteps: {
       enabled: true,

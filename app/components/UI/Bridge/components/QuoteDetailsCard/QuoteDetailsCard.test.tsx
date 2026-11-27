@@ -16,7 +16,7 @@ import {
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
-import type { GaslessFeeAsset } from '../../utils/getGaslessFeeAsset';
+import type { NetworkFeeAsset } from '../../utils/getNetworkFeeAsset';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
@@ -272,14 +272,14 @@ const testState = createBridgeTestState({
 });
 
 const QuoteDetailsCardTestScreen = ({
-  gaslessFeeAsset,
+  networkFeeAsset,
 }: {
-  gaslessFeeAsset?: GaslessFeeAsset;
+  networkFeeAsset?: NetworkFeeAsset;
 }) => (
   <QuoteDetailsCard
     location={MetaMetricsSwapsEventSource.MainView}
     hasInsufficientBalance={false}
-    gaslessFeeAsset={gaslessFeeAsset}
+    networkFeeAsset={networkFeeAsset}
   />
 );
 
@@ -515,7 +515,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByText } = renderScreen(
-      () => <QuoteDetailsCardTestScreen gaslessFeeAsset={feeAsset} />,
+      () => <QuoteDetailsCardTestScreen networkFeeAsset={feeAsset} />,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );

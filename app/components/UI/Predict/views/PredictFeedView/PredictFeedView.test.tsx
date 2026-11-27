@@ -12,18 +12,29 @@ import {
 import type { PredictFeedConfigResult } from '../../hooks/usePredictFeedConfig';
 import type { UsePredictMarketListResult } from '../../hooks/usePredictMarketList';
 import type { UsePredictSearchResult } from '../../hooks/usePredictSearch';
+import { TraceName } from '../../../../../util/trace';
+import { deduplicateSeriesMarkets } from '../../utils/feed';
 
 let mockPredictBrandRefreshEnabled = false;
+let mockPredictUpDownEnabled = false;
 jest.mock('react-redux', () => {
   const { selectPredictBrandRefreshEnabled } = jest.requireActual(
     '../../../../../selectors/featureFlagController/predictBrandRefresh',
   );
+  const { selectPredictUpDownEnabledFlag } = jest.requireActual(
+    '../../selectors/featureFlags',
+  );
   return {
     ...jest.requireActual('react-redux'),
-    useSelector: (selector: unknown) =>
-      selector === selectPredictBrandRefreshEnabled
-        ? mockPredictBrandRefreshEnabled
-        : undefined,
+    useSelector: (selector: unknown) => {
+      if (selector === selectPredictBrandRefreshEnabled) {
+        return mockPredictBrandRefreshEnabled;
+      }
+      if (selector === selectPredictUpDownEnabledFlag) {
+        return mockPredictUpDownEnabled;
+      }
+      return undefined;
+    },
   };
 });
 
@@ -55,6 +66,7 @@ const mockClearSearchAndClose = jest.fn();
 const mockUsePredictFeedConfig = jest.fn();
 const mockUsePredictFeedMarketList = jest.fn();
 const mockUsePredictSearch = jest.fn();
+const mockUsePredictMeasurement = jest.fn();
 const mockPredictMarketProps = jest.fn();
 const mockSearchOverlayProps = jest.fn();
 
@@ -106,6 +118,11 @@ jest.mock('../../hooks/usePredictFeedMarketList', () => ({
 
 jest.mock('../../hooks/usePredictSearch', () => ({
   usePredictSearch: () => mockUsePredictSearch(),
+}));
+
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: (...args: unknown[]) =>
+    mockUsePredictMeasurement(...args),
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -261,6 +278,7 @@ describe('PredictFeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPredictBrandRefreshEnabled = false;
+    mockPredictUpDownEnabled = false;
     mockCanGoBack.mockReturnValue(true);
     mockRouteParams = { feedId: 'sports' };
     mockUsePredictFeedConfig.mockReturnValue(feedConfigResult());
@@ -370,6 +388,146 @@ describe('PredictFeedView', () => {
           showLiveFirst: false,
           autoAdvanceEmptyPages: false,
           filterStaleGameMarkets: false,
+        },
+      );
+    });
+
+    it('wires deduplicateSeriesMarkets directly when up/down markets are enabled without a series order', () => {
+      mockPredictUpDownEnabled = true;
+      mockRouteParams = { feedId: 'finance' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'finance',
+          label: 'Finance',
+          activeFilter: {
+            id: 'all',
+            titleKey: 'predict.feed.filters.all',
+            params: {
+              tagSlugs: ['finance'],
+              status: 'open',
+              order: 'volume24hr',
+            },
+            isDynamic: false,
+          },
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {
+          tagSlugs: ['finance'],
+          status: 'open',
+          order: 'volume24hr',
+        },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+          refine: deduplicateSeriesMarkets,
+        },
+      );
+    });
+
+    it('orders collapsed series cards by activeFilter.params.series when up/down markets are enabled', () => {
+      mockPredictUpDownEnabled = true;
+      mockRouteParams = { feedId: 'finance' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'finance',
+          label: 'Finance',
+          activeFilter: {
+            id: '15m',
+            label: '15 Min',
+            params: {
+              series: ['12967', '12968'],
+              status: 'open',
+              order: 'ending_soon',
+            },
+            isDynamic: false,
+          },
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {
+          series: ['12967', '12968'],
+          status: 'open',
+          order: 'ending_soon',
+        },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+          refine: expect.any(Function),
+        },
+      );
+
+      const options = mockUsePredictFeedMarketList.mock.calls.at(-1)?.[1] as {
+        refine: (markets: ReturnType<typeof createMarket>[]) => unknown[];
+      };
+      const silver = {
+        ...createMarket('xag-1', 'Silver Up or Down 15m'),
+        series: {
+          id: '12968',
+          slug: 'silver-up-or-down-15m',
+          title: 'Silver Up or Down 15m',
+          recurrence: '15m',
+        },
+        tags: ['silver', 'up-or-down'],
+      };
+      const gold = {
+        ...createMarket('xau-1', 'Gold Up or Down 15m'),
+        series: {
+          id: '12967',
+          slug: 'gold-up-or-down-15m',
+          title: 'Gold Up or Down 15m',
+          recurrence: '15m',
+        },
+        tags: ['gold', 'up-or-down'],
+      };
+
+      expect(options.refine([silver, gold])).toEqual([gold, silver]);
+    });
+
+    it('omits refine when up/down markets are disabled', () => {
+      mockPredictUpDownEnabled = false;
+      mockRouteParams = { feedId: 'finance' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'finance',
+          label: 'Finance',
+          activeFilter: {
+            id: '15m',
+            label: '15 Min',
+            params: {
+              series: ['12967', '12968'],
+              status: 'open',
+              order: 'ending_soon',
+            },
+            isDynamic: false,
+          },
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {
+          series: ['12967', '12968'],
+          status: 'open',
+          order: 'ending_soon',
+        },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+          refine: undefined,
         },
       );
     });
@@ -788,6 +946,59 @@ describe('PredictFeedView', () => {
       expect(
         screen.queryByTestId(PredictFeedViewSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('feed TTI measurement', () => {
+    const latestConditions = (): boolean[] | undefined => {
+      const calls = mockUsePredictMeasurement.mock.calls as [
+        { conditions?: boolean[] },
+      ][];
+      return calls[calls.length - 1]?.[0]?.conditions;
+    };
+
+    it('keeps PredictFeedView open while the list is still in its initial fetch', () => {
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          conditions: [true, false],
+        }),
+      );
+    });
+
+    it('keeps PredictFeedView open when the feed config is not ready', () => {
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({ status: 'not-found' }),
+      );
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: false }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([true, false]);
+    });
+
+    it('ends PredictFeedView once the list, empty state, or error can render', () => {
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([true, true]);
+    });
+
+    it('does not treat the search overlay as feed content', () => {
+      mockUsePredictSearch.mockReturnValue(
+        searchResult({ isSearchVisible: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([false, true]);
     });
   });
 });

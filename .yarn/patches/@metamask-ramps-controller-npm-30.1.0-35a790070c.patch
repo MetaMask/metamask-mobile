@@ -1,0 +1,17 @@
+diff --git a/dist/TransakService.js b/dist/TransakService.js
+index 5f89c95c406163630595adf29c3957d5d936f211..3479dfb30aace5ec9dd5a9a037f354739f3c7352 100644
+--- a/dist/TransakService.js
++++ b/dist/TransakService.js
+@@ -262,9 +262,9 @@ const OttStruct = looseObject({ ott: string() });
+ const TranslationStruct = looseObject({
+     region: optional(string()),
+     paymentMethod: optional(string()),
+-    cryptoCurrency: string(),
+-    network: string(),
+-    fiatCurrency: string(),
++    cryptoCurrency: optional(string()),
++    network: optional(string()),
++    fiatCurrency: optional(string()),
+ });
+ const IdProofStatusStruct = looseObject({
+     status: string(),

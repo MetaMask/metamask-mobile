@@ -1,3 +1,4 @@
+import { notifyManager, type QueryClient } from '@tanstack/react-query';
 import { within } from '@testing-library/react-native';
 import { escapeRegExp } from 'lodash';
 import {
@@ -13,7 +14,7 @@ import type {
   SignRead,
 } from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
 import {
-  loadVenueProfile,
+  validateSigningProfile,
   VENUE_AUTHORIZATION_HEADER,
 } from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
 import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
@@ -24,6 +25,7 @@ import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/mess
 import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { fullGameMoneylineMetadata } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/fullGameMoneyline';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictGameLive,
@@ -31,6 +33,11 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
+import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
+import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
+import { TEST_VENUE_PROFILE_RAW } from '../../fixtures/predict/venueProfiles';
+import { installVenueProfileFixture } from '../../helpers/predict/venueProfile';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -326,6 +333,7 @@ export const makePredictNextGameEvent = (
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
   const [awayOutcome, homeOutcome] = event.markets[0].outcomes;
+  const moneyline = fullGameMoneylineMetadata(`${id}:moneyline`);
 
   return {
     ...event,
@@ -353,11 +361,13 @@ export const makePredictNextGameEvent = (
     markets: [
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-away-market` as PredictEntityId,
         outcomes: [{ ...awayOutcome, gameSelection: 'away' }, homeOutcome],
       },
       {
         ...event.markets[0],
+        ...moneyline,
         id: `${id}-home-market` as PredictEntityId,
         outcomes: [
           {
@@ -376,6 +386,11 @@ export const makePredictNextGameEvent = (
   };
 };
 
+/**
+ * Flat Game fixture for rendering without layout. Keep the team Markets
+ * ungrouped: makePredictNextLaidOutGameEvent uses that to distinguish
+ * full-game moneylines from totals and spreads when it assigns layouts.
+ */
 export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   const game = makePredictNextGameEvent(
     'nfl-composite',
@@ -387,7 +402,7 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   return {
     ...game,
     markets: [
-      ...game.markets,
+      ...game.markets.map(({ group, layout, ...market }) => market),
       ...makePredictNextTotalsEvent().markets,
       ...makePredictNextSpreadsEvent().markets,
     ],
@@ -691,10 +706,16 @@ export const mockPredictNextMessenger = (
     if (action === 'PredictOrderService:refreshRecovery') {
       return Promise.resolve();
     }
-    return (
+    const answer =
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[]))
-    );
+      implementation(action, ...(params as never[]));
+    if (
+      action === 'PredictFundingService:getDepositStatus' &&
+      answer === undefined
+    ) {
+      return null;
+    }
+    return answer;
   });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
@@ -713,13 +734,12 @@ const signRead: SignRead = async ({ method, path, query }) => ({
   value: JSON.stringify({ method, path, query }),
 });
 
-/** Renders one intent from the bundled profile exactly as the Engine
- * signer does, invariant included. */
+/** Renders one intent from the fixture as the Engine signer does. */
 const renderIntent = async (
   operation: string,
   input?: Parameters<SignOperation>[1],
 ) => {
-  const profile = await loadVenueProfile();
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
   const intent = profile?.intents.find(({ id }) => id === operation);
   const payloadName = intent?.payloads[0];
   const payload = payloadName && profile?.payloads[payloadName];
@@ -746,8 +766,25 @@ const renderIntent = async (
   );
 };
 
+/** Renders the review sheet's figures and the profile identity they came from. */
+const previewIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const request = await renderIntent(operation, input);
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
+  if (!request.display) {
+    return undefined;
+  }
+  return {
+    display: request.display,
+    profile: { version: profile?.version ?? 1, sha256: 'test-profile' },
+  };
+};
+
 /** Installs the Engine rendering seam used by the adapter's review dependency. */
 export const installPredictNextPreviewOperation = (): void => {
+  installVenueProfileFixture();
   (
     Engine.context as unknown as Record<string, unknown>
   ).PredictDeviceAuthService = {
@@ -755,16 +792,18 @@ export const installPredictNextPreviewOperation = (): void => {
     previewOperation: async (
       operation: string,
       input?: Parameters<SignOperation>[1],
-    ) => (await renderIntent(operation, input)).display,
+    ) => previewIntent(operation, input),
   };
 };
 
 const signOperation: SignOperation = async (operation, input) => {
   const rendered = await renderIntent(operation, input);
+  const profile = validateSigningProfile(JSON.parse(TEST_VENUE_PROFILE_RAW));
   return {
     header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
     body: rendered.body,
     idempotencyKey: rendered.idempotencyKey,
+    profile: { version: profile?.version ?? 1, sha256: 'test-profile' },
   };
 };
 
@@ -798,8 +837,7 @@ export const composePredictNextOrderService = (
     }),
     {
       getApprovalGeneration: () => 0,
-      previewOperation: (operation, input) =>
-        renderIntent(operation, input).then((request) => request.display),
+      previewOperation: previewIntent,
     },
   );
   return new PredictOrderService({
@@ -833,8 +871,7 @@ export const composePredictNextPortfolioTrading = () => {
     }),
     {
       getApprovalGeneration: () => 0,
-      previewOperation: (operation, input) =>
-        renderIntent(operation, input).then((request) => request.display),
+      previewOperation: previewIntent,
     },
   );
   const portfolioService = new PredictPortfolioService({
@@ -958,6 +995,61 @@ export const routePredictPortfolioServicesTo = (
   };
   return () => {
     controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
+
+export const BOTH_VENUES_PREDICT_CONFIG: PredictConfig = {
+  enabled: true,
+  venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+  venueSelection: { enabled: true },
+};
+
+export const predictVenueState = (
+  venue: PredictConfiguredVenue,
+): PredictVenueControllerState => ({
+  venueSelectionPreference: venue,
+  lastActiveVenue: venue,
+  sessionDefault: null,
+});
+
+/**
+ * Routes `Engine.controllerMessenger` event subscriptions to `rootMessenger`
+ * so view-level toast bridges observe events published by test services.
+ *
+ * @param rootMessenger - The messenger tests publish controller events on.
+ * @returns A restore function for `afterEach` cleanup.
+ */
+export const routeControllerMessengerEventsTo = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never>,
+): (() => void) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and restoring puts the original mock back.
+  controllerMessenger.subscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        subscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).subscribe(event, callback);
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        unsubscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).unsubscribe(event, callback);
+  };
+  return () => {
     controllerMessenger.subscribe = originalSubscribe;
     controllerMessenger.unsubscribe = originalUnsubscribe;
   };
@@ -1112,6 +1204,13 @@ export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) =>
 export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
   publishPredictNextLiveUpdate('PredictLiveDataService:quoteUpdated', update);
 
+/** Delivers a deposit status change to every surface that subscribed. */
+export const publishPredictNextDepositStatus = (deposit: unknown) =>
+  publishPredictNextLiveUpdate('PredictFundingService:depositStatusChanged', {
+    venueId: 'kalshi',
+    deposit,
+  });
+
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
@@ -1122,6 +1221,7 @@ export const configurePredictNextFeeds = ({
   activity,
   settlementsCompleteFrom,
   summary = makePredictNextSummary(),
+  depositStatus = null,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
@@ -1136,7 +1236,9 @@ export const configurePredictNextFeeds = ({
   /** The Activity pages' settlement archive horizon. */
   settlementsCompleteFrom?: string;
   summary?: unknown;
+  depositStatus?: unknown;
 } = {}) => {
+  installVenueProfileFixture();
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
     ...(ncaa instanceof Error ? [] : ncaa),
@@ -1144,6 +1246,7 @@ export const configurePredictNextFeeds = ({
   ];
 
   resetPredictNextCatalog();
+  let currentDepositStatus = depositStatus;
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
       if (action === 'PredictOrderService:getRecovery') {
@@ -1151,6 +1254,21 @@ export const configurePredictNextFeeds = ({
       }
       if (action === 'PredictOrderService:refreshRecovery') {
         return Promise.resolve();
+      }
+      if (action === 'PredictFundingService:getDepositStatus') {
+        return currentDepositStatus;
+      }
+      if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+        if (
+          currentDepositStatus &&
+          typeof currentDepositStatus === 'object' &&
+          'operationId' in currentDepositStatus &&
+          (currentDepositStatus as { operationId: string }).operationId ===
+            resourceId
+        ) {
+          currentDepositStatus = null;
+        }
+        return undefined;
       }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
@@ -1193,6 +1311,7 @@ export const configurePredictNextFeeds = ({
           : Promise.resolve({
               venueId: 'kalshi',
               activity: activity ?? [],
+              nextCursor: undefined,
               ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
             });
       }
@@ -1300,7 +1419,9 @@ export const expectPredictNextGameCard = (
     scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
   ).toHaveTextContent(homeQuote);
   if (competition) {
-    expect(scoped.getByText(competition)).toBeOnTheScreen();
+    expect(
+      scoped.getByTestId(`predict-next-game-status-${eventId}`),
+    ).toHaveTextContent(new RegExp(escapeRegExp(competition)));
   }
   if (volume) {
     expect(scoped.getByText(volume)).toBeOnTheScreen();
@@ -1366,3 +1487,48 @@ export const feedScreenTabLabels = (
   within(within(container).getByTestId(PredictFeedScreenTestIds.TABS))
     .getAllByRole('button')
     .map((tab) => tab.props.accessibilityLabel);
+
+/**
+ * Resolves once every requested Predict Feed query in `queryClient` has
+ * settled (`status !== 'pending'` and `fetchStatus === 'idle'`) and React Query
+ * has notified its mounted observers. Await inside `act` to commit the
+ * rendered cards without racing a `findBy*` wall-clock timeout on a cold shard.
+ */
+export const waitForPredictFeedQueries = async (
+  queryClient: QueryClient,
+  feedIds: readonly PredictFeedId[],
+): Promise<void> => {
+  const queryCache = queryClient.getQueryCache();
+  const hasSettled = (): boolean => {
+    const queries = queryCache.findAll({
+      queryKey: ['PredictMarketDataService:getFeed'],
+    });
+    return feedIds.every((feedId) =>
+      queries.some(
+        ({ queryKey, state }) =>
+          queryKey[2] === feedId &&
+          state.status !== 'pending' &&
+          state.fetchStatus === 'idle',
+      ),
+    );
+  };
+
+  await new Promise<void>((resolve) => {
+    // `Query#dispatch` queues observer notifications before it notifies cache
+    // listeners, so scheduling on `notifyManager` runs after mounted observers
+    // receive the feed data.
+    const resolveAfterObservers = (): void => notifyManager.schedule(resolve);
+
+    if (hasSettled()) {
+      resolveAfterObservers();
+      return;
+    }
+
+    const unsubscribe = queryCache.subscribe(() => {
+      if (hasSettled()) {
+        unsubscribe();
+        resolveAfterObservers();
+      }
+    });
+  });
+};

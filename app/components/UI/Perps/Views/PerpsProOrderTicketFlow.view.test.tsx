@@ -63,7 +63,6 @@ import {
 } from '../Perps.testIds';
 import { getPerpsProCompactFieldTestId } from './PerpsProMarketView/components/PerpsProOrderForm/PerpsProCompactInput';
 
-const TIMEOUT_MS = 5000;
 const ids = PerpsProOrderFormSelectorsIDs;
 const panelIds = PerpsProMarketViewSelectorsIDs;
 const sheetIds = PerpsOrderTypeBottomSheetSelectorsIDs;
@@ -225,56 +224,33 @@ const placeOrderMock = () =>
 const validateOrderMock = () =>
   jest.mocked(Engine.context.PerpsController.validateOrder);
 
-const findSizeInput = () =>
-  screen.findByTestId(ids.SIZE_INPUT, {}, { timeout: TIMEOUT_MS });
+const findSizeInput = () => screen.findByTestId(ids.SIZE_INPUT);
 
 const findPriceInput = (testID: string) =>
-  screen.findByTestId(
-    testID,
-    { includeHiddenElements: true },
-    { timeout: TIMEOUT_MS },
-  );
+  screen.findByTestId(testID, { includeHiddenElements: true });
 
 const openOrderTypeSheet = async () => {
   fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-  await screen.findByTestId(sheetIds.CONTAINER, {}, { timeout: TIMEOUT_MS });
+  await screen.findByTestId(sheetIds.CONTAINER);
 };
 
 const selectBasicOrderType = async (
   optionTestID: typeof sheetIds.MARKET_OPTION | typeof sheetIds.LIMIT_OPTION,
 ) => {
   await openOrderTypeSheet();
-  fireEvent.press(
-    await screen.findByTestId(optionTestID, {}, { timeout: TIMEOUT_MS }),
-  );
+  fireEvent.press(await screen.findByTestId(optionTestID));
 };
 
 const selectTriggeredOrderType = async (optionTestID: string) => {
   await openOrderTypeSheet();
-  fireEvent.press(
-    await screen.findByTestId(
-      sheetIds.TRIGGERED_TAB,
-      {},
-      { timeout: TIMEOUT_MS },
-    ),
-  );
-  fireEvent.press(
-    await screen.findByTestId(optionTestID, {}, { timeout: TIMEOUT_MS }),
-  );
+  fireEvent.press(await screen.findByTestId(sheetIds.TRIGGERED_TAB));
+  fireEvent.press(await screen.findByTestId(optionTestID));
 };
 
 const selectAdvancedOrderType = async (optionTestID: string) => {
   await openOrderTypeSheet();
-  fireEvent.press(
-    await screen.findByTestId(
-      sheetIds.ADVANCED_TAB,
-      {},
-      { timeout: TIMEOUT_MS },
-    ),
-  );
-  fireEvent.press(
-    await screen.findByTestId(optionTestID, {}, { timeout: TIMEOUT_MS }),
-  );
+  fireEvent.press(await screen.findByTestId(sheetIds.ADVANCED_TAB));
+  fireEvent.press(await screen.findByTestId(optionTestID));
 };
 
 /** Waits for capability discovery so Advanced strategies are selectable. */
@@ -298,47 +274,40 @@ const awaitValidatedPlaceOrderButton = async (
 ) => {
   const validateOrder = validateOrderMock();
   let finalValidation: Promise<unknown> | undefined;
-  await waitFor(
-    () => {
-      const idx = validateOrder.mock.calls.findIndex(([params]) =>
-        predicate(params),
-      );
-      expect(idx).toBeGreaterThanOrEqual(0);
-      finalValidation = validateOrder.mock.results[idx]
-        ?.value as Promise<unknown>;
-    },
-    { timeout: TIMEOUT_MS },
-  );
+  await waitFor(() => {
+    const idx = validateOrder.mock.calls.findIndex(([params]) =>
+      predicate(params),
+    );
+    expect(idx).toBeGreaterThanOrEqual(0);
+    finalValidation = validateOrder.mock.results[idx]
+      ?.value as Promise<unknown>;
+  });
   await act(async () => {
     await finalValidation;
   });
   const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-  await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
-    timeout: TIMEOUT_MS,
-  });
+  await waitFor(() => expect(placeOrderButton).toBeEnabled());
   return placeOrderButton;
 };
 
 const awaitEnabledPlaceOrderButton = async () => {
   const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
-  await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
-    timeout: TIMEOUT_MS,
-  });
+  await waitFor(() => expect(placeOrderButton).toBeEnabled());
   return placeOrderButton;
 };
 
 const expectPlaceOrderCalledWith = async (expected: Record<string, unknown>) =>
-  waitFor(
-    () =>
-      expect(placeOrderMock()).toHaveBeenCalledWith(
-        expect.objectContaining(expected),
-      ),
-    { timeout: TIMEOUT_MS },
+  waitFor(() =>
+    expect(placeOrderMock()).toHaveBeenCalledWith(
+      expect.objectContaining(expected),
+    ),
   );
 
 /**
- * Join fire-and-forget toast/haptic work so mutations cannot finish after Jest
- * tears down the environment.
+ * Teardown settle, not an assertion race: fire-and-forget toast/haptic work
+ * must finish before Jest tears down the test environment, and there is no
+ * observable signal for "no more completions pending". Drain a macrotask turn
+ * so those completions cannot surface after teardown.
  */
 const flushAsyncSideEffects = async (delayMs = 50) => {
   await act(async () => {
@@ -421,11 +390,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
 
       fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
       fireEvent.press(
-        await screen.findByTestId(
-          getPerpsLeveragePickerItemTestId(20),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByTestId(getPerpsLeveragePickerItemTestId(20)),
       );
       fireEvent.press(
         screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
@@ -449,8 +414,6 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       fireEvent.press(screen.getByTestId(ids.MARGIN_MODE_BUTTON));
       const marginSheet = await screen.findByTestId(
         PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       expect(
         within(marginSheet).getByTestId(
@@ -593,9 +556,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
     };
 
     const waitForSize = (matches: (size: number) => boolean) =>
-      waitFor(() => expect(matches(readSizeInput())).toBe(true), {
-        timeout: TIMEOUT_MS,
-      });
+      waitFor(() => expect(matches(readSizeInput())).toBe(true));
 
     itForPlatforms(
       'reserves the quoted fee when the size is capped at the max and shrinks it when the quote rises',
@@ -861,11 +822,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       await awaitEnabledPlaceOrderButton();
 
       fireEvent.press(screen.getByTestId(ids.TPSL));
-      const probeParams = await screen.findByTestId(
-        TPSL_PROBE_IDS.PARAMS,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
+      const probeParams = await screen.findByTestId(TPSL_PROBE_IDS.PARAMS);
 
       const paramsJson = probeParams.props.children as string;
       expect(JSON.parse(paramsJson)).toEqual(
@@ -896,14 +853,12 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       expect(placeOrderMock().mock.calls[0][0]).not.toHaveProperty(
         'takeProfitPrice',
       );
-      await waitFor(
-        () =>
-          expect(updatePositionTPSL).toHaveBeenCalledWith({
-            symbol: 'ETH',
-            takeProfitPrice: PROBE_TAKE_PROFIT,
-            stopLossPrice: PROBE_STOP_LOSS,
-          }),
-        { timeout: TIMEOUT_MS },
+      await waitFor(() =>
+        expect(updatePositionTPSL).toHaveBeenCalledWith({
+          symbol: 'ETH',
+          takeProfitPrice: PROBE_TAKE_PROFIT,
+          stopLossPrice: PROBE_STOP_LOSS,
+        }),
       );
     },
   );
@@ -917,23 +872,15 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       renderTicket();
       await findSizeInput();
 
-      fireEvent.press(
-        await screen.findByTestId(
-          ids.ADD_FUNDS_BUTTON,
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
-      );
+      fireEvent.press(await screen.findByTestId(ids.ADD_FUNDS_BUTTON));
 
       // The ticket reuses the home deposit flow: a bare deposit prep with no
       // preset amount and no order attached.
-      await waitFor(
-        () =>
-          expect(depositWithConfirmation).toHaveBeenCalledWith({
-            amount: undefined,
-            placeOrder: false,
-          }),
-        { timeout: TIMEOUT_MS },
+      await waitFor(() =>
+        expect(depositWithConfirmation).toHaveBeenCalledWith({
+          amount: undefined,
+          placeOrder: false,
+        }),
       );
       expect(depositWithConfirmation).toHaveBeenCalledTimes(1);
       expect(placeOrderMock()).not.toHaveBeenCalled();
@@ -950,25 +897,15 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       const editOrder = jest.mocked(Engine.context.PerpsController.editOrder);
       const restingOrder = createLimitOrderForViews({ price: '2400' });
       renderTicket({ orders: [restingOrder] });
-      await screen.findByTestId(
-        panelIds.POSITIONS_PANEL,
-        {},
-        {
-          timeout: TIMEOUT_MS,
-        },
-      );
+      await screen.findByTestId(panelIds.POSITIONS_PANEL);
 
       fireEvent.press(screen.getByTestId(panelIds.POSITIONS_PANEL_TAB_ORDERS));
       const orderRow = await screen.findByTestId(
         getPerpsProOrderRowSelector('ETH', 0),
-        {},
-        { timeout: TIMEOUT_MS },
       );
       fireEvent.press(within(orderRow).getByTestId(panelIds.ORDER_PRICE_EDIT));
       await screen.findByTestId(
         PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       // The sheet opens on the resting price before any preset is applied.
       expect(screen.getByDisplayValue(/2,?400/u)).toBeOnTheScreen();
@@ -984,19 +921,17 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
         ),
       );
 
-      await waitFor(
-        () =>
-          expect(editOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              orderId: restingOrder.orderId,
-              newOrder: expect.objectContaining({
-                symbol: 'ETH',
-                orderType: 'limit',
-                price: expect.stringMatching(/^2500(\.0+)?$/u),
-              }),
+      await waitFor(() =>
+        expect(editOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderId: restingOrder.orderId,
+            newOrder: expect.objectContaining({
+              symbol: 'ETH',
+              orderType: 'limit',
+              price: expect.stringMatching(/^2500(\.0+)?$/u),
             }),
-          ),
-        { timeout: TIMEOUT_MS },
+          }),
+        ),
       );
       await waitFor(() =>
         expect(
@@ -1016,32 +951,26 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
     async () => {
       jest.mocked(Engine.context.PerpsController.editOrder).mockResolvedValue({
         success: false,
-        error:
-          'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.',
-      });
+        error: 'ORDER_POST_ONLY_WOULD_CROSS',
+        errorCode: 'ORDER_POST_ONLY_WOULD_CROSS',
+        errorDetails: {
+          code: 'ORDER_POST_ONLY_WOULD_CROSS',
+          provider: 'hyperliquid',
+        },
+      } as never);
       renderTicket({
         orders: [createLimitOrderForViews({ price: '2400' })],
         includeToasts: true,
       });
-      await screen.findByTestId(
-        panelIds.POSITIONS_PANEL,
-        {},
-        {
-          timeout: TIMEOUT_MS,
-        },
-      );
+      await screen.findByTestId(panelIds.POSITIONS_PANEL);
 
       fireEvent.press(screen.getByTestId(panelIds.POSITIONS_PANEL_TAB_ORDERS));
       const orderRow = await screen.findByTestId(
         getPerpsProOrderRowSelector('ETH', 0),
-        {},
-        { timeout: TIMEOUT_MS },
       );
       fireEvent.press(within(orderRow).getByTestId(panelIds.ORDER_PRICE_EDIT));
       await screen.findByTestId(
         PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY,
-        {},
-        { timeout: TIMEOUT_MS },
       );
       fireEvent.press(
         screen.getByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID),
@@ -1056,11 +985,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       );
 
       expect(
-        await screen.findByText(
-          strings('perps.order.order_update_failed'),
-          {},
-          { timeout: TIMEOUT_MS },
-        ),
+        await screen.findByText(strings('perps.order.order_update_failed')),
       ).toBeOnTheScreen();
       expect(
         screen.getByText(
@@ -1088,8 +1013,6 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       });
       const positionRow = await screen.findByTestId(
         getPerpsProPositionRowSelector('ETH'),
-        {},
-        { timeout: TIMEOUT_MS },
       );
 
       fireEvent.press(
@@ -1097,22 +1020,16 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       );
       const flipButton = await screen.findByTestId(
         PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
-      await waitFor(() => expect(flipButton).toBeEnabled(), {
-        timeout: TIMEOUT_MS,
-      });
+      await waitFor(() => expect(flipButton).toBeEnabled());
       fireEvent.press(flipButton);
 
-      await waitFor(
-        () =>
-          expect(flipPosition).toHaveBeenCalledWith(
-            expect.objectContaining({
-              position: expect.objectContaining({ symbol: 'ETH', size: '1' }),
-            }),
-          ),
-        { timeout: TIMEOUT_MS },
+      await waitFor(() =>
+        expect(flipPosition).toHaveBeenCalledWith(
+          expect.objectContaining({
+            position: expect.objectContaining({ symbol: 'ETH', size: '1' }),
+          }),
+        ),
       );
       await waitFor(() =>
         expect(

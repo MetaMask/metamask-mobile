@@ -27,6 +27,7 @@ import type { CardTransactionHeroToken } from '../../utils/getCardTransactionHer
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { CardTransactionDetailsTestIds } from '../../Views/CardTransactionDetails/CardTransactionDetails.testIds';
 
 export interface CardTransactionDetailsContentProps {
   heroCopy: string;
@@ -65,23 +66,28 @@ const CardTransactionDetailsContent = ({
   transactionId,
   networkFeeLabel,
   heroToken,
-  heroIconTestID = 'card-transaction-details-asset-icon',
+  heroIconTestID = CardTransactionDetailsTestIds.ASSET_ICON,
   onBack,
   onReportPress,
   onViewOnExplorer,
   footer,
-}: CardTransactionDetailsContentProps) => {
+}: CardTransactionDetailsContentProps): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
 
   return (
-    <Box twClassName="flex-1 bg-background-default">
+    <Box
+      twClassName="flex-1 bg-background-default"
+      testID={CardTransactionDetailsTestIds.CONTAINER}
+    >
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
         title={strings('card.transactions.details_title')}
         onBack={onBack}
-        backButtonProps={{ testID: 'card-transaction-details-back-button' }}
+        backButtonProps={{
+          testID: CardTransactionDetailsTestIds.BACK_BUTTON,
+        }}
         includesTopInset
       />
       <ScrollView
@@ -200,7 +206,7 @@ const CardTransactionDetailsContent = ({
                   isFullWidth
                   onPress={onViewOnExplorer}
                   startIconName={IconName.ArrowSquareOut}
-                  testID="card-transaction-details-explorer-button"
+                  testID={CardTransactionDetailsTestIds.EXPLORER_BUTTON}
                 >
                   {strings('card.transactions.view_on_explorer')}
                 </Button>
@@ -211,7 +217,7 @@ const CardTransactionDetailsContent = ({
               <Box twClassName="w-full items-center pt-2">
                 <TextButton
                   onPress={onReportPress}
-                  testID="card-transaction-details-report-button"
+                  testID={CardTransactionDetailsTestIds.REPORT_BUTTON}
                 >
                   {strings('card.transactions.report_cta')}
                 </TextButton>

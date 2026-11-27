@@ -17,6 +17,7 @@ interface TokenDetailsFeedTabProps {
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   /** The visible tab pages alone follow the page scroll for more posts. */
   isActive?: boolean;
+  animateEmptyState?: boolean;
   /** True when this wallet holds the token. Picks the empty-state copy. */
   hasBalance?: boolean;
   /** Token on screen, so the empty-state post opens on this holding. */
@@ -29,6 +30,7 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
   assetId,
   onCopyTrade,
   isActive,
+  animateEmptyState = true,
   hasBalance = false,
   token,
   onEmptyChange,
@@ -48,8 +50,14 @@ const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
     };
   }, [assetId]);
   const emptyState = useMemo(
-    () => <TokenDetailsFeedEmptyState hasBalance={hasBalance} token={token} />,
-    [hasBalance, token],
+    () => (
+      <TokenDetailsFeedEmptyState
+        hasBalance={hasBalance}
+        token={token}
+        animate={animateEmptyState}
+      />
+    ),
+    [animateEmptyState, hasBalance, token],
   );
   const handleListStateChange = useCallback(
     (state: SocialFeedListState) => {

@@ -13,7 +13,12 @@ import Routes from '../../../app/constants/navigation/Routes';
 import PredictHome from '../../../app/components/UI/Predict/views/PredictHome';
 import PredictMarketListRoute from '../../../app/components/UI/Predict/routes/PredictMarketListRoute';
 import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/contexts';
+import PredictPositionsView from '../../../app/components/UI/Predict/views/PredictPositionsView';
 import { initialStatePredict } from '../presets/predict';
+import {
+  createRouteNameAndParamsProbe,
+  renderScreenWithRoutes,
+} from '../render';
 import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
 
 interface RenderPredictHomeOptions {
@@ -21,6 +26,16 @@ interface RenderPredictHomeOptions {
   initialParams?: PredictMarketListRouteParams;
   setParams?: (params: PredictMarketListRouteParams) => void;
 }
+
+interface RenderPredictHomeWithRoutesOptions
+  extends Omit<RenderPredictHomeOptions, 'setParams'> {
+  extraRoutes?: {
+    name: string;
+    Component?: React.ComponentType<object>;
+  }[];
+}
+
+const WalletHomeProbe = createRouteNameAndParamsProbe(Routes.WALLET.HOME);
 
 function createNavigationContextValue(
   setParams: (params: PredictMarketListRouteParams) => void = () => undefined,
@@ -117,6 +132,32 @@ export function renderPredictHomeView(
 }
 
 /**
+ * Renders PredictHome inside a real stack so navigation assertions resolve to
+ * route probes. Wallet home is available by default for the root-back journey.
+ */
+export function renderPredictHomeViewWithRoutes(
+  options: RenderPredictHomeWithRoutesOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, initialParams, extraRoutes = [] } = options;
+
+  const builder = initialStatePredict();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    createWrappedPredictComponent(
+      PredictHome as React.ComponentType<Record<string, unknown>>,
+    ),
+    { name: Routes.PREDICT.MARKET_LIST },
+    [{ name: Routes.WALLET.HOME, Component: WalletHomeProbe }, ...extraRoutes],
+    { state },
+    initialParams as Record<string, unknown> | undefined,
+  );
+}
+
+/**
  * Renders the real MARKET_LIST route wrapper (`PredictMarketListRoute`) so the
  * `predictHomeRedesign` flag gating (PredictHome vs PredictFeed) is exercised
  * through the actual selector. Enable via `overrides` setting the remote flag.
@@ -127,5 +168,39 @@ export function renderPredictMarketListRoute(
   return renderWrappedAtMarketList(
     PredictMarketListRoute as React.ComponentType<Record<string, unknown>>,
     options,
+  );
+}
+
+/**
+ * Renders PredictHome at MARKET_LIST inside a real native stack with the
+ * Positions screen registered, so tests can push Positions over home, go back,
+ * and observe focus/blur exactly as the Predict stack drives it.
+ */
+export function renderPredictHomeWithPositionsRoute(
+  options: Omit<RenderPredictHomeOptions, 'setParams'> = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, initialParams } = options;
+
+  const builder = initialStatePredict();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    createWrappedPredictComponent(
+      PredictHome as React.ComponentType<Record<string, unknown>>,
+    ),
+    { name: Routes.PREDICT.MARKET_LIST },
+    [
+      {
+        name: Routes.PREDICT.POSITIONS,
+        Component: createWrappedPredictComponent(
+          PredictPositionsView as React.ComponentType<Record<string, unknown>>,
+        ) as React.ComponentType<object>,
+      },
+    ],
+    { state },
+    initialParams as Record<string, unknown> | undefined,
   );
 }

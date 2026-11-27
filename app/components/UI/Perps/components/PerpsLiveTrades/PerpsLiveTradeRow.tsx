@@ -1,11 +1,15 @@
 import React from 'react';
 import { ListItem, TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import ProfileVerifiedBadge from '../../../SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedPost } from '../../../SocialFeed';
 import { formatPercent } from '../../../SocialFeed/utils/formatters';
 import { PERPS_LIVE_TRADES_CONFIG } from '../../constants/perpsConfig';
-import { getPerpsLiveTradeRowSelector } from '../../Perps.testIds';
+import {
+  getPerpsLiveTradeRowSelector,
+  getPerpsLiveTradeVerifiedBadgeSelector,
+} from '../../Perps.testIds';
 
 interface PerpsLiveTradeRowProps {
   post: SocialV1FeedPost;
@@ -46,6 +50,13 @@ const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({
         />
       }
       title={post.authorHandle}
+      titleEndAccessory={
+        item.author.verified ? (
+          <ProfileVerifiedBadge
+            testID={getPerpsLiveTradeVerifiedBadgeSelector(post.id)}
+          />
+        ) : undefined
+      }
       description={[item.asset.symbol, getDirectionLabel(item), item.costLabel]
         .filter(Boolean)
         .join(' · ')}

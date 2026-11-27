@@ -282,6 +282,17 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
   },
 );
 
+export const selectIsMoneyEarningsHistoryEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_HISTORY_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningHistoryEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 /**
  * Selects whether the Money deposit Braze campaign can emit its trigger event.
  */

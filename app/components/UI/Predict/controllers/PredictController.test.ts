@@ -154,6 +154,25 @@ const DEFAULT_NETWORK_CLIENT = {
   },
 };
 
+// Byte-exact error.message from Sentry event 21edcb35 (NSURLErrorCannotConnectToHost).
+const NSURL_CANNOT_CONNECT_ERROR_MESSAGE = `Error Domain=NSURLErrorDomain Code=-1004 "Could not connect to the server." UserInfo={_kCFStreamErrorCodeKey=61, NSUnderlyingError=0x11e72e040 {Error Domain=kCFErrorDomainCFNetwork Code=-1004 "(null)" UserInfo={_NSURLErrorNWPathKey=satisfied (Path is satisfied), interface: en0[802.11], ipv4, dns, uses wifi, LQM: good, _kCFStreamErrorCodeKey=61, _kCFStreamErrorDomainKey=1}}, _NSURLErrorFailingURLSessionTaskErrorKey=LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>, _NSURLErrorRelatedURLSessionTaskErrorKey=(
+    "LocalDataTask <23A04505-0604-4F83-ACC2-2F19E3D09182>.<445>"
+), NSLocalizedDescription=Could not connect to the server., NSErrorFailingURLStringKey=**, NSErrorFailingURLKey=**, _kCFStreamErrorDomainKey=1}
+`;
+
+const NSURL_ERROR_TIMED_OUT = -1001;
+const NSURL_ERROR_SECURE_CONNECTION_FAILED = -1200;
+const TIMED_OUT_DESCRIPTION = 'The request timed out.';
+const SECURE_CONNECTION_FAILED_DESCRIPTION =
+  'An SSL error has occurred and a secure connection to the server cannot be made.';
+
+function nsurlErrorMessage(code: number, description: string): string {
+  return NSURL_CANNOT_CONNECT_ERROR_MESSAGE.replaceAll(
+    'Code=-1004',
+    `Code=${code}`,
+  ).replaceAll('Could not connect to the server.', description);
+}
+
 // Mock react-native-device-info for version gating
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('99.0.0'),
@@ -181,6 +200,7 @@ jest.mock('@metamask/controller-utils', () => {
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
+    isEnabled: jest.fn(() => true),
   },
 }));
 
@@ -3764,6 +3784,50 @@ describe('PredictController', () => {
         });
       } finally {
         logSpy.mockRestore();
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('reports an iOS secure-connection failure to Sentry', async () => {
+      const networkError = new Error(
+        nsurlErrorMessage(
+          NSURL_ERROR_SECURE_CONNECTION_FAILED,
+          SECURE_CONNECTION_FAILED_DESCRIPTION,
+        ),
+      );
+      mockPolymarketProvider.isEligible.mockRejectedValue(networkError);
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(errorSpy).toHaveBeenCalled();
+        });
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('reports a geoblock HTTP 500 to Sentry', async () => {
+      mockPolymarketProvider.isEligible.mockRejectedValue(
+        new Error('Polymarket geoblock check failed with status 500'),
+      );
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(errorSpy).toHaveBeenCalled();
+        });
+      } finally {
         errorSpy.mockRestore();
       }
     });
@@ -7802,6 +7866,166 @@ describe('PredictController', () => {
           symbol: 'USDC.e',
         });
       });
+    });
+  });
+
+  describe('enterPayWithAnyToken', () => {
+    it('moves PREVIEW to PAY_WITH_ANY_TOKEN while keeping selectedPaymentToken null', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('clears a stale ERC-20 selectedPaymentToken and keeps PAY_WITH_ANY_TOKEN', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('clears active order error by default and preserves it when clearError is false', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+          error: 'Order failed',
+          errorStage: 'order',
+        });
+
+        controller.enterPayWithAnyToken({ clearError: false });
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Order failed',
+        );
+
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+          error: 'Order failed',
+          errorStage: 'order',
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+      });
+    });
+
+    it('does not overwrite in-flight DEPOSITING, PLACING_ORDER, or SUCCESS states', () => {
+      withController(({ controller }) => {
+        for (const state of [
+          ActiveOrderState.DEPOSITING,
+          ActiveOrderState.PLACING_ORDER,
+          ActiveOrderState.SUCCESS,
+        ]) {
+          setActiveOrderForTest(controller, { state });
+
+          controller.enterPayWithAnyToken();
+
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            state,
+          );
+        }
+      });
+    });
+
+    it('does not clear payment failure error when already in PAY_WITH_ANY_TOKEN with no ERC-20 token', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'Swap failed',
+          errorStage: 'payment',
+        });
+
+        controller.enterPayWithAnyToken();
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
+          'Swap failed',
+        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.errorStage).toBe(
+          'payment',
+        );
+      });
+    });
+
+    it('causes placeOrder to enter DEPOSITING instead of submitting an unfunded CLOB order', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          controller.enterPayWithAnyToken();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+          const analyticsProperties = {
+            marketId: 'market-1',
+            transactionType: 'mm_predict_buy' as const,
+          };
+          const attempt = controller.startPredictBuyAttempt({
+            amountUsd: 3,
+            paymentMethod: 'money_account',
+            analyticsProperties,
+          });
+
+          const result = await controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+            transactionId: 'tx-money-account-1',
+          });
+
+          expect(result).toEqual({
+            success: false,
+            response: { status: 'deposit_in_progress' },
+          });
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            ActiveOrderState.DEPOSITING,
+          );
+          expect(
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.paymentTokenAddress,
+          ).toBeUndefined();
+          expect(
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.paymentTokenSymbol,
+          ).toBeUndefined();
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
     });
   });
 
@@ -12367,6 +12591,48 @@ describe('PredictController', () => {
           error: `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
         }),
       );
+    });
+
+    it('does not report an iOS timeout to Sentry when cache invalidation fails', async () => {
+      const networkError = new Error(
+        nsurlErrorMessage(NSURL_ERROR_TIMED_OUT, TIMED_OUT_DESCRIPTION),
+      );
+      const mockCheckForLatestBlock = jest.fn().mockRejectedValue(networkError);
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await Promise.resolve();
+            errorSpy.mockClear();
+
+            await (
+              controller as unknown as {
+                invalidateQueryCache: (chainId: number) => Promise<void>;
+              }
+            ).invalidateQueryCache(137);
+
+            expect(errorSpy).not.toHaveBeenCalled();
+          },
+          {
+            mocks: {
+              findNetworkClientIdByChainId: jest
+                .fn()
+                .mockReturnValue('polygon-mainnet'),
+              getNetworkClientById: mockGetNetworkClientById,
+            },
+          },
+        );
+      } finally {
+        errorSpy.mockRestore();
+      }
     });
   });
 

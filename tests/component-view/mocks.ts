@@ -110,6 +110,7 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        listTransactions: jest.fn().mockResolvedValue({ items: [] }),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
           phone: '+441234567890',
@@ -497,6 +498,11 @@ jest.mock('../../app/core/Engine', () => {
       },
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
+        submitIntent: jest.fn().mockResolvedValue({ success: true }),
+        state: { txHistory: {} },
+      },
+      MoneyAccountController: {
+        getMoneyAccount: jest.fn().mockReturnValue(undefined),
       },
       PredictMarketDataService: {},
       PredictLiveDataService: {},
@@ -616,6 +622,25 @@ jest.mock('../../app/core/Engine', () => {
         }),
         previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToAvailableToTrade: jest.fn(
+          (params: {
+            symbol: string;
+            callback: (update: {
+              providerId: string;
+              symbol: string;
+              long: string;
+              short: string;
+            }) => void;
+          }) => {
+            params.callback({
+              providerId: 'hyperliquid',
+              symbol: params.symbol,
+              long: '100000',
+              short: '100000',
+            });
+            return () => undefined;
+          },
+        ),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
@@ -674,6 +699,10 @@ jest.mock('../../app/core/Engine', () => {
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        estimateCrossLiquidation: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'provider',
+        }),
         calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
         updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),
@@ -729,11 +758,13 @@ jest.mock('../../app/core/Engine', () => {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
       call: jest.fn((action: string, ...args: unknown[]) => {
+        if (action === 'MoneyAccountApiDataService:fetchVaults') {
+          return Promise.resolve({
+            vaults: [{ vault_key: 'standard', current_apy: '0.042' }],
+          });
+        }
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
-        if (action === 'MoneyAccountBalanceService:getVaultApy') {
-          return Promise.resolve({ apy: '0.042' });
-        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'

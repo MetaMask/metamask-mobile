@@ -7,9 +7,17 @@ import type {
   PredictFeedId,
   PredictMarketHistoryRange,
 } from '../../types';
-import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
-import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
+import type {
+  SignOperationInput,
+  VenueOperationPreview,
+} from '../../auth/signing/signOperationTypes';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
+import { VenueProfilePreviewExpiredError } from './signedVenueCall';
+import {
+  setVenueProfileResolverForTesting,
+  VenueProfileResolver,
+} from '../../auth/venueSigningProfiles';
+import { installVenueProfileFixture } from '../../../../../../tests/helpers/predict/venueProfile';
 
 const USER_APPROVAL = { kind: 'user-approved' as const };
 const REVIEW_DISPLAY = {
@@ -18,8 +26,9 @@ const REVIEW_DISPLAY = {
   payout: '43.00',
   minProceeds: '19.00',
 };
+const REVIEW_PROFILE = { version: 1, sha256: 'sha-1' };
 const reviewOperation = jest.fn<
-  Promise<InvariantDisplay | undefined>,
+  Promise<VenueOperationPreview | undefined>,
   ['order.place', SignOperationInput]
 >();
 
@@ -79,6 +88,7 @@ const createMarketHistory = (overrides = {}) => ({
 });
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
+  getSigningProfile: jest.fn(),
   fetchVenueStatus: jest.fn(),
   fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),
@@ -110,8 +120,12 @@ describe('KalshiRemoteAdapter', () => {
   let approvalGeneration: number | undefined;
 
   beforeEach(() => {
+    installVenueProfileFixture();
     approvalGeneration = 0;
-    reviewOperation.mockReset().mockResolvedValue({ ...REVIEW_DISPLAY });
+    reviewOperation.mockReset().mockResolvedValue({
+      display: { ...REVIEW_DISPLAY },
+      profile: REVIEW_PROFILE,
+    });
     client = createClient();
     adapter = new KalshiRemoteAdapter(client, {
       getApprovalGeneration: () => approvalGeneration,
@@ -132,9 +146,10 @@ describe('KalshiRemoteAdapter', () => {
     };
     client.fetchVenueCatalog.mockResolvedValue(catalog);
 
-    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual(
-      catalog,
-    );
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual({
+      ...catalog,
+      screens: [],
+    });
     expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', undefined);
   });
 
@@ -1217,6 +1232,7 @@ describe('KalshiRemoteAdapter', () => {
           },
           values: { count: '40.00', price: '0.4700' },
           approvalGeneration: 0,
+          profile: REVIEW_PROFILE,
           confirmed: true,
         },
       );
@@ -1231,7 +1247,10 @@ describe('KalshiRemoteAdapter', () => {
       expect(client.commitOrder).not.toHaveBeenCalled();
 
       const display = { ...REVIEW_DISPLAY };
-      reviewOperation.mockResolvedValueOnce(display);
+      reviewOperation.mockResolvedValueOnce({
+        display,
+        profile: REVIEW_PROFILE,
+      });
       const review = await adapter.trading.reviewOrder(
         previewPayload.previewId,
       );
@@ -1254,6 +1273,61 @@ describe('KalshiRemoteAdapter', () => {
       expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
         ...reviewInput,
         confirmed: true,
+      });
+    });
+
+    it('passes the reviewed profile snapshot to the commit signature', async () => {
+      adapter.trading.invalidatePreviews();
+      await adapter.trading.previewOrder(previewParams);
+      await adapter.trading.reviewOrder(previewPayload.previewId);
+      client.commitOrder.mockResolvedValue(receiptPayload);
+
+      await adapter.trading.commitOrder(
+        previewPayload.previewId,
+        USER_APPROVAL,
+      );
+
+      expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
+        profile: REVIEW_PROFILE,
+      });
+    });
+
+    it('maps a changed signing profile to another preview review', async () => {
+      await adapter.trading.previewOrder(previewParams);
+      await adapter.trading.reviewOrder(previewPayload.previewId);
+      client.commitOrder.mockRejectedValue(
+        new VenueProfilePreviewExpiredError(),
+      );
+
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.PREVIEW_EXPIRED,
+        metadata: { phase: 'commit', requestSent: true, outcome: 'not_placed' },
+      });
+      expect(client.commitOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('recovers buy sizing after an initially unavailable profile without trusting returned-preview drift', async () => {
+      adapter.trading.invalidatePreviews();
+      setVenueProfileResolverForTesting(new VenueProfileResolver());
+      const preview = await adapter.trading.previewOrder(previewParams);
+
+      await expect(
+        adapter.trading.reviewOrder(preview.previewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_SIGNING_REFUSED });
+      if (preview.action === 'buy') {
+        preview.estimatedContracts = 999;
+        preview.limitPrice = '0.0100' as PredictDecimal;
+      }
+      installVenueProfileFixture();
+      await adapter.trading.reviewOrder(preview.previewId);
+      client.commitOrder.mockResolvedValue(receiptPayload);
+      await adapter.trading.commitOrder(preview.previewId, USER_APPROVAL);
+
+      expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
+        values: { count: '40.00', price: '0.4700' },
+        profile: REVIEW_PROFILE,
       });
     });
 
@@ -1320,7 +1394,7 @@ describe('KalshiRemoteAdapter', () => {
     });
 
     it('does not expose a review completed after auth generation revocation', async () => {
-      let resolveReview!: (value: InvariantDisplay) => void;
+      let resolveReview!: (value: VenueOperationPreview) => void;
       reviewOperation.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -1329,7 +1403,7 @@ describe('KalshiRemoteAdapter', () => {
       );
       const reviewing = adapter.trading.reviewOrder(previewPayload.previewId);
       approvalGeneration = 1;
-      resolveReview(REVIEW_DISPLAY);
+      resolveReview({ display: REVIEW_DISPLAY, profile: REVIEW_PROFILE });
       await expect(reviewing).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
       });
@@ -1427,6 +1501,7 @@ describe('KalshiRemoteAdapter', () => {
           },
           values: { count: '70.00', price: '0.4000' },
           approvalGeneration: 0,
+          profile: REVIEW_PROFILE,
           confirmed: true,
         },
       );

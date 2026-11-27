@@ -25,4 +25,18 @@ describe('socialAppBuild', () => {
     expect(readSocialAppBuild()).toBe('7.57.0-test');
     expect(getVersion).toHaveBeenCalledTimes(1);
   });
+  it('attaches the OTA version when an OTA hotfix is applied', async () => {
+    jest.doMock('react-native-device-info', () => ({
+      getVersion: () => '8.21.0',
+    }));
+    jest.doMock('../../../../constants/ota', () => ({
+      OTA_VERSION: 'v8.21.2',
+    }));
+    const { withSocialAppBuild } = await load();
+    expect(withSocialAppBuild({ screen_name: 'trending' })).toEqual({
+      screen_name: 'trending',
+      app_build: '8.21.2-test',
+    });
+    jest.dontMock('../../../../constants/ota');
+  });
 });

@@ -16,8 +16,6 @@ export const FEED_REACTION_EMOJIS = [
   '💀',
 ] as const;
 
-export type FeedReactionEmoji = (typeof FEED_REACTION_EMOJIS)[number];
-
 export interface FeedReaction {
   emotion: string;
   count: number;

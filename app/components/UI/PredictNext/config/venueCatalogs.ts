@@ -13,6 +13,7 @@
  */
 export const POLYMARKET_STATIC_VENUE_CATALOG = {
   venueId: 'polymarket',
+  environment: 'production',
   actions: ['buy', 'sell', 'claim', 'deposit', 'withdraw'],
   feeds: {
     trending: 'trending',

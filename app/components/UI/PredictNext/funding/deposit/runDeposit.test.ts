@@ -1,5 +1,8 @@
 import { TransactionStatus } from '@metamask/transaction-controller';
-import { BASE_DEPOSIT_NETWORK } from '../../config/depositEnvironment';
+import {
+  BASE_DEPOSIT_NETWORK,
+  BASE_SEPOLIA_DEPOSIT_NETWORK,
+} from '../../config/depositEnvironment';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
   PredictAmount,
@@ -11,6 +14,7 @@ import type {
 import type { DepositTransferExecutor } from './depositTransferExecutor';
 import {
   canReuseClientOperationId,
+  continueDeposit,
   payDeposit,
   startDeposit,
   type DepositFunding,
@@ -295,20 +299,47 @@ describe('startDeposit', () => {
 });
 
 describe('payDeposit', () => {
-  it('refuses a plan for another amount, cancels it and sends nothing', async () => {
-    const { deps, funding, executor } = setup();
+  it.each([
+    ['amount', awaitingTransfer({ amount: '30.00' }), 'amount'],
+    [
+      'chain',
+      {
+        ...awaitingTransfer(),
+        chainId: BASE_SEPOLIA_DEPOSIT_NETWORK.chainId,
+        next: {
+          ...awaitingTransfer().next,
+          kind: 'wallet_transfer' as const,
+          chainId: BASE_SEPOLIA_DEPOSIT_NETWORK.chainId,
+        },
+      } as PredictDepositOperation,
+      'chain',
+    ],
+    [
+      'token',
+      {
+        ...awaitingTransfer(),
+        tokenContract: BASE_SEPOLIA_DEPOSIT_NETWORK.usdc.address,
+        next: {
+          ...awaitingTransfer().next,
+          kind: 'wallet_transfer' as const,
+          tokenContract: BASE_SEPOLIA_DEPOSIT_NETWORK.usdc.address,
+        },
+      } as PredictDepositOperation,
+      'token',
+    ],
+  ])(
+    'refuses a plan whose %s does not match the request, cancels it, and signs nothing',
+    async (_label, mismatchedDeposit, reason) => {
+      const { deps, funding, executor } = setup();
 
-    const outcome = await payDeposit(
-      deps,
-      awaitingTransfer({ amount: '30.00' }),
-      AMOUNT,
-    );
+      const outcome = await payDeposit(deps, mismatchedDeposit, AMOUNT);
 
-    expect(outcome).toStrictEqual({ kind: 'plan_mismatch', reason: 'amount' });
-    expect(executor.send).not.toHaveBeenCalled();
-    expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
-    expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
-  });
+      expect(outcome).toStrictEqual({ kind: 'plan_mismatch', reason });
+      expect(executor.send).not.toHaveBeenCalled();
+      expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
+      expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+    },
+  );
 
   it('refuses a plan with two minutes or less left', async () => {
     const { deps, funding, executor } = setup();
@@ -631,5 +662,234 @@ describe('canReuseClientOperationId', () => {
     },
   ])('makes a new ID after a $kind outcome', (outcome) => {
     expect(canReuseClientOperationId(outcome)).toBe(false);
+  });
+});
+
+describe('continueDeposit', () => {
+  it.each([
+    ['completed', { status: 'completed' as const, next: null }],
+    ['cancelled', { status: 'cancelled' as const, next: null }],
+    ['failed', { status: 'failed' as const, next: null }],
+  ])(
+    're-reads the deposit and creates no wallet transfer when already %s',
+    async (_label, overrides) => {
+      const stale = awaitingTransfer();
+      const latest: PredictDepositOperation = {
+        ...awaitingTransfer(),
+        ...overrides,
+      };
+      const { deps, funding, executor } = setup({
+        funding: {
+          getDeposit: jest.fn(async () => latest),
+        },
+      });
+
+      const outcome = await continueDeposit(deps, stale);
+
+      expect(funding.getDeposit).toHaveBeenCalledWith(OPERATION_ID);
+      expect(outcome).toStrictEqual({
+        kind: 'already_resolved',
+        deposit: latest,
+      });
+      expect(executor.send).not.toHaveBeenCalled();
+      expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    },
+  );
+
+  it('returns in_progress without sending when the deposit already moved to processing', async () => {
+    const stale = awaitingTransfer();
+    const latest: PredictDepositOperation = {
+      ...awaitingTransfer(),
+      status: 'processing',
+      next: { kind: 'wait' },
+    };
+    const { deps, funding, executor } = setup({
+      funding: {
+        getDeposit: jest.fn(async () => latest),
+      },
+    });
+
+    const outcome = await continueDeposit(deps, stale);
+
+    expect(outcome).toStrictEqual({ kind: 'in_progress', deposit: latest });
+    expect(executor.send).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+  });
+
+  it('fails cleanly without sending when the live re-read fails', async () => {
+    const stale = awaitingTransfer();
+    const { deps, executor } = setup({
+      funding: {
+        getDeposit: jest.fn(async () => {
+          throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+        }),
+      },
+    });
+
+    const outcome = await continueDeposit(deps, stale);
+
+    expect(outcome).toMatchObject({ kind: 'failed', stage: 'prepare' });
+    expect(executor.send).not.toHaveBeenCalled();
+  });
+
+  it('reconciles a lost report for an already-submitted Base transfer even after the catalog switches to sandbox', async () => {
+    const baseDeposit = awaitingTransfer();
+    const { deps, funding, executor } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'submitted',
+      transfer: paying(),
+    }));
+    const sandboxSend = jest.fn();
+    const sandboxDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: BASE_SEPOLIA_DEPOSIT_NETWORK,
+      executor: { mode: 'simulated', send: sandboxSend },
+    };
+
+    const outcome = await continueDeposit(sandboxDeps, baseDeposit);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(executor.send).not.toHaveBeenCalled();
+    expect(sandboxSend).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('reconciles an already-submitted transfer without a resolved catalog environment or executor', async () => {
+    const baseDeposit = awaitingTransfer();
+    const { deps, funding } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'submitted',
+      transfer: paying(),
+    }));
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await continueDeposit(noEnvDeps, baseDeposit);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('waits for and reports a committed pending transfer without a resolved catalog environment or executor', async () => {
+    const baseDeposit = awaitingTransfer();
+    const { deps, funding } = setup();
+    const wait = jest.fn(async () => paying());
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.signed,
+      wait,
+    }));
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await continueDeposit(noEnvDeps, baseDeposit);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('refuses to continue an unpaid deposit without cancelling when catalog environment is missing', async () => {
+    const baseDeposit = awaitingTransfer();
+    const cancel = jest.fn(async () => undefined);
+    const { deps, funding } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.unapproved,
+      wait: jest.fn(async () => paying()),
+      cancel,
+    }));
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await continueDeposit(noEnvDeps, baseDeposit);
+
+    expect(outcome).toMatchObject({ kind: 'failed', stage: 'prepare' });
+    expect((outcome as { error: PredictError }).error.code).toBe(
+      PredictErrorCode.VENUE_UNAVAILABLE,
+    );
+    expect(cancel).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+  });
+
+  it('refuses startDeposit before prepareDeposit when catalog environment is missing', async () => {
+    const { deps, funding } = setup();
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await start(noEnvDeps);
+
+    expect(outcome).toMatchObject({ kind: 'failed', stage: 'prepare' });
+    expect((outcome as { error: PredictError }).error.code).toBe(
+      PredictErrorCode.VENUE_UNAVAILABLE,
+    );
+    expect(funding.prepareDeposit).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+  });
+
+  it('still rejects and cancels a mismatched deposit when no transfer was submitted yet', async () => {
+    const baseDeposit = awaitingTransfer();
+    const cancel = jest.fn(async () => undefined);
+    const { deps, funding } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.unapproved,
+      wait: jest.fn(async () => paying()),
+      cancel,
+    }));
+    const sandboxSend = jest.fn();
+    const sandboxDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: BASE_SEPOLIA_DEPOSIT_NETWORK,
+      executor: { mode: 'simulated', send: sandboxSend },
+    };
+
+    await expect(
+      continueDeposit(sandboxDeps, baseDeposit),
+    ).resolves.toStrictEqual({
+      kind: 'plan_mismatch',
+      reason: 'chain',
+    });
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(sandboxSend).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
+    expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
   });
 });

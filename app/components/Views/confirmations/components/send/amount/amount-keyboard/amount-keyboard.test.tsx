@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import { mockTheme } from '../../../../../../../util/theme';
 import renderWithProvider, {
@@ -140,6 +140,7 @@ describe('Amount', () => {
     } as unknown as ReturnType<typeof useSendType>);
     mockUsePercentageAmount.mockReturnValue({
       getPercentageAmount: () => 10,
+      getMaxAmount: async () => 10,
       isMaxAmountSupported: true,
     } as unknown as ReturnType<typeof usePercentageAmount>);
     mockUseParams.mockReturnValue({});
@@ -172,8 +173,14 @@ describe('Amount', () => {
     expect(getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
-  it('call updateValue with MaxMode true when Max button is pressed', () => {
+  it('call updateValue with MaxMode true when Max button is pressed', async () => {
     const mockUpdateValue = jest.fn();
+    const mockGetMaxAmount = jest.fn().mockResolvedValue(10);
+    mockUsePercentageAmount.mockReturnValue({
+      getPercentageAmount: () => 10,
+      getMaxAmount: mockGetMaxAmount,
+      isMaxAmountSupported: true,
+    } as unknown as ReturnType<typeof usePercentageAmount>);
     mockUseSendContext.mockReturnValue({
       asset: MOCK_EVM_ASSET,
       updateValue: mockUpdateValue,
@@ -182,7 +189,8 @@ describe('Amount', () => {
 
     const { getByRole } = renderComponent(undefined, '');
     fireEvent.press(getByRole('button', { name: 'Max' }));
-    expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
+    await waitFor(() => expect(mockUpdateValue).toHaveBeenCalledWith(10, true));
+    expect(mockGetMaxAmount).toHaveBeenCalled();
   });
 
   it('call validateNonEvmAmountAsync when continue button is pressed', () => {

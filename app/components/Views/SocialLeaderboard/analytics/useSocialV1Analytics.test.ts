@@ -53,7 +53,10 @@ describe('useSocialAnalytics', () => {
       );
       rerender({ active: true, terminal: outcome });
       rerender({ active: true, terminal: outcome });
-      expect(mockTrack).toHaveBeenCalledTimes(1);
+      const screenViewedCalls = mockTrack.mock.calls.filter(
+        ([event]) => event === MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+      );
+      expect(screenViewedCalls).toHaveLength(1);
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
         expect.objectContaining({ outcome }),
@@ -382,6 +385,28 @@ describe('useSocialFeedInteractions', () => {
         source: 'social_trending',
         ...position,
       },
+    );
+  });
+
+  it('adds the post id and author trader id to a copy trade tap', () => {
+    const { result } = renderHook(() =>
+      useSocialFeedInteractions(Screen.TRENDING, {
+        source: SocialEvent.Source.SOCIAL_TRENDING,
+      }),
+    );
+    result.current.onCopyTradeInteraction({
+      ...position,
+      post_id: 'comment-1',
+      author_trader_id: 'trader-1',
+    });
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      expect.objectContaining({
+        interaction_type: Interaction.COPY_TRADE_TAPPED,
+        post_id: 'comment-1',
+        author_trader_id: 'trader-1',
+        ...position,
+      }),
     );
   });
 

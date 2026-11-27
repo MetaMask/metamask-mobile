@@ -41,6 +41,10 @@ import {
 } from './signedVenueCall';
 
 export interface PredictApiReadTransport {
+  getSigningProfile(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<{ id: string; version: number }>;
   fetchVenueStatus(
     venueId: PredictVenueId,
     options?: PredictReadOptions,
@@ -352,6 +356,32 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     this.#signOperation = signOperation;
     this.#signRead = signRead;
     this.#invalidateSigningSession = invalidateSigningSession;
+  }
+
+  async getSigningProfile(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<{ id: string; version: number }> {
+    const response = await this.#fetchRead(
+      ['v1', 'venues', venueId, 'signing-profile'],
+      undefined,
+      options,
+      undefined,
+    );
+    const body = await this.#parseBody(response);
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      throw new PredictHttpError(response.status);
+    }
+    const { id, version } = body as Record<string, unknown>;
+    if (
+      typeof id !== 'string' ||
+      typeof version !== 'number' ||
+      !Number.isSafeInteger(version) ||
+      version <= 0
+    ) {
+      throw new PredictHttpError(response.status);
+    }
+    return { id, version };
   }
 
   fetchVenueStatus(
@@ -705,8 +735,8 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   /**
-   * Every predict-api route requires a bearer token, so one is resolved for
-   * each request rather than per endpoint.
+   * Authenticated predict-api routes resolve a bearer token for each request
+   * rather than per endpoint. Signing profile discovery is public.
    */
   async #resolveBearerToken(): Promise<string> {
     // A missing or failing token provider is an authentication failure, not a
@@ -774,7 +804,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     params: PredictApiReadQueryParams | undefined,
     options: PredictReadOptions | undefined,
-    bearerToken: string,
+    bearerToken: string | undefined,
     deviceAuth?: DeviceAuthHeader,
     signed?: ProposedRead,
   ): Promise<Response> {
@@ -798,7 +828,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         Accept: 'application/json',
         'x-metamask-clientproduct': 'metamask-mobile',
         'x-metamask-clientversion': this.#clientVersion,
-        Authorization: `Bearer ${bearerToken}`,
+        ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
         ...(deviceAuth ? { [deviceAuth.name]: deviceAuth.value } : {}),
         ...(deviceAuth && signed
           ? {
@@ -984,8 +1014,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    const send = (signed: SignedOperation): Promise<Response> =>
-      this.#fetch(url.toString(), {
+    const send = (signed: SignedOperation): Promise<Response> => {
+      if (options?.signal?.aborted) {
+        return Promise.reject(abortedError());
+      }
+      return this.#fetch(url.toString(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -1000,6 +1033,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         body: buildBody(signed),
         signal: options?.signal,
       });
+    };
     try {
       const response = await sendSigned(
         {

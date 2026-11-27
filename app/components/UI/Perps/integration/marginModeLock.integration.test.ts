@@ -49,6 +49,14 @@ const { AggregatedPerpsProvider } = jest.requireActual<{
   ) => PerpsProvider;
 }>('@metamask/perps-controller/providers/AggregatedPerpsProvider');
 
+// Without a live position stream the lock read goes to the venue over REST,
+// where these tests seed positions, orders and TWAP history.
+const buildHarness = () => {
+  const harness = buildPerpsIntegrationHarness();
+  harness.mocks.subscription.getCachedPositionsForDex.mockReturnValue(null);
+  return harness;
+};
+
 const buildAggregatedProvider = (
   harness: ReturnType<typeof buildPerpsIntegrationHarness>,
 ) =>
@@ -75,7 +83,7 @@ const withPositions = (
 describe('Perps margin-mode lock — integration', () => {
   describe('reading the lock', () => {
     it('reports the mode of an open position', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       withPositions(harness, [btcPosition('cross')]);
 
       const lock = await harness.provider.getMarginModeLock({ symbol: 'BTC' });
@@ -90,7 +98,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports the asset mode bound by a resting order', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([
         { coin: 'BTC' },
       ]);
@@ -109,12 +117,19 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports the asset mode bound by an active TWAP without resting orders', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.mocks.infoClient.twapHistory.mockResolvedValue([
         {
           time: 1_700_000_000,
           twapId: 42,
-          state: { coin: 'BTC' },
+          state: {
+            coin: 'BTC',
+            sz: '0.1',
+            executedSz: '0.02',
+            executedNtl: '1000',
+            timestamp: 1_700_000_000,
+            minutes: 30,
+          },
           status: { status: 'activated' },
         },
       ]);
@@ -130,7 +145,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports unlocked when nothing binds the market', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
 
       const lock = await harness.provider.getMarginModeLock({ symbol: 'BTC' });
 
@@ -141,7 +156,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports unavailable when positions cannot be read', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.mocks.infoClient.clearinghouseState.mockRejectedValue(
         new Error('offline'),
       );
@@ -156,7 +171,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports unavailable when the selected account changes mid-read', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       // The account switches while open orders are being fetched.
       harness.mocks.infoClient.frontendOpenOrders.mockImplementation(
         async () => {
@@ -180,7 +195,7 @@ describe('Perps margin-mode lock — integration', () => {
 
   describe('routing through the aggregated provider', () => {
     it('reads the lock from the default provider', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       withPositions(harness, [btcPosition('cross')]);
 
       const lock = await buildAggregatedProvider(harness).getMarginModeLock?.({
@@ -196,7 +211,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports unavailable for a provider that is not registered', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
 
       const lock = await buildAggregatedProvider(harness).getMarginModeLock?.({
         symbol: 'BTC',
@@ -211,7 +226,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('reports unavailable when the provider read throws', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       jest
         .spyOn(harness.provider, 'getMarginModeLock')
         .mockRejectedValue(new Error('offline'));
@@ -230,7 +245,7 @@ describe('Perps margin-mode lock — integration', () => {
 
   describe('placing an order with an explicit margin mode', () => {
     it('rejects a mode that conflicts with the open position', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.setupTradingReady();
       withPositions(harness, [btcPosition('cross')]);
 
@@ -252,7 +267,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('rejects a mode that conflicts with a resting order', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.setupTradingReady();
       harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([
         { coin: 'BTC' },
@@ -276,7 +291,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('sets cross leverage and places the order when the market is unlocked', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.setupTradingReady();
 
       const result = await harness.provider.placeOrder({
@@ -296,7 +311,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('places an order whose mode matches the resting-order lock', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.setupTradingReady();
       harness.mocks.infoClient.frontendOpenOrders.mockResolvedValue([
         { coin: 'BTC' },
@@ -322,7 +337,7 @@ describe('Perps margin-mode lock — integration', () => {
     });
 
     it('keeps the isolated default and skips the lock read when no mode is sent', async () => {
-      const harness = buildPerpsIntegrationHarness();
+      const harness = buildHarness();
       harness.setupTradingReady();
 
       const result = await harness.provider.placeOrder({

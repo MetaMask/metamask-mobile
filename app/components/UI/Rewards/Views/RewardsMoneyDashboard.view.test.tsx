@@ -9,14 +9,20 @@ import '../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  CampaignType,
+  type CampaignDto,
+  type SubscriptionBenefitDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
+import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../components/Money/ClaimableRewardsCard.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
-import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard.testIds';
-import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
+import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { SHARE_CODE_SHEET_TEST_IDS } from '../components/Money/ShareCodeSheet';
-import { EARNINGS_TAB_TEST_IDS } from '../components/Money/Tabs/EarningsTab.testIds';
+import { BENEFITS_TAB_TEST_IDS } from '../components/Money/Tabs/BenefitsTab.testIds';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { renderRewardsMoneyDashboard } from '../../../../../tests/component-view/renderers/rewardsMoney';
@@ -26,8 +32,6 @@ import {
   referralMeFixture,
   REFERRAL_LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
-import { formatMusdBaseUnits } from '../utils/formatUtils';
-import { selfEarnedLifetime } from '../utils/earningsSummaryTotals';
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
   return engine.mock.calls.filter((call) => call[0] === action);
@@ -41,13 +45,10 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB_DOT),
     ).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB));
-
     expect(
-      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
@@ -59,7 +60,7 @@ describe('RewardsMoneyDashboard', () => {
       `${EARNINGS_HISTORY_TEST_IDS.ROW}-${EARNINGS_HISTORY_ROW.id}`,
     );
     expect(
-      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.historyRebate),
+      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.rebateSwaps),
     ).toBeOnTheScreen();
     expect(within(historyRow).getByText('+$1.00')).toBeOnTheScreen();
 
@@ -70,11 +71,6 @@ describe('RewardsMoneyDashboard', () => {
       );
       expect(
         summaryCalls.some((call) => !(call[1] as { from?: string })?.from),
-      ).toBe(true);
-      expect(
-        summaryCalls.some((call) =>
-          Boolean((call[1] as { from?: string })?.from),
-        ),
       ).toBe(true);
       expect(
         callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
@@ -88,7 +84,7 @@ describe('RewardsMoneyDashboard', () => {
       );
     });
 
-    fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_HEADER));
+    fireEvent.press(getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_HEADER));
 
     expect(
       await findByTestId(
@@ -99,40 +95,28 @@ describe('RewardsMoneyDashboard', () => {
 
   it('refetches the earnings summary once when Retry is pressed after a 503 (E4, RWDS-1674)', async () => {
     let rejectSummary = true;
-    const refereeRebateTotal = formatMusdBaseUnits(
-      selfEarnedLifetime(
-        CLAIMABLE_EARNINGS_SUMMARY,
-        'REFERRAL_TRADE_FEE_CASHBACK',
-      ),
-    );
-    if (!refereeRebateTotal) {
-      throw new Error('Referee rebate total missing from the summary fixture');
-    }
-    const { findByTestId, findByText, queryByTestId, engine } =
-      renderRewardsMoneyDashboard({
+    const { findByTestId, queryByTestId, engine } = renderRewardsMoneyDashboard(
+      {
         persona: 'referee',
         summary: null,
         handlers: {
-          'RewardsMoneyController:getEarningsSummary': () =>
-            rejectSummary
-              ? Promise.reject(
-                  new RewardsMoneyHttpError(
-                    'Get earnings summary failed: 503',
-                    503,
-                    JSON.stringify({ reason: 'SERVER_BUSY' }),
-                    2,
-                  ),
-                )
-              : Promise.resolve(CLAIMABLE_EARNINGS_SUMMARY),
+          'RewardsMoneyController:getEarningsSummary': async () => {
+            if (rejectSummary) {
+              throw new RewardsMoneyHttpError(
+                'Get earnings summary failed: 503',
+                503,
+                JSON.stringify({ reason: 'SERVER_BUSY' }),
+                2,
+              );
+            }
+            return CLAIMABLE_EARNINGS_SUMMARY;
+          },
         },
-      });
+      },
+    );
 
     // The rejected earnings summary renders the error banner.
-    const banner = await findByTestId(
-      REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR,
-      {},
-      { timeout: 3000 },
-    );
+    const banner = await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.SUMMARY_ERROR);
     const summaryCallsBeforeRetry = callsFor(
       engine,
       'RewardsMoneyController:getEarningsSummary',
@@ -151,8 +135,8 @@ describe('RewardsMoneyDashboard', () => {
 
     // The retried earnings summary replaces the error banner.
     expect(
-      await findByText(refereeRebateTotal, {}, { timeout: 3000 }),
-    ).toBeOnTheScreen();
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$5.00');
     await waitFor(() => {
       expect(
         callsFor(engine, 'RewardsMoneyController:getEarningsSummary'),
@@ -162,7 +146,7 @@ describe('RewardsMoneyDashboard', () => {
       callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
     ).toHaveLength(ledgerCallsBeforeRetry);
     expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.SUMMARY_ERROR),
     ).not.toBeOnTheScreen();
   });
 });
@@ -182,24 +166,17 @@ describe('RewardsMoneyDashboard share code', () => {
   }
 
   it('opens the share code sheet from the header for an active referrer code', async () => {
-    const { findByTestId, findByText, getByTestId, queryByTestId } =
-      renderRewardsMoneyDashboard({
-        persona: 'referrer',
-        moneyControllerEnabled: true,
-        subscriptionId: 'sub-1',
-      });
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'referrer',
+      moneyControllerEnabled: true,
+      subscriptionId: 'sub-1',
+    });
 
     expect(
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      await findByText(REFERRAL_LOCALIZED_TEXT.shareCode),
-    ).toBeOnTheScreen();
-    expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
@@ -210,18 +187,14 @@ describe('RewardsMoneyDashboard share code', () => {
   });
 
   it('opens the share code sheet from the header for a referee with an active code', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderRewardsMoneyDashboard({
-        persona: 'referee',
-        moneyControllerEnabled: true,
-        referralMe: activeRefereeReferral(),
-      });
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'referee',
+      moneyControllerEnabled: true,
+      referralMe: activeRefereeReferral(),
+    });
 
     expect(
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
@@ -367,7 +340,7 @@ describe('RewardsMoneyDashboard settings', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps Ways to earn, Earnings, and Performance visible in an excluded region (A4)', async () => {
+  it('keeps Ways to earn and Earnings visible in an excluded region (A4)', async () => {
     const { getByTestId, queryByTestId } = await openDashboard({
       geoLocation: 'GB',
       referralMe: {
@@ -384,9 +357,6 @@ describe('RewardsMoneyDashboard settings', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
     ).toBeOnTheScreen();
   });
 
@@ -436,5 +406,428 @@ describe('RewardsMoneyDashboard glass header', () => {
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+  });
+});
+
+const ACTIVE_CAMPAIGN: CampaignDto = {
+  id: 'campaign-1',
+  type: CampaignType.ONDO_HOLDING,
+  name: 'Tokenized stocks campaign',
+  startDate: '2020-01-01T00:00:00.000Z',
+  endDate: '2099-12-31T23:59:59.999Z',
+  termsAndConditions: null,
+  excludedRegions: [],
+  details: null,
+  featured: true,
+  showUpcomingDate: false,
+};
+
+const BENEFIT: SubscriptionBenefitDto = {
+  id: 7,
+  longTitle: 'Priority support',
+  shortDescription: 'Faster help from the support team.',
+  longDescription: 'Faster help from the support team.',
+  thumbnail: 'https://example.test/benefit.png',
+  validFrom: '2020-01-01T00:00:00.000Z',
+  validTo: null,
+  url: 'https://example.test/benefit',
+  actionDate: null,
+  chain: 'eip155:1',
+  type: { id: 1, name: 'perk' },
+};
+
+const subscriptionReads = {
+  'RewardsController:getCampaigns': async () => [ACTIVE_CAMPAIGN],
+  'RewardsController:getBenefits': async () => ({
+    benefits: [BENEFIT],
+    limit: 200,
+    lastFetched: 0,
+  }),
+};
+
+/**
+ * A read handler whose first call fails and whose later calls never settle, so
+ * a test can observe the tab mid-request after an error. `reads.count` is the
+ * number of calls so far.
+ */
+const failFirstThenHang = (message: string) => {
+  const reads = { count: 0 };
+  const handler = async () => {
+    reads.count += 1;
+    if (reads.count === 1) {
+      throw new Error(message);
+    }
+    return new Promise(() => undefined);
+  };
+  return { handler, reads };
+};
+
+describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => {
+  it('labels the first tab Overview and keeps campaigns and benefits out of it', async () => {
+    const { findByTestId, queryByTestId } = renderRewardsMoneyDashboard({
+      persona: 'referee',
+      subscriptionId: 'sub-1',
+      handlers: subscriptionReads,
+    });
+
+    // The tab renders its label twice: once visible, once to reserve the
+    // selected-state width.
+    expect(
+      within(
+        await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+      ).getAllByText(REFERRAL_LOCALIZED_TEXT.overviewTab),
+    ).not.toHaveLength(0);
+    expect(
+      await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('lists every campaign and benefit in its own tab for an opted-in user', async () => {
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      queryByText,
+    } = renderRewardsMoneyDashboard({
+      persona: 'referee',
+      subscriptionId: 'sub-1',
+      handlers: subscriptionReads,
+    });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    expect(
+      within(
+        await findByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_ACTIVE_SECTION),
+      ).getByText(ACTIVE_CAMPAIGN.name),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    expect(await findByText(BENEFIT.longTitle)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.list_header')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('holds skeletons, not empty states, while the first reads are pending', async () => {
+    const pending = async () => new Promise(() => undefined);
+    const { findByTestId, getByTestId, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          'RewardsController:getCampaigns': pending,
+          'RewardsController:getBenefits': pending,
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.error_title')),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    expect(
+      await findByTestId(`${BENEFITS_TAB_TEST_IDS.SKELETON}-0`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.empty-list')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the benefits empty state once an empty list has loaded', async () => {
+    const { findByTestId, findByText, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getBenefits': async () => ({
+            benefits: [],
+            limit: 200,
+            lastFetched: 0,
+          }),
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB),
+    );
+
+    expect(
+      await findByText(strings('rewards.benefits.empty-list')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${BENEFITS_TAB_TEST_IDS.SKELETON}-0`),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('holds a skeleton, not the opt-in, while the subscription lookup is pending', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionLookupPending: true,
+        geoLocation: 'US',
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    expect(
+      within(
+        await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_BODY),
+      ).getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('reports a failed benefits read and recovers on Retry', async () => {
+    let failBenefits = true;
+    const { findByTestId, findByText, getByText, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getBenefits': async () => {
+            if (failBenefits) {
+              throw new Error('benefits unavailable');
+            }
+            return { benefits: [BENEFIT], limit: 200, lastFetched: 0 };
+          },
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB),
+    );
+
+    expect(await findByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.empty-list')),
+    ).not.toBeOnTheScreen();
+
+    failBenefits = false;
+    fireEvent.press(getByText(strings('rewards.benefits.retry_button')));
+
+    expect(await findByText(BENEFIT.longTitle)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.error_title')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the benefits error up while the tab re-reads on a later visit', async () => {
+    const benefits = failFirstThenHang('benefits unavailable');
+    const { findByTestId, getByTestId, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getBenefits': benefits.handler,
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB),
+    );
+    expect(await findByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    await waitFor(() => {
+      expect(benefits.reads.count).toBeGreaterThan(1);
+    });
+    expect(getByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.empty-list')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('reports a failed campaigns read and recovers on Retry', async () => {
+    let failCampaigns = true;
+    const { findByTestId, findByText, getByText, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getCampaigns': async () => {
+            if (failCampaigns) {
+              throw new Error('campaigns unavailable');
+            }
+            return [ACTIVE_CAMPAIGN];
+          },
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    expect(
+      await findByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
+    ).not.toBeOnTheScreen();
+
+    failCampaigns = false;
+    fireEvent.press(getByText(strings('rewards.campaigns_view.retry_button')));
+
+    expect(await findByText(ACTIVE_CAMPAIGN.name)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.error_title')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the campaigns error up while Retry is in flight', async () => {
+    const campaigns = failFirstThenHang('campaigns unavailable');
+    const { findByText, findByTestId, getByText, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getCampaigns': campaigns.handler,
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+    fireEvent.press(
+      await findByText(strings('rewards.campaigns_view.retry_button')),
+    );
+
+    await waitFor(() => {
+      expect(campaigns.reads.count).toBe(2);
+    });
+    expect(
+      getByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the campaigns error up while the tab re-reads on a later visit', async () => {
+    const campaigns = failFirstThenHang('campaigns unavailable');
+    const { findByText, findByTestId, getByTestId, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getCampaigns': campaigns.handler,
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+    expect(
+      await findByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    await waitFor(() => {
+      expect(campaigns.reads.count).toBeGreaterThan(1);
+    });
+    expect(
+      await findByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('asks for the opt-in in both tabs until the user has a Rewards subscription', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: null,
+        geoLocation: 'US',
+      });
+
+    expect(
+      await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    const campaignsOptIn = within(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY),
+    );
+    expect(
+      campaignsOptIn.getByText(REFERRAL_LOCALIZED_TEXT.invitedOptInTitle),
+    ).toBeOnTheScreen();
+    expect(
+      campaignsOptIn.getByText(REFERRAL_LOCALIZED_TEXT.invitedOptInDescription),
+    ).toBeOnTheScreen();
+    expect(
+      campaignsOptIn.getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION),
+    ).toHaveTextContent(REFERRAL_LOCALIZED_TEXT.invitedOptInAction);
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    expect(
+      within(
+        await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_BODY),
+      ).getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
   });
 });

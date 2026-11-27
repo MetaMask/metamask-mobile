@@ -30,12 +30,10 @@ describeForPlatforms('PerpsLeverageBottomSheet Cross margin', () => {
     renderPerpsCrossMarginOrderFormPanel();
     await screen.findByTestId(formIds.LEVERAGE_BUTTON);
     fireEvent.press(screen.getByTestId(formIds.LEVERAGE_BUTTON));
-    await waitFor(
-      () =>
-        expect(
-          screen.getByTestId(leverageIds.LIQUIDATION_PRICE_VALUE),
-        ).not.toHaveTextContent('--'),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(leverageIds.LIQUIDATION_PRICE_VALUE),
+      ).not.toHaveTextContent('--'),
     );
     expect(
       screen.getByTestId(leverageIds.LIQUIDATION_DISTANCE_VALUE),

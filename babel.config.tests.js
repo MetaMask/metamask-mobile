@@ -34,6 +34,14 @@ const newOverrides = [
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
+      // The CV platform helper reads TEST_OS at module scope to scope tests to
+      // iOS/Android. If the inliner bakes it, jest's transform cache freezes
+      // whichever value was set during the first transform after a cache
+      // wipe, and later runs silently execute the wrong platform's tests no
+      // matter what TEST_OS they export.
+      'tests/component-view/platform.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.ts',
+      'app/components/UI/Collectibles/providers/pack-partner/constants/environment.test.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',
@@ -45,6 +53,8 @@ const newOverrides = [
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
       'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
       'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.real.test.ts',
       'app/core/Engine/wallet-init/keyrings.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',

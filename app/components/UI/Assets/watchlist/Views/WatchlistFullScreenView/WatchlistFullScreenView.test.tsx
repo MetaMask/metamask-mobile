@@ -1,7 +1,18 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import WatchlistFullScreenView from './WatchlistFullScreenView';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags';
+import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
+import type { UnifiedWatchlistItem } from '../../../../Watchlist/types';
+import type { PerpsMarketData } from '@metamask/perps-controller';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
 
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
@@ -10,12 +21,57 @@ const mockUpdateListMutate = jest.fn();
 const mockUseTrackWatchlistPageViewed = jest.fn();
 
 const mockUseSelector = jest.fn();
+const mockUseUnifiedWatchlist = jest.fn();
+const mockRemovePerpFromWatchlist = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
+let capturedOnReorder:
+  | ((event: { from: number; to: number }) => void)
+  | undefined;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) =>
     mockUseSelector(selector),
 }));
+
+jest.mock('../../../../Watchlist/hooks/useUnifiedWatchlist', () => ({
+  useUnifiedWatchlist: () => mockUseUnifiedWatchlist(),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: () => ({
+    addToWatchlist: jest.fn(),
+    removeFromWatchlist: mockRemovePerpFromWatchlist,
+  }),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({
+    navigateToMarketDetails: mockNavigateToMarketDetails,
+  }),
+}));
+
+jest.mock('../../../../Perps/providers/PerpsStreamManager', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+  };
+});
+
+jest.mock(
+  '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem',
+  () => {
+    const { Text, View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    return ({ market }: { market: { symbol: string } }) =>
+      ReactActual.createElement(
+        View,
+        { testID: `perps-row-${market.symbol}` },
+        ReactActual.createElement(Text, null, market.symbol),
+      );
+  },
+);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -30,10 +86,25 @@ jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
 }));
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
+  useTokenWatchlistAddItemMutation: () => ({
+    mutate: jest.fn(),
+  }),
+  useTokenWatchlistRemoveItemMutation: () => ({
+    mutate: jest.fn(),
+  }),
   useTokenWatchlistUpdateListMutation: () => ({
     mutate: mockUpdateListMutate,
   }),
 }));
+
+jest.mock('../../hooks/useSuggestedWatchlistItemsQuery', () => ({
+  useSuggestedWatchlistItemsQuery: () => ({
+    data: [],
+    isLoading: false,
+  }),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useTrackWatchlistPageViewed', () => ({
   __esModule: true,
@@ -47,27 +118,32 @@ jest.mock('react-native-reorderable-list', () => {
   const ReorderableList = ({
     data,
     renderItem,
+    keyExtractor,
     testID,
     onReorder,
   }: {
-    data: { assetId: string }[];
+    data: { assetId?: string; key?: string }[];
     renderItem: (info: {
-      item: { assetId: string };
+      item: { assetId?: string; key?: string };
       index: number;
     }) => React.ReactNode;
+    keyExtractor?: (item: { assetId?: string; key?: string }) => string;
     testID?: string;
     onReorder?: (event: { from: number; to: number }) => void;
-  }) =>
-    ReactActual.createElement(
+  }) => {
+    capturedOnReorder = onReorder;
+    return ReactActual.createElement(
       View,
       { testID },
-      data.map((item, index) =>
-        ReactActual.createElement(
+      data.map((item, index) => {
+        const itemKey =
+          keyExtractor?.(item) ?? item.key ?? item.assetId ?? String(index);
+        return ReactActual.createElement(
           View,
-          { key: item.assetId, testID: `reorderable-item-${item.assetId}` },
+          { key: itemKey, testID: `reorderable-item-${itemKey}` },
           renderItem({ item, index }),
-        ),
-      ),
+        );
+      }),
       onReorder
         ? ReactActual.createElement(Pressable, {
             testID: 'mock-reorder-trigger',
@@ -75,6 +151,7 @@ jest.mock('react-native-reorderable-list', () => {
           })
         : null,
     );
+  };
 
   return {
     __esModule: true,
@@ -91,7 +168,10 @@ jest.mock('react-native-reorderable-list', () => {
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
   Reanimated.default.call = () => undefined;
-  return Reanimated;
+  return {
+    ...Reanimated,
+    useReducedMotion: () => false,
+  };
 });
 
 jest.mock('../../components/WatchlistEmptyCTA', () => {
@@ -193,6 +273,12 @@ const makeWatchlistToken = (name: string) => ({
 describe('WatchlistFullScreenView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     mockCanGoBack.mockReturnValue(true);
     mockUseSelector.mockReturnValue(false);
     mockUseTokenWatchlistQuery.mockReturnValue({
@@ -211,9 +297,12 @@ describe('WatchlistFullScreenView', () => {
 
     expect(mockUseTrackWatchlistPageViewed).toHaveBeenCalledWith({
       tokenCount: 0,
+      perpsCount: 0,
       isEmpty: true,
       isLoading: false,
       source: 'watchlist_homepage',
+      activeTab: 'tokens',
+      isUnified: false,
     });
   });
 
@@ -227,9 +316,12 @@ describe('WatchlistFullScreenView', () => {
 
     expect(mockUseTrackWatchlistPageViewed).toHaveBeenCalledWith({
       tokenCount: 2,
+      perpsCount: 0,
       isEmpty: false,
       isLoading: false,
       source: 'watchlist_homepage',
+      activeTab: 'tokens',
+      isUnified: false,
     });
   });
 
@@ -873,7 +965,9 @@ describe('WatchlistFullScreenView', () => {
 
   describe('glass header', () => {
     beforeEach(() => {
-      mockUseSelector.mockReturnValue(true);
+      mockUseSelector.mockImplementation(
+        (selector) => selector === selectGlassHeadersEnabled,
+      );
     });
 
     it('renders glass header components when flag is enabled', () => {
@@ -970,6 +1064,140 @@ describe('WatchlistFullScreenView', () => {
       expect(
         getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
       ).toBeDefined();
+    });
+  });
+
+  describe('unified watchlist mode', () => {
+    const createPerpItem = (symbol: string): UnifiedWatchlistItem => ({
+      kind: 'perp',
+      key: `perp:${symbol.toLowerCase()}`,
+      symbol,
+      status: 'resolved',
+      market: { symbol, name: `${symbol} Perpetual` } as PerpsMarketData,
+    });
+
+    beforeEach(() => {
+      capturedOnReorder = undefined;
+      mockUseSelector.mockImplementation(
+        (selector) => selector === selectIsUnifiedWatchlistActive,
+      );
+    });
+
+    it('surfaces order load errors with a retry action', () => {
+      const mockRefresh = jest.fn().mockResolvedValue(undefined);
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items: [createPerpItem('BTC')],
+        tokens: { items: [], error: null },
+        perps: { items: [], error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC'],
+        tokenCount: 0,
+        perpsCount: 1,
+        isInitialLoading: false,
+        isOrderReady: false,
+        orderError: 'Failed to read watchlist order',
+        persistOrder: jest.fn(),
+        appendOrderKey: jest.fn(),
+        refresh: mockRefresh,
+      });
+
+      const { getByTestId, getByText } = render(<WatchlistFullScreenView />);
+
+      expect(getByTestId(WatchlistErrorRowTestIds.ROW)).toBeTruthy();
+      fireEvent.press(getByText('Try again'));
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('composes overlapping reorder events from latest order state', async () => {
+      const mockPersistOrder = jest.fn().mockResolvedValue(undefined);
+      const items = [
+        createPerpItem('BTC'),
+        createPerpItem('ETH'),
+        createPerpItem('SOL'),
+      ];
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items,
+        tokens: { items: [], error: null },
+        perps: { items, error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC', 'ETH', 'SOL'],
+        tokenCount: 0,
+        perpsCount: 3,
+        isInitialLoading: false,
+        isOrderReady: true,
+        orderError: null,
+        persistOrder: mockPersistOrder,
+        appendOrderKey: jest.fn(),
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      render(<WatchlistFullScreenView />);
+
+      // Dispatch two back-to-back reorders inside the same batch before re-render:
+      // [BTC, ETH, SOL] -> move 0->2 => [ETH, SOL, BTC] -> move 0->1 => [SOL, ETH, BTC]
+      act(() => {
+        capturedOnReorder?.({ from: 0, to: 2 });
+        capturedOnReorder?.({ from: 0, to: 1 });
+      });
+
+      await waitFor(() => {
+        expect(mockPersistOrder).toHaveBeenLastCalledWith([
+          'perp:sol',
+          'perp:eth',
+          'perp:btc',
+        ]);
+      });
+    });
+
+    it('tracks UNIFIED_WATCHLIST_FILTER_SELECTED when switching filter tabs', () => {
+      const items = [createPerpItem('BTC')];
+      mockUseUnifiedWatchlist.mockReturnValue({
+        items,
+        tokens: { items: [], error: null },
+        perps: { items, error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: false,
+        canUseMotion: false,
+        canRefresh: true,
+        canFetchSuggestions: false,
+        tokenMembershipAssetIds: [],
+        perpsMembershipSymbols: ['BTC'],
+        tokenCount: 0,
+        perpsCount: 1,
+        isInitialLoading: false,
+        isOrderReady: true,
+        orderError: null,
+        persistOrder: jest.fn(),
+        appendOrderKey: jest.fn(),
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_PERPS),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.UNIFIED_WATCHLIST_FILTER_SELECTED.category,
+          properties: {
+            filter: 'perps',
+            token_count: 0,
+            perps_count: 1,
+          },
+        }),
+      );
     });
   });
 });

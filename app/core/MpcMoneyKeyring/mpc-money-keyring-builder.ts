@@ -7,54 +7,19 @@ import {
   type MpcMoneyKeyringOptions,
 } from '@metamask/eth-money-mpc-keyring/v2';
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
-import {
-  getMfaRequirement,
-  type MfaWhitelistConfig,
-} from '@metamask/money-account-mfa-whitelist';
-import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
 
-const envOrDefault = (value: string | undefined, fallback: string): string =>
-  value === undefined || value === '' ? fallback : value;
-
-const MPC_CLOUD_URL = envOrDefault(
-  process.env.MM_MONEY_MPC_CLOUD_URL,
-  'https://mpc-service.dev-api.cx.metamask.io/v2',
-);
-const MPC_RELAYER_URL = envOrDefault(
-  process.env.MM_MONEY_MPC_RELAYER_URL,
-  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
-);
-
-// Signatures that only touch these contracts skip 2FA.
-export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
-  chainId: '0x8f',
-  contracts: {
-    DelegationManager: '0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3',
-    EIP7702StatelessDeleGatorImpl: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-    ERC20TransferAmountEnforcer: '0xf100b0819427117EcF76Ed94B358B1A5b5C6D2Fc',
-    ExactExecutionBatchEnforcer: '0x1e141e455d08721Dd5BCDA1BaA6Ea5633Afd5017',
-    ExactExecutionEnforcer: '0x146713078D39eCC1F5338309c28405ccf85Abfbb',
-    LimitedCallsEnforcer: '0x04658B29F6b82ed55274221a06Fc97D318E25416',
-    RedeemerEnforcer: '0xE144b0b2618071B4E56f746313528a669c7E65c5',
-    ValueLteEnforcer: '0x92Bf12322527cAA612fd31a0e810472BBB106A8F',
-  },
-  musdTokenAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-  chompDelegateAddress: '0xb4827A2a066CD2Ef88560EFdf063dD05C6c41cC7',
-  vaults: [
-    {
-      boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
-      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
-      vedaVaultAdapterAddress: '0xaD4c09d065fDb6320FA8ADf69460CDd9d472C25A',
-    },
-    {
-      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
-      tellerAddress: '0xB0025a2eBc0474d4F28E975F0D3E70471246ebae',
-      vedaVaultAdapterAddress: '0x9AF808DA682aC92AA23CF40509F5A3694445e2b7',
-    },
-  ],
-  cardSignInDomain: 'link.metamask.io',
-};
+// Only dev is deployed so far.
+const MPC_CLOUD_URL =
+  // Empty env overrides must fall back to the dev endpoint.
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+  process.env.MM_MONEY_MPC_CLOUD_URL ||
+  'https://mpc-service.dev-api.cx.metamask.io/v1';
+const MPC_RELAYER_URL =
+  // Empty env overrides must fall back to the dev endpoint.
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+  process.env.MM_MONEY_MPC_RELAYER_URL ||
+  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket';
 
 /**
  * Build the V1 keyring builder for the Money MPC keyring stub.
@@ -106,7 +71,10 @@ export function buildMpcMoneyKeyringV2Builder(): KeyringV2Builder {
 }
 
 export interface RealMpcMoneyKeyringBuilderOptions {
+  /** Returns the profile access token used for the MPC service. */
   getBearerToken: () => Promise<string>;
+  /** Returns the wallet's primary mnemonic as UTF-8 byte values. */
+  getPrimaryMnemonic: () => Promise<number[]>;
 }
 
 let twoFactorTokenProvider: (() => Promise<string>) | undefined;
@@ -117,22 +85,26 @@ export const setMpcTwoFactorTokenProvider = (
   twoFactorTokenProvider = provider;
 };
 
-// JWT segments are base64url; the React Native `buffer` polyfill only decodes base64.
-const getProfileId = (token: string): string => {
-  const payload = token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/');
-  return (
-    JSON.parse(Buffer.from(payload, 'base64').toString('utf8')) as {
-      sub: string;
-    }
-  ).sub;
-};
-
-// Without a 2FA token provider, 2FA calls use the bearer token; the dev MPC service accepts it.
+/**
+ * Build the V1 keyring builder for the real Money MPC keyring, backed by the
+ * DKLS23/CL24 libraries from `@metamask/mpc-react-native` and the MPC service.
+ *
+ * Calls that need 2FA use the 2FA token provider when one is set, otherwise
+ * the profile bearer token. The keyring derives backup keys from the wallet's
+ * primary mnemonic.
+ *
+ * @param options - Builder options.
+ * @param options.getBearerToken - Returns the profile access token.
+ * @param options.getPrimaryMnemonic - Returns the primary mnemonic as UTF-8 bytes.
+ * @returns The real Money MPC keyring builder.
+ */
 export function buildRealMpcMoneyKeyringBuilder({
   getBearerToken,
+  getPrimaryMnemonic,
 }: RealMpcMoneyKeyringBuilderOptions): KeyringBuilder {
   const builder: KeyringBuilder = () => {
-    // Lazy so builds without the real keyring never load the native module.
+    // Loaded lazily so builds without the real keyring never load the native
+    // module.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { cl24Lib, dkls23Lib } = require('@metamask/mpc-react-native');
     return new RealMpcMoneyKeyring({
@@ -144,19 +116,7 @@ export function buildRealMpcMoneyKeyringBuilder({
         options?.twoFactor && twoFactorTokenProvider
           ? twoFactorTokenProvider()
           : getBearerToken(),
-      // Placeholder until the backup key source is decided.
-      getBackupEncryptionKey: async () =>
-        sha256(
-          new TextEncoder().encode(
-            `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
-          ),
-        ),
-      isMfaRequired: async (request, { address, hash }) =>
-        getMfaRequirement(request, {
-          address,
-          hash,
-          config: MPC_MFA_WHITELIST_CONFIG,
-        }).mfaRequired,
+      getPrimaryMnemonic,
       webSocket: WebSocket,
     });
   };
