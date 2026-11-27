@@ -67,9 +67,7 @@ export const getKalshiBannerState = (
  * @param state - The app state.
  * @returns The banner state.
  */
-export const selectKalshiBannerState = (
-  state: RootState,
-): KalshiBannerState => {
+const selectKalshiBannerState = (state: RootState): KalshiBannerState => {
   const vendor =
     state.engine.backgroundState.VendorOnboardingController?.vendors?.[
       KALSHI_KYC_VENDOR.id

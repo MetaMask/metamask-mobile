@@ -15,13 +15,13 @@ import { resolveVenueAuthProfile } from '../config/predictConfig';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import type { PredictVenueId } from '../types';
-import { selectKalshiBannerState } from '../../KYC/Kalshi/kalshiBannerState';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
 import {
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
 } from './internal/demoOnboardingConfig';
 import { KalshiActivationModal } from './internal/KalshiActivationModal';
+import { selectIsKalshiKycApproved } from './internal/kalshiActivationStatus';
 import { useKalshiActivation } from './internal/useKalshiActivation';
 
 const POLL_INTERVAL_MS = 2_000;
@@ -61,7 +61,7 @@ export const KalshiActivationPrompt = ({
   const signedIn = useSelector(selectIsSignedIn);
   const walletUnlocked = useSelector(selectIsUnlocked);
   const evmAddress = useSelector(selectEvmAddress);
-  const kycApproved = useSelector(selectKalshiBannerState) === 'verified';
+  const kycApproved = useSelector(selectIsKalshiKycApproved);
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
 
