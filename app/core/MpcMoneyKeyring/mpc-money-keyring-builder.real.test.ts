@@ -1,8 +1,6 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
-import {
-  getMfaRequirement,
-  type MfaRequirement,
-} from '@metamask/money-account-mfa-whitelist';
+import { getMfaRequirement } from '@metamask/money-account-mfa-whitelist';
+import { trackMoneyMpcSigningRequested } from '../../util/analytics/moneyMfaTracking';
 import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
@@ -21,6 +19,10 @@ jest.mock('@metamask/money-account-mfa-whitelist', () => ({
   getMfaRequirement: jest.fn(),
 }));
 
+jest.mock('../../util/analytics/moneyMfaTracking', () => ({
+  trackMoneyMpcSigningRequested: jest.fn(),
+}));
+
 jest.mock('@metamask/mpc-react-native', () => ({
   cl24Lib: { name: 'cl24' },
   dkls23Lib: { name: 'dkls23' },
@@ -28,14 +30,17 @@ jest.mock('@metamask/mpc-react-native', () => ({
 
 const toBase64Url = (value: object) =>
   Buffer.from(JSON.stringify(value)).toString('base64url');
-const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
-const HASH = `0x${'22'.repeat(32)}` as const;
 const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1' })}.sig`;
 
-const buildKeyring = () => {
+const buildKeyring = (
+  getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>,
+  getTwoFactorToken?: () => Promise<string>,
+) => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
   const keyring = buildRealMpcMoneyKeyringBuilder({
     getBearerToken,
+    getTwoFactorApproval,
+    getTwoFactorToken,
   })() as unknown as {
     options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
   };
@@ -62,7 +67,7 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(options).toMatchObject({
       cl24Lib: { name: 'cl24' },
       dkls23Lib: { name: 'dkls23' },
-      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v2',
+      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v1',
       relayerURL:
         'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     });
@@ -91,7 +96,7 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     process.env.MM_MONEY_MPC_CLOUD_URL = original.cloud;
     process.env.MM_MONEY_MPC_RELAYER_URL = original.relayer;
     expect(options).toMatchObject({
-      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v2',
+      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v1',
       relayerURL:
         'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
     });
@@ -115,43 +120,105 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(getBearerToken).toHaveBeenCalledTimes(1);
   });
 
-  it('checks signatures against the pinned whitelist config', async () => {
-    const requirement = { mfaRequired: false, rule: 'chomp-authentication' };
-    jest
-      .mocked(getMfaRequirement)
-      .mockReturnValue(requirement as MfaRequirement);
-    const { options } = buildKeyring();
-    const request = {
-      method: 'signPersonalMessage',
-      address: ADDRESS,
-      message: '0x00',
-    } as const;
+  it('uses a 2FA approval for the signature hash when the call needs 2FA', async () => {
+    const getTwoFactorApproval = jest.fn().mockResolvedValue('approval');
+    const { options, getBearerToken } = buildKeyring(getTwoFactorApproval);
+    const challenge = new Uint8Array(32).fill(1);
 
-    const result = await options.isMfaRequired?.(request, {
-      address: ADDRESS,
-      hash: HASH,
-    });
-
-    expect(result).toBe(false);
-    expect(getMfaRequirement).toHaveBeenCalledWith(request, {
-      address: ADDRESS,
-      hash: HASH,
-      config: MPC_MFA_WHITELIST_CONFIG,
-    });
+    expect(await options.getProfileToken({ twoFactor: true, challenge })).toBe(
+      'approval',
+    );
+    expect(getTwoFactorApproval).toHaveBeenCalledWith(challenge);
+    expect(await options.getProfileToken()).toBe(TOKEN);
+    expect(getBearerToken).toHaveBeenCalledTimes(1);
   });
 
-  it('requires MFA when the whitelist does not match', async () => {
+  it('uses a 2FA-verified profile token when the call needs 2FA without a hash', async () => {
+    const getTwoFactorApproval = jest.fn();
+    const getTwoFactorToken = jest.fn().mockResolvedValue('aal2-token');
+    const { options, getBearerToken } = buildKeyring(
+      getTwoFactorApproval,
+      getTwoFactorToken,
+    );
+
+    expect(await options.getProfileToken({ twoFactor: true })).toBe(
+      'aal2-token',
+    );
+    expect(getTwoFactorApproval).not.toHaveBeenCalled();
+    expect(getBearerToken).not.toHaveBeenCalled();
+  });
+
+  it('uses the approval, not the 2FA-verified token, when the call has a hash', async () => {
+    const getTwoFactorApproval = jest.fn().mockResolvedValue('approval');
+    const getTwoFactorToken = jest.fn();
+    const { options } = buildKeyring(getTwoFactorApproval, getTwoFactorToken);
+
+    expect(
+      await options.getProfileToken({
+        twoFactor: true,
+        challenge: new Uint8Array(32),
+      }),
+    ).toBe('approval');
+    expect(getTwoFactorToken).not.toHaveBeenCalled();
+  });
+
+  it('prefers the QA 2FA token provider over the approval', async () => {
+    setMpcTwoFactorTokenProvider(jest.fn().mockResolvedValue('2fa-token'));
+    const getTwoFactorApproval = jest.fn();
+    const { options } = buildKeyring(getTwoFactorApproval);
+
+    expect(
+      await options.getProfileToken({
+        twoFactor: true,
+        challenge: new Uint8Array(32),
+      }),
+    ).toBe('2fa-token');
+    expect(getTwoFactorApproval).not.toHaveBeenCalled();
+  });
+
+  it('checks signatures against the pinned Money Account whitelist config', async () => {
     jest
       .mocked(getMfaRequirement)
       .mockReturnValue({ mfaRequired: true, reason: 'not whitelisted' });
     const { options } = buildKeyring();
+    const request = { type: 'personal_message', message: '0x' } as never;
+    const context = { address: '0x1', hash: '0x2' } as const;
 
-    const result = await options.isMfaRequired?.(
-      { method: 'signPersonalMessage', address: ADDRESS, message: '0x00' },
-      { address: ADDRESS, hash: HASH },
+    const isRequired = await options.isMfaRequired?.(request, context);
+
+    expect(isRequired).toBe(true);
+    expect(getMfaRequirement).toHaveBeenCalledWith(request, {
+      ...context,
+      config: MPC_MFA_WHITELIST_CONFIG,
+    });
+  });
+
+  it('skips 2FA for whitelisted signatures', async () => {
+    jest
+      .mocked(getMfaRequirement)
+      .mockReturnValue({ mfaRequired: false, rule: 'deposit' } as never);
+    const { options } = buildKeyring();
+
+    expect(
+      await options.isMfaRequired?.({} as never, {
+        address: '0x1',
+        hash: '0x2',
+      }),
+    ).toBe(false);
+  });
+
+  it('tracks each signing request with its 2-step verification requirement', async () => {
+    const requirement = { mfaRequired: false, rule: 'chomp-authentication' };
+    jest.mocked(getMfaRequirement).mockReturnValue(requirement as never);
+    const { options } = buildKeyring();
+    const request = { method: 'signPersonalMessage' } as never;
+
+    await options.isMfaRequired?.(request, { address: '0x1', hash: '0x2' });
+
+    expect(trackMoneyMpcSigningRequested).toHaveBeenCalledWith(
+      request,
+      requirement,
     );
-
-    expect(result).toBe(true);
   });
 
   it('derives a 32-byte backup key from the profile id', async () => {

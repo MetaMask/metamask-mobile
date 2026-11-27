@@ -132,9 +132,10 @@ describe('KalshiRemoteAdapter', () => {
     };
     client.fetchVenueCatalog.mockResolvedValue(catalog);
 
-    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual(
-      catalog,
-    );
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual({
+      ...catalog,
+      screens: [],
+    });
     expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', undefined);
   });
 

@@ -66,6 +66,7 @@ import {
   MoneyMfaStatusBanner,
 } from '../../components/MoneyMfa';
 import { useMoneyMfa } from '../../hooks/useMoneyMfa';
+import { selectIsMoneySplashRedirectNeeded } from '../../selectors/entry';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
@@ -113,6 +114,7 @@ import {
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableHistoricalVaultShareValuationsFlag,
 } from '../../selectors/featureFlags';
@@ -174,8 +176,11 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
 const DETAILS_REENTRY_WINDOW_MS = 1000;
 
 // The shield pulses once the success toast has left the header.
+// Measured on the iOS sim: white frames plus Money's fade-in after the carousel closes.
+const MONEY_ONBOARDING_CLOSE_FADE_MS = 800;
 const MFA_BADGE_PULSE_DELAY_MS = 3200;
 const MFA_BADGE_PULSE_MS = 3000;
+const MFA_SIGN_IN_REFOCUS_GRACE_MS = 1000;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -336,6 +341,9 @@ const MoneyHomeView = () => {
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
   );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     status: mfaStatus,
@@ -345,9 +353,50 @@ const MoneyHomeView = () => {
     refreshCredentials: refreshMfaCredentials,
     hasUnseenEnabledConfirmation,
     showEnabledConfirmation,
+    signIn: signInToMoneyMfa,
   } = useMoneyMfa();
 
   useFocusEffect(refreshMfaCredentials);
+
+  const isMfaSignInRequired = mfaStatus === 'sign_in_required';
+  const isOnboardingRedirectNeeded = useSelector(
+    selectIsMoneySplashRedirectNeeded,
+  );
+  const wasOnboardingShown = useRef(isOnboardingRedirectNeeded);
+  useEffect(() => {
+    if (isOnboardingRedirectNeeded) {
+      wasOnboardingShown.current = true;
+    }
+  }, [isOnboardingRedirectNeeded]);
+  const mfaSignInPrompt = useRef({ isOpen: false, closedAt: 0 });
+  // Prompts on every focus until verified, after the intro carousel (flagged) and its close fade.
+  useFocusEffect(
+    useCallback(() => {
+      const prompt = mfaSignInPrompt.current;
+      if (
+        !isMfaSignInRequired ||
+        isOnboardingRedirectNeeded ||
+        prompt.isOpen ||
+        // Closing the prompt refocuses Money; only a later visit prompts again.
+        Date.now() - prompt.closedAt < MFA_SIGN_IN_REFOCUS_GRACE_MS
+      ) {
+        return;
+      }
+      const timeout = setTimeout(
+        () => {
+          prompt.isOpen = true;
+          signInToMoneyMfa()
+            .catch(() => undefined)
+            .finally(() => {
+              prompt.isOpen = false;
+              prompt.closedAt = Date.now();
+            });
+        },
+        wasOnboardingShown.current ? MONEY_ONBOARDING_CLOSE_FADE_MS : 0,
+      );
+      return () => clearTimeout(timeout);
+    }, [isMfaSignInRequired, isOnboardingRedirectNeeded, signInToMoneyMfa]),
+  );
 
   const [isMfaBadgePulsePending, setIsMfaBadgePulsePending] = useState(false);
   const [isMfaBadgeHighlighted, setIsMfaBadgeHighlighted] = useState(false);
@@ -388,6 +437,10 @@ const MoneyHomeView = () => {
     });
     navigation.navigate(Routes.MONEY.MFA_INTRO);
   }, [navigation, trackButtonClicked]);
+
+  const handleMfaSignIn = useCallback(() => {
+    signInToMoneyMfa().catch(() => undefined);
+  }, [signInToMoneyMfa]);
 
   const handleMfaRetry = useCallback(() => {
     trackButtonClicked({
@@ -483,7 +536,6 @@ const MoneyHomeView = () => {
       dismissedVbaVariant === 'kyc_decision' &&
       vbaHomeCard.type === 'kyc_decision',
   });
-  const moneyHomeCard = devOverride?.card ?? liveHomeCard;
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
     isCardLinkedToMoneyAccount,
@@ -530,7 +582,51 @@ const MoneyHomeView = () => {
     !!totalFiatRaw &&
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
-  const isEmptyState = hasBalanceValue && !isFunded;
+
+  // Keep the last settled sections while balances reload so the layout doesn't jump.
+  const isLayoutLoading =
+    isBalanceLoading ||
+    isCryptoBalanceLoading ||
+    isActivitySettling ||
+    isVbaEligibilityLoading ||
+    !isCardStateResolved;
+  const homeCardVariant =
+    'variant' in liveHomeCard ? liveHomeCard.variant : undefined;
+  const stableLiveHomeCard = useMemo(
+    () => liveHomeCard,
+    // Same card, new object each render: compare by type and variant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [liveHomeCard.type, homeCardVariant],
+  );
+  const liveLayout = useMemo(
+    () => ({
+      homeCard: stableLiveHomeCard,
+      cardMode: metamaskCardMode,
+      isEmptyState: hasBalanceValue && !isFunded,
+      showEarnings: hasBalanceValue && isFunded,
+      isActivitySettling,
+      activityItems,
+    }),
+    [
+      stableLiveHomeCard,
+      metamaskCardMode,
+      hasBalanceValue,
+      isFunded,
+      isActivitySettling,
+      activityItems,
+    ],
+  );
+  const [settledLayout, setSettledLayout] = useState<
+    typeof liveLayout | undefined
+  >(undefined);
+  useEffect(() => {
+    if (!isLayoutLoading) {
+      setSettledLayout(liveLayout);
+    }
+  }, [isLayoutLoading, liveLayout]);
+  const layout = isLayoutLoading && settledLayout ? settledLayout : liveLayout;
+  const isEmptyState = layout.isEmptyState;
+  const moneyHomeCard = devOverride?.card ?? layout.homeCard;
 
   const balanceReady = !isBalanceLoading;
   // Only ready once the preview is no longer settling, so the time-to-content
@@ -725,6 +821,9 @@ const MoneyHomeView = () => {
         scrollY,
       };
 
+  const isMfaSettingUp =
+    mfaStatus === 'setting_up' || mfaStatus === 'signing_in';
+
   const handleAddPress = useCallback(
     ({
       labelKey,
@@ -742,12 +841,21 @@ const MoneyHomeView = () => {
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_key: labelKey,
         component_name: componentName,
-        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+        redirect_target: isMfaSettingUp
+          ? BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET
+          : BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
         ...(buttonPosition && { button_position: buttonPosition }),
         ...(buttonRowButtonCount && {
           button_row_button_count: buttonRowButtonCount,
         }),
       });
+
+      if (isMfaSettingUp) {
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+        });
+        return;
+      }
 
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
@@ -758,11 +866,17 @@ const MoneyHomeView = () => {
         }),
       });
     },
-    [navigation, trackButtonClicked, launchedFrom],
+    [navigation, trackButtonClicked, launchedFrom, isMfaSettingUp],
   );
 
   const handleTransferPress = useCallback(() => {
-    const isMfaSettingUp = mfaStatus === 'setting_up';
+    if (isMfaSignInRequired || mfaStatus === 'sign_in_failed') {
+      handleMfaSignIn();
+      return;
+    }
+    const blockedSheet = isMfaSettingUp
+      ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
+      : undefined;
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
@@ -776,11 +890,17 @@ const MoneyHomeView = () => {
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: isMfaSettingUp
-        ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
-        : Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      screen: blockedSheet ?? Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation, trackButtonClicked, actionButtonRowCount, mfaStatus]);
+  }, [
+    navigation,
+    trackButtonClicked,
+    actionButtonRowCount,
+    mfaStatus,
+    isMfaSignInRequired,
+    handleMfaSignIn,
+    isMfaSettingUp,
+  ]);
 
   const navigateToCardHome = useCallback(() => {
     markCardFlowOpened();
@@ -812,15 +932,28 @@ const MoneyHomeView = () => {
   }, [markCardFlowOpened, navigation]);
 
   const handleActionButtonCardPress = useCallback(() => {
+    if (isMfaSignInRequired || mfaStatus === 'sign_in_failed') {
+      handleMfaSignIn();
+      return;
+    }
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
       label_key: 'money.action.card',
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-      redirect_target: SCREEN_NAMES.CARD_HOME,
+      redirect_target: isMfaSettingUp
+        ? BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET
+        : SCREEN_NAMES.CARD_HOME,
       button_position: 3,
       button_row_button_count: actionButtonRowCount,
     });
+
+    if (isMfaSettingUp) {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET,
+      });
+      return;
+    }
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -842,6 +975,11 @@ const MoneyHomeView = () => {
     activeProviderId,
     navigateToCardHome,
     actionButtonRowCount,
+    isMfaSignInRequired,
+    mfaStatus,
+    handleMfaSignIn,
+    isMfaSettingUp,
+    navigation,
   ]);
 
   const handleActionButtonDetailsPress = useCallback(() => {
@@ -971,6 +1109,17 @@ const MoneyHomeView = () => {
       params: { variant: 'lifetime' },
     });
   }, [navigation, trackTooltipClicked]);
+
+  const handleEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  }, [navigation, trackSurfaceClicked]);
 
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
@@ -1176,12 +1325,12 @@ const MoneyHomeView = () => {
     cardHomeDataStatus === 'success' ||
     cardHomeDataStatus === 'error';
 
-  const metamaskCardSection = metamaskCardMode
+  const metamaskCardSection = layout.cardMode
     ? {
         key: 'metamask-card',
         node: (
           <MoneyMetaMaskCard
-            mode={metamaskCardMode}
+            mode={layout.cardMode}
             onHeaderPress={handleMetaMaskCardHeaderPress}
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
@@ -1208,11 +1357,11 @@ const MoneyHomeView = () => {
     : null;
 
   const shouldShowMetaMaskCardEarly =
-    metamaskCardMode !== null && metamaskCardMode !== 'upsell';
+    layout.cardMode !== null && layout.cardMode !== 'upsell';
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
+  if (isMoneyEarningSectionEnabled && layout.showEarnings) {
     contentSections.push({
       key: 'earnings',
       node: (
@@ -1220,6 +1369,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
@@ -1249,14 +1401,14 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (isActivitySettling || activityItems.length >= 1) {
+  if (layout.isActivitySettling || layout.activityItems.length >= 1) {
     contentSections.push({
       key: 'activity',
-      node: isActivitySettling ? (
+      node: layout.isActivitySettling ? (
         <MoneyActivityLoading />
       ) : (
         <MoneyActivityList
-          items={activityItems}
+          items={layout.activityItems}
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
           onHeaderPress={handleActivityHeaderPress}
@@ -1376,6 +1528,7 @@ const MoneyHomeView = () => {
             isSettingUpDismissed={isMfaBannerDismissed}
             onDismissSettingUp={handleMfaBannerDismiss}
             onRetry={handleMfaRetry}
+            onRetrySignIn={handleMfaSignIn}
           />
           {showBalanceUnavailableBanner && (
             <Box twClassName="px-4 pt-2 pb-2">
@@ -1433,7 +1586,7 @@ const MoneyHomeView = () => {
           }
         />
         {mfaStatus === 'not_set_up' ? (
-          <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
+          <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} isGlass={isGlass} />
         ) : null}
         {moneyHomeCard.type === 'vba' && (
           <MoneyVbaHomeCard

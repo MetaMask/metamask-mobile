@@ -10,7 +10,7 @@ export function isBftcConsolidationBuildEnabled(): boolean {
 }
 
 /**
- * Build-time gate for the Money MPC keyring stub. When enabled, the Money MPC
+ * Build-time gate for the Money MPC keyring. When enabled, the Money MPC
  * keyring builders are registered with the `KeyringController`.
  *
  * The variable is inlined from `.js.env` at build time; restart Metro after
@@ -21,8 +21,17 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_KEYRING_ENABLED === 'true';
 }
 
-export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
-  return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
+/**
+ * Build-time gate for the Collectibles development fallback. A valid remote
+ * `collectiblesEnabled` flag always wins; this flag only decides what a
+ * development build does when the remote flag is missing or invalid.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Read it through this function so callers stay testable: an
+ * inlined `process.env` lookup cannot be changed at runtime.
+ */
+export function isCollectiblesBuildEnabled(): boolean {
+  return process.env.MM_COLLECTIBLES_ENABLED === 'true';
 }
 
 /**

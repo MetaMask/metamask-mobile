@@ -16,7 +16,9 @@ import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
@@ -47,12 +49,14 @@ import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   RECURRENCE_TO_DURATION_SECS,
   getCryptoSymbol,
+  isMetalSymbol,
   getEventStartTime,
   getVariant,
   resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
 import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { TimeSlotPicker } from '../TimeSlotPicker';
+import { formatTime } from '../TimeSlotPicker/TimeSlotPicker.utils';
 import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
 import PredictCryptoUpDownPositions from '../PredictCryptoUpDownPositions';
@@ -74,6 +78,7 @@ const CHART_HEIGHT_MAX_NO_POSITIONS = 560;
 const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.44;
 const CHART_HEIGHT_RATIO_NO_POSITIONS = 0.55;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
+const METAL_PRE_OPEN_BUFFER_MS = 60_000;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
 const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
@@ -296,23 +301,64 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   // time slot the user has selected. Future slots have no chart data of
   // their own — `selectedMarket` only drives the target line, Up/Down
   // buttons, and outcomes.
+  const liveSeriesMarket = useMemo(
+    () =>
+      currentSeriesMarkets && Number.isFinite(currentWindowMs)
+        ? findLiveMarket(currentSeriesMarkets)
+        : undefined,
+    [currentSeriesMarkets, currentWindowMs],
+  );
   const liveMarketForChart = useMemo<PredictMarketWithSeries>(() => {
-    const live = currentSeriesMarkets
-      ? findLiveMarket(currentSeriesMarkets)
-      : undefined;
+    const live = liveSeriesMarket;
     if (!live) {
       return selectedMarket;
     }
     return live.series
       ? (live as PredictMarketWithSeries)
       : { ...live, series: market.series };
-  }, [currentSeriesMarkets, market.series, selectedMarket]);
+  }, [liveSeriesMarket, market.series, selectedMarket]);
+  const isMetal = isMetalSymbol(targetPriceSymbol);
+  const metalCandidate = liveSeriesMarket ?? selectedMarket;
+  const metalCandidateRecurrence =
+    metalCandidate.series?.recurrence ?? selectedMarket.series.recurrence;
+  const metalCandidateStartTime =
+    metalCandidate.startTime ??
+    getEventStartTime(metalCandidate.endDate, metalCandidateRecurrence);
+  const metalCandidateStartMs = getEndDateTime(metalCandidateStartTime);
+  const metalCandidateEndMs = getEndDateTime(metalCandidate.endDate);
+  const metalNowMs = Date.now();
+  const isMetalCandidateActive =
+    typeof metalCandidateStartMs === 'number' &&
+    typeof metalCandidateEndMs === 'number' &&
+    metalNowMs >= metalCandidateStartMs - METAL_PRE_OPEN_BUFFER_MS &&
+    metalNowMs < metalCandidateEndMs;
+  const isMetalCandidateFuture =
+    typeof metalCandidateStartMs === 'number' &&
+    metalNowMs < metalCandidateStartMs - METAL_PRE_OPEN_BUFFER_MS;
+  const isSeriesPending =
+    seriesMarkets === undefined && currentSeriesMarkets === undefined;
+  const isMetalOnBreak =
+    isMetal &&
+    !isMetalCandidateActive &&
+    (!isSeriesPending || isMetalCandidateFuture);
+  const formattedMetalReopenTime =
+    isMetalOnBreak && isMetalCandidateFuture && metalCandidateStartTime
+      ? formatTime(metalCandidateStartTime)
+      : '';
+  const metalReopenTime =
+    formattedMetalReopenTime.length > 0 ? formattedMetalReopenTime : undefined;
+  // Metals have no price history, only live ticks, so during a scheduled
+  // break or weekend closure there is nothing to draw: swap the chart for a
+  // break state until a trading window is active again. Crypto always mounts
+  // the chart and falls back to the selected market's history.
+  const shouldRenderChart = !isMetal || !isMetalOnBreak;
   const chartTargetPrice =
     liveMarketForChart.id === selectedMarket.id ||
     liveMarketForChart.twapWindowSeconds === selectedMarket.twapWindowSeconds
       ? validatedTargetPrice
       : undefined;
-  const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
+  const isSelectedMarketLive =
+    !isMetalOnBreak && liveMarketForChart.id === selectedMarket.id;
 
   const { openOutcomes: selectedOpenOutcomes } = useOpenOutcomes({
     market: selectedMarket,
@@ -323,6 +369,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const handleCurrentPriceChange = useCallback((value: number | undefined) => {
     setCurrentPrice(value);
   }, []);
+
+  useEffect(() => {
+    if (isMetalOnBreak) {
+      setCurrentPrice(undefined);
+    }
+  }, [isMetalOnBreak]);
 
   useEffect(() => {
     let isActive = true;
@@ -490,9 +542,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const subtitle = selectedMarket.endDate
     ? formatMarketEndDate(selectedMarket.endDate)
     : undefined;
+  const displayedCurrentPrice = isMetalOnBreak ? undefined : currentPrice;
   const currentPriceDelta =
-    typeof currentPrice === 'number' && typeof validatedTargetPrice === 'number'
-      ? currentPrice - validatedTargetPrice
+    typeof displayedCurrentPrice === 'number' &&
+    typeof validatedTargetPrice === 'number'
+      ? displayedCurrentPrice - validatedTargetPrice
       : undefined;
   const currentPriceDeltaColor =
     typeof currentPriceDelta !== 'number'
@@ -503,7 +557,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const targetPriceParts = splitCurrency(
     formatCurrencyValue(validatedTargetPrice),
   );
-  const currentPriceParts = splitCurrency(formatCurrencyValue(currentPrice));
+  const currentPriceParts = splitCurrency(
+    formatCurrencyValue(displayedCurrentPrice),
+  );
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
@@ -602,6 +658,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
           markets={visibleSlotMarkets}
           selectedMarketId={selectedMarket.id}
           onMarketSelected={handleMarketSelected}
+          hideLiveIndicator={isMetalOnBreak}
         />
 
         <Box
@@ -665,7 +722,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                 </Text>
               )}
             </Box>
-            {typeof currentPrice === 'number' ? (
+            {typeof displayedCurrentPrice === 'number' ? (
               <Text
                 variant={TextVariant.DisplayMd}
                 style={tw.style({ color: currentPriceAccentColor })}
@@ -680,6 +737,13 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   </Text>
                 ) : null}
               </Text>
+            ) : isMetalOnBreak ? (
+              <Text
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextAlternative}
+              >
+                {currentPriceParts.whole}
+              </Text>
             ) : (
               <Skeleton
                 width="70%"
@@ -690,15 +754,44 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
           </Box>
         </Box>
 
-        <Box twClassName="px-4 pt-1">
-          <PredictCryptoUpDownChart
-            market={liveMarketForChart}
-            targetPrice={chartTargetPrice}
-            onCurrentPriceChange={handleCurrentPriceChange}
-            color={currentPriceAccentColor}
-            height={chartAreaHeight}
-          />
-        </Box>
+        {shouldRenderChart ? (
+          <Box twClassName="px-4 pt-1">
+            <PredictCryptoUpDownChart
+              market={liveMarketForChart}
+              targetPrice={chartTargetPrice}
+              onCurrentPriceChange={handleCurrentPriceChange}
+              color={currentPriceAccentColor}
+              height={chartAreaHeight}
+            />
+          </Box>
+        ) : isMetalOnBreak ? (
+          <Box twClassName="px-4 pt-1">
+            <Box
+              style={{ height: chartAreaHeight }}
+              twClassName="px-8 gap-2"
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              testID={PredictCryptoUpDownDetailsSelectorsIDs.MARKET_BREAK}
+            >
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Xl}
+                color={IconColor.IconMuted}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
+                {metalReopenTime
+                  ? strings('predict.crypto_up_down.market_break.reopens_at', {
+                      time: metalReopenTime,
+                    })
+                  : strings('predict.crypto_up_down.market_break.closed')}
+              </Text>
+            </Box>
+          </Box>
+        ) : null}
 
         {hasPositions && (
           <Box twClassName="pt-2">

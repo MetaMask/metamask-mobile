@@ -1,4 +1,5 @@
 import { RootMessenger } from '../types';
+import { providerErrors } from '@metamask/rpc-errors';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
   KeyringBuilder,
@@ -36,14 +37,13 @@ import {
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
 import {
-  buildMpcMoneyKeyringBuilder,
   buildMpcMoneyKeyringV2Builder,
   buildRealMpcMoneyKeyringBuilder,
 } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
-import {
-  isMpcMoneyKeyringBuildEnabled,
-  isRealMpcMoneyKeyringBuildEnabled,
-} from '../../../constants/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
+import { createMpcTwoFactorApproval } from '../../MpcMoneyKeyring/mpc-two-factor-approval';
+import { MONEY_MPC_SIGN_OPERATION } from '../../MpcMoneyKeyring/constants';
+import { MfaFlowError } from '../../../util/identity/mfa/engine/errors';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -68,6 +68,49 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * `getLedgerDmkMode`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
+// Restore follows turning on 2FA, so it reuses a verification this recent.
+const MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS = 2 * 60_000;
+
+/**
+ * Prompts for 2-step verification before a Money MPC call that needs it.
+ *
+ * @param operation - The operation shown in the verification reason.
+ * @param maxSessionAgeMs - How old a reused verification may be; 0 always prompts.
+ * @returns The 2FA-verified profile token.
+ */
+async function verifyMoneyMpc(
+  operation: string,
+  maxSessionAgeMs: number,
+): Promise<string> {
+  // Loaded lazily: the MFA flow pulls in UI and store modules that import the Engine.
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { verifyOrEnroll } = require('../../../util/identity/mfa/useMfa');
+  const {
+    MONEY_MFA_METHODS,
+  } = require('../../../components/UI/Money/hooks/useMoneyMfa');
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  let token: { accessToken: string } | undefined;
+  try {
+    ({ token } = await verifyOrEnroll({
+      methods: MONEY_MFA_METHODS,
+      verifyWith: MONEY_MFA_METHODS,
+      maxSessionAgeMs,
+      verifyOnly: true,
+      reason: { operation },
+    }));
+  } catch (error) {
+    // Closing the prompt declines the request, like rejecting a confirmation.
+    if (error instanceof MfaFlowError && error.mfaCode === 'flow_cancelled') {
+      throw providerErrors.userRejectedRequest();
+    }
+    throw error;
+  }
+  if (!token) {
+    throw new Error('Money MPC needs 2-step verification');
+  }
+  return token.accessToken;
+}
+
 export function getKeyringBuilders(
   messenger: RootMessenger,
   useDmk: boolean,
@@ -146,12 +189,26 @@ export function getKeyringBuilders(
   // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
   if (isMpcMoneyKeyringBuildEnabled()) {
     keyrings.push(
-      isRealMpcMoneyKeyringBuildEnabled()
-        ? buildRealMpcMoneyKeyringBuilder({
-            getBearerToken: async () =>
-              messenger.call('AuthenticationController:getBearerToken'),
-          })
-        : buildMpcMoneyKeyringBuilder(),
+      buildRealMpcMoneyKeyringBuilder({
+        getBearerToken: async () =>
+          messenger.call('AuthenticationController:getBearerToken'),
+        getTwoFactorApproval: createMpcTwoFactorApproval({
+          requestMfaApproval: async (request) =>
+            messenger.call(
+              'AuthenticationController:requestMfaApproval',
+              request,
+            ),
+          verify: async () => {
+            // Every transfer needs its own verification.
+            await verifyMoneyMpc(MONEY_MPC_SIGN_OPERATION, 0);
+          },
+        }),
+        getTwoFactorToken: async () =>
+          verifyMoneyMpc(
+            'money.mpcRestore',
+            MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS,
+          ),
+      }),
     );
   }
 

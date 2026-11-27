@@ -27,6 +27,7 @@ export const buildGenericQuoteRequest = (input: {
   quoteParams: QuoteParams;
   insufficientBalance: boolean;
   insufficientNativeReserveError: boolean;
+  moneyAccountAddress?: string;
 }): (Partial<GenericQuoteRequest> & { walletAddress: string }) | undefined => {
   const { quoteParams, insufficientBalance, insufficientNativeReserveError } =
     input;
@@ -40,10 +41,12 @@ export const buildGenericQuoteRequest = (input: {
     gasIncluded,
     gasIncluded7702,
   } = quoteParams;
+  const moneyAccountAddress = input.moneyAccountAddress;
 
   if (!walletAddress) {
     return;
   }
+
   const normalizedSourceAmount = normalizeSrcAmount(
     srcAmount,
     srcToken?.decimals,
@@ -51,7 +54,9 @@ export const buildGenericQuoteRequest = (input: {
 
   const slippageNumber = slippage ? Number(slippage) : undefined;
 
-  const insufficientBal = insufficientBalance || insufficientNativeReserveError;
+  const insufficientBal = srcToken?.isMoneyToken
+    ? true
+    : insufficientBalance || insufficientNativeReserveError;
 
   return {
     srcChainId: srcToken?.chainId,
@@ -61,9 +66,14 @@ export const buildGenericQuoteRequest = (input: {
     srcTokenAmount: normalizedSourceAmount ?? '0',
     slippage: Number.isNaN(slippageNumber) ? undefined : slippageNumber,
     walletAddress,
-    destWalletAddress: destWalletAddress ?? walletAddress,
+    destWalletAddress:
+      destToken?.isMoneyToken && moneyAccountAddress
+        ? moneyAccountAddress
+        : (destWalletAddress ?? walletAddress),
     gasIncluded: Boolean(gasIncluded),
     gasIncluded7702: Boolean(gasIncluded7702),
     insufficientBal,
+    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+    isMoneyAccount: Boolean(srcToken?.isMoneyToken || destToken?.isMoneyToken),
   };
 };

@@ -14,6 +14,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
 import { isHardwareAccount } from '../../../../../util/address';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -33,7 +34,12 @@ export const useSignedOrSubmittedAlert = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
 
-  const { chainId, id: transactionId, txParams } = transactionMetadata || {};
+  const {
+    chainId,
+    id: transactionId,
+    requiredTransactionIds,
+    txParams,
+  } = transactionMetadata || {};
   const { from } = txParams ?? {};
 
   const existingTransaction = transactions.find((transaction) => {
@@ -44,6 +50,7 @@ export const useSignedOrSubmittedAlert = () => {
     return (
       blockStatuses.includes(transaction.status) &&
       transaction.id !== transactionId &&
+      !requiredTransactionIds?.includes(transaction.id) &&
       transaction.chainId === chainId &&
       transaction.txParams.from.toLowerCase() === from?.toLowerCase()
     );
@@ -57,12 +64,14 @@ export const useSignedOrSubmittedAlert = () => {
       hasTransactionType(existingTransaction, [payType]),
   );
 
+  const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
+
   const hasExistingTransactionOnPayChain =
-    payToken &&
-    payToken.chainId !== chainId &&
+    payTokenChainId &&
+    payTokenChainId !== chainId &&
     transactions.some(
       (t) =>
-        t.chainId === payToken.chainId &&
+        t.chainId === payTokenChainId &&
         t.txParams.from.toLowerCase() === from?.toLowerCase() &&
         PENDING_STATUSES.includes(t.status),
     );

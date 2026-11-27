@@ -126,9 +126,8 @@ jest.mock('../../UI/Money/selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
 }));
 
-const mockUseMoneyMfaHomePrompt = jest.fn();
 jest.mock('../../UI/Money/hooks/useMoneyMfaHomePrompt', () => ({
-  useMoneyMfaHomePrompt: () => mockUseMoneyMfaHomePrompt(),
+  useMoneyMfaHomePrompt: jest.fn(),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -2139,23 +2138,6 @@ describe('MoneyBalanceCard slot', () => {
       }),
     );
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
-  });
-});
-
-describe('Money 2-step verification home prompt', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest
-      .mocked(useSelector)
-      .mockImplementation((callback: (state: unknown) => unknown) =>
-        callback(mockInitialState),
-      );
-  });
-
-  it('runs the Money 2-step verification home prompt hook', () => {
-    render(Wallet);
-
-    expect(mockUseMoneyMfaHomePrompt).toHaveBeenCalled();
   });
 });
 

@@ -25,7 +25,20 @@ import {
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
 import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
 import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
-import { buildRealMpcMoneyKeyringBuilder } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
+import {
+  buildMpcMoneyKeyringBuilder,
+  buildRealMpcMoneyKeyringBuilder,
+} from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
+import { MfaFlowError } from '../../../util/identity/mfa/engine/errors';
+import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
+
+jest.mock('../../MpcMoneyKeyring/mpc-money-keyring-builder', () => ({
+  ...jest.requireActual('../../MpcMoneyKeyring/mpc-money-keyring-builder'),
+  buildRealMpcMoneyKeyringBuilder: jest.fn(),
+}));
+jest.mock('../../../util/identity/mfa/useMfa', () => ({
+  verifyOrEnroll: jest.fn(),
+}));
 
 jest.mock('../../../store', () => ({
   store: {
@@ -36,11 +49,6 @@ jest.mock('../../../store', () => ({
 
 jest.mock('@ledgerhq/device-transport-kit-react-native-ble', () => ({
   RNBleTransportFactory: 'RNBleTransportFactory',
-}));
-
-jest.mock('../../MpcMoneyKeyring/mpc-money-keyring-builder', () => ({
-  ...jest.requireActual('../../MpcMoneyKeyring/mpc-money-keyring-builder'),
-  buildRealMpcMoneyKeyringBuilder: jest.fn(),
 }));
 
 jest.mock('../../SnapKeyring', () => ({
@@ -59,10 +67,7 @@ function getRootMessenger() {
   >({ namespace: MOCK_ANY_NAMESPACE });
 }
 
-const MPC_BUILD_FLAGS = [
-  'MM_MONEY_MPC_KEYRING_ENABLED',
-  'MM_MONEY_MPC_REAL_KEYRING',
-] as const;
+const MPC_BUILD_FLAGS = ['MM_MONEY_MPC_KEYRING_ENABLED'] as const;
 const originalMpcBuildFlags = MPC_BUILD_FLAGS.map((flag) => process.env[flag]);
 
 describe('wallet-init/keyrings', () => {
@@ -199,9 +204,9 @@ describe('wallet-init/keyrings', () => {
 
       messenger.registerActionHandler(
         'KeyringController:withKeyringV2Unsafe',
-        (_selector, operation) =>
+        async (_selector, operation) =>
           operation({
-            keyring: emptyHd as unknown as Keyring,
+            keyring: emptyHd,
             metadata: { id: 'entropy-1', name: 'main' },
           }),
       );
@@ -243,7 +248,7 @@ describe('wallet-init/keyrings', () => {
         // @ts-expect-error - partial bridge stub
         bridge: {},
       });
-      const ledgerV2 = byType[LegacyLedgerKeyring.type](legacyLedger as never, {
+      const ledgerV2 = byType[LegacyLedgerKeyring.type](legacyLedger, {
         id: 'entropy-1',
         name: 'main',
       });
@@ -253,7 +258,7 @@ describe('wallet-init/keyrings', () => {
         // @ts-expect-error - partial bridge stub
         bridge: {},
       });
-      const qrV2 = byType[LegacyQrKeyring.type](legacyQr as never, {
+      const qrV2 = byType[LegacyQrKeyring.type](legacyQr, {
         id: 'entropy-2',
         name: 'qr',
       });
@@ -267,7 +272,7 @@ describe('wallet-init/keyrings', () => {
       const legacyMoney = new LegacyMoneyKeyring({
         getMnemonic: async () => [],
       });
-      const moneyV2 = byType[LegacyMoneyKeyring.type](legacyMoney as never, {
+      const moneyV2 = byType[LegacyMoneyKeyring.type](legacyMoney, {
         id: 'entropy-3',
         name: 'money',
       });
@@ -288,29 +293,22 @@ describe('wallet-init/keyrings', () => {
       expect(v2Types).not.toContain(MpcMoneyKeyring.type);
     });
 
-    it('registers the MPC money keyring builders when the build flag is on', () => {
+    it('registers the MPC money keyring V2 builder when the build flag is on', () => {
       process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
-
-      const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
-      const byV1Type = Object.fromEntries(
-        v1Builders.map((builder) => [builder.type, builder]),
-      );
-      expect(byV1Type[MpcMoneyKeyring.type]()).toBeInstanceOf(MpcMoneyKeyring);
 
       const v2Builders = getKeyringV2Builders() ?? [];
       const byV2Type = Object.fromEntries(
         v2Builders.map((builder) => [builder.type, builder]),
       );
-      const wrapper = byV2Type[MpcMoneyKeyring.type](
-        new MpcMoneyKeyring() as never,
-        { id: 'metadata-id', name: 'name' },
-      );
+      const wrapper = byV2Type[MpcMoneyKeyring.type](new MpcMoneyKeyring(), {
+        id: 'metadata-id',
+        name: 'name',
+      });
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
     });
 
-    it('registers the real MPC money keyring builder when both build flags are on', () => {
+    it('registers the real MPC money keyring builder when the build flag is on', () => {
       process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
-      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
       const realBuilder = Object.assign(jest.fn(), {
         type: MpcMoneyKeyring.type,
       });
@@ -318,12 +316,68 @@ describe('wallet-init/keyrings', () => {
 
       const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
 
-      expect(buildRealMpcMoneyKeyringBuilder).toHaveBeenCalledWith({
-        getBearerToken: expect.any(Function),
-      });
+      expect(buildRealMpcMoneyKeyringBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({ getBearerToken: expect.any(Function) }),
+      );
       expect(
         v1Builders.find((builder) => builder.type === MpcMoneyKeyring.type),
       ).toBe(realBuilder);
+    });
+  });
+  describe('Money MPC 2-step verification', () => {
+    const flags = {
+      MM_MONEY_MPC_KEYRING_ENABLED: process.env.MM_MONEY_MPC_KEYRING_ENABLED,
+    };
+
+    const getTwoFactorToken = () => {
+      const buildReal = jest
+        .mocked(buildRealMpcMoneyKeyringBuilder)
+        .mockReturnValue(buildMpcMoneyKeyringBuilder());
+      getKeyringBuilders(getRootMessenger(), false);
+      const [options] = buildReal.mock.calls[0];
+      return options.getTwoFactorToken?.();
+    };
+
+    beforeEach(() => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+    });
+
+    afterEach(() => {
+      jest.mocked(buildRealMpcMoneyKeyringBuilder).mockReset();
+      Object.entries(flags).forEach(([name, value]) => {
+        if (value === undefined) {
+          delete process.env[name];
+        } else {
+          process.env[name] = value;
+        }
+      });
+    });
+
+    it('verifies with any enrolled method without asking to set up a missing one', async () => {
+      jest
+        .mocked(verifyOrEnroll)
+        .mockResolvedValue({ token: { accessToken: 'token' } } as never);
+
+      await getTwoFactorToken();
+
+      expect(verifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({ verifyOnly: true }),
+      );
+    });
+
+    it('rejects as a user rejection when the user closes the prompt', async () => {
+      jest
+        .mocked(verifyOrEnroll)
+        .mockRejectedValue(new MfaFlowError('flow_cancelled'));
+
+      await expect(getTwoFactorToken()).rejects.toMatchObject({ code: 4001 });
+    });
+
+    it('passes other verification errors through', async () => {
+      const error = new MfaFlowError('too_many_attempts');
+      jest.mocked(verifyOrEnroll).mockRejectedValue(error);
+
+      await expect(getTwoFactorToken()).rejects.toBe(error);
     });
   });
 });

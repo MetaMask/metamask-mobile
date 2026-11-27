@@ -52,3 +52,34 @@ export const subscribeToActiveMfaFlow = (listener: () => void) => {
     listeners.delete(listener);
   };
 };
+
+/**
+ * Waits for a flow for `operation` to succeed.
+ *
+ * @param operation - The verification reason to wait for.
+ * @returns A promise that resolves on success, and `stop` to stop waiting.
+ */
+export const waitForMfaFlowSuccess = (operation: string) => {
+  let stop = () => undefined;
+  const promise = new Promise<void>((resolve) => {
+    const watched = new Set<MfaFlow>();
+    const watch = () => {
+      const flow = activeFlow;
+      if (!flow || watched.has(flow) || flow.reason.operation !== operation) {
+        return;
+      }
+      watched.add(flow);
+      flow.result.then(
+        () => resolve(),
+        () => undefined,
+      );
+    };
+    const unsubscribe = subscribeToActiveMfaFlow(watch);
+    stop = () => {
+      unsubscribe();
+      return undefined;
+    };
+    watch();
+  });
+  return { promise, stop };
+};

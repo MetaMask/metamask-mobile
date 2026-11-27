@@ -35,6 +35,12 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
+import { selectMfaAddressPendingRestore } from '../../../../../selectors/moneyAccountLifecycleController';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { handleSendPageNavigation } from '../../../../Views/confirmations/utils/send';
+import { derivePredefinedRecipientParams } from '../../../../Views/confirmations/utils/address';
+import { InitSendLocation } from '../../../../Views/confirmations/constants/send';
+import type { AssetType } from '../../../../Views/confirmations/types/token';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
@@ -81,6 +87,8 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
+  const mfaAddressPendingRestore = useSelector(selectMfaAddressPendingRestore);
+  const ownedAssets = useSelector(selectAssetsBySelectedAccountGroup);
   // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
   const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
@@ -231,6 +239,24 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
+    // The MFA account can't sign a vault deposit until it's restored, so send plain mUSD to it.
+    if (mfaAddressPendingRestore) {
+      const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId];
+      const asset = ownedAssets[sourceChainId]?.find(
+        ({ assetId }) => assetId.toLowerCase() === musdAddress?.toLowerCase(),
+      ) as AssetType | undefined;
+      sheetRef.current?.onCloseBottomSheet(() => {
+        handleSendPageNavigation(navigation.navigate, {
+          location: InitSendLocation.MoneyAddSheet,
+          asset,
+          predefinedRecipient: derivePredefinedRecipientParams(
+            mfaAddressPendingRestore,
+          ),
+        });
+      });
+      return;
+    }
+
     startDeposit({
       intent: 'addMusd',
       preferredPaymentToken: {
@@ -238,7 +264,15 @@ const MoneyAddMoneySheetContent: React.FC = () => {
         chainId: sourceChainId,
       },
     });
-  }, [hasMusdBalance, startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
+  }, [
+    hasMusdBalance,
+    startDeposit,
+    tokenBalanceByChain,
+    trackSurfaceClicked,
+    mfaAddressPendingRestore,
+    ownedAssets,
+    navigation,
+  ]);
 
   const moveMusdAmount = useMemo(
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
@@ -301,7 +335,7 @@ const MoneyAddMoneySheetContent: React.FC = () => {
   ];
 
   const options: MoneySheetOption[] = [
-    ...baseOptions,
+    ...(mfaAddressPendingRestore ? [] : baseOptions),
     {
       label: moveMusdLabel,
       icon: IconName.Add,
@@ -309,9 +343,11 @@ const MoneyAddMoneySheetContent: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       // Without mUSD the row falls back to the MM Pay fiat deposit, so it is
       // only actionable when that flow is available.
-      disabled: !hasMusdBalance && !canDepositFiat,
+      disabled:
+        !hasMusdBalance &&
+        (!canDepositFiat || Boolean(mfaAddressPendingRestore)),
     },
-    ...comingSoonBankAccountOptions,
+    ...(mfaAddressPendingRestore ? [] : comingSoonBankAccountOptions),
   ];
 
   return (

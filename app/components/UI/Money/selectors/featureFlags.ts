@@ -9,6 +9,7 @@ import {
 import {
   isMoneyAccountEnabled,
   isMoneyMfaEnabled,
+  isMoneyMfaV2Enabled,
 } from '../../../../lib/Money/feature-flags';
 import {
   MUSD_TOKEN_ADDRESS,
@@ -177,6 +178,16 @@ export const selectMoneyEnableMfaFlag = createSelector(
 );
 
 /**
+ * Selects whether Money MFA V2 is enabled: the Money 2-step verification
+ * toggle lives in Settings > Security > 2-step verification instead of the
+ * Money menu. Remote flag: `isMoneyMfaEnabledV2`.
+ */
+export const selectMoneyEnableMfaV2Flag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyMfaV2Enabled,
+);
+
+/**
  * Selects whether Money account deposit CTAs can be displayed in token-list
  * rows. The Money account feature must be enabled before this CTA can appear.
  */
@@ -277,6 +288,17 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
     const localFlag = process.env.MM_MONEY_EARNING_SECTION_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+export const selectIsMoneyEarningsHistoryEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_HISTORY_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningHistoryEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },

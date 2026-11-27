@@ -148,21 +148,29 @@ export type EarnRatesView = {
  */
 export type ReferralLocalizedTextKey =
   | 'waysToEarn'
+  | 'nextSteps'
+  | 'overviewTab'
   | 'earningsTab'
   | 'performanceTitle'
   | 'earnEligibleFees'
+  | 'referFriends'
+  | 'tradeAndEarn'
+  | 'postTrades'
   | 'yourReferralCode'
   | 'share'
   | 'referrals'
   | 'tradeCommissions'
   | 'recordedEarnings'
   | 'availableToClaim'
+  | 'availableToClaimSubtext'
   | 'claim'
   | 'claimed'
   | 'held'
+  | 'heldSubtext'
   | 'blocked'
   | 'voided'
   | 'pending'
+  | 'pendingSubtext'
   | 'claimSuccessToast'
   | 'claimPartialSuccessToast'
   | 'claimFailureToast'
@@ -175,10 +183,12 @@ export type ReferralLocalizedTextKey =
   | 'claimFailureNoEligibleBalanceToast'
   | 'claimFailureUnavailableToast'
   | 'claimFailureContactSupportToast'
+  | 'earnedOnOtherAccounts'
   | 'historyClaimPending'
   | 'last7Days'
   | 'totalEarningsLabel'
   | 'breakdown'
+  | 'yourEarnings'
   | 'breakdownTrading'
   | 'breakdownTradingDescription'
   | 'breakdownReferralsDescription'
@@ -214,6 +224,7 @@ export type ReferralLocalizedTextKey =
   | 'copiedOnce'
   | 'copiedTimes'
   | 'rebatePerpsVolume'
+  | 'rebatePerps'
   | 'rebateSwapsVolume'
   | 'rebatePredictions'
   | 'rebateSwaps'
@@ -238,6 +249,7 @@ export type ReferralLocalizedTextKey =
   | 'offerDurationHour'
   | 'offerDurationHours'
   | 'invitedReferredBy'
+  | 'invitedOptInTitle'
   | 'invitedOptInDescription'
   | 'invitedOptInAction'
   | 'invitedOptInSuccessToast'
@@ -247,6 +259,7 @@ export type ReferralLocalizedTextKey =
   | 'termsLearnMore'
   | 'termsUrl'
   | 'balance'
+  | 'balanceSubtext'
   | 'mUSD'
   | 'paused'
   | 'claimsPausedTitle'
@@ -525,7 +538,14 @@ export type SelfEarnedFamilyTotalsDto = SummaryTotalsDto & {
   by_address: AddressTotalsDto[];
 };
 
-export type EarnedByOthersFamilyTotalsDto = SummaryTotalsDto;
+export type EarnedByOthersFamilyTotalsDto = SummaryTotalsDto & {
+  /**
+   * Present for follow trading. Those accruals carry the caller's own social
+   * address, the key a claim is signed with. Revenue share has no address
+   * list: naming one would identify a referee.
+   */
+  by_address?: AddressTotalsDto[];
+};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {

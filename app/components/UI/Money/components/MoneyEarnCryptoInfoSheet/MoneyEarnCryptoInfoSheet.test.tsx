@@ -198,46 +198,6 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render the deposit title without a variant', () => {
-    const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-    expect(
-      queryByText(strings('money.earn_crypto_info_sheet.deposit_title')),
-    ).toBeNull();
-  });
-
-  describe('when variant is deposit', () => {
-    beforeEach(() => {
-      mockUseParams.mockReturnValue({ variant: 'deposit' });
-    });
-
-    it('renders the deposit title', () => {
-      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        getByText(strings('money.earn_crypto_info_sheet.deposit_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render the default title', () => {
-      const { queryByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        queryByText(strings('money.earn_crypto_info_sheet.title')),
-      ).toBeNull();
-    });
-
-    it('renders the body paragraph', () => {
-      const { getByText } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
-
-      expect(
-        getByText(
-          strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
-        ),
-      ).toBeOnTheScreen();
-    });
-  });
-
   it('renders the body when APY is unavailable', () => {
     (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: undefined,

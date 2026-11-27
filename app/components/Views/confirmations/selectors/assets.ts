@@ -520,6 +520,7 @@ function decorateAsset({
         : undefined,
     assetId: publicAssetId,
     balance: amount,
+    caipAssetId: assetId,
     balanceInSelectedCurrency: formatFiat(displayBalance, displayCurrency),
     balanceInSelectedCurrencyAmount: displayBalance,
     chainId,

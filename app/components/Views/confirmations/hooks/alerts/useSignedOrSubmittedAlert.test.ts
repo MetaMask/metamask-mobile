@@ -14,8 +14,8 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { isHardwareAccount } from '../../../../../util/address';
+import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
 
 const FROM_MOCK = '0x123';
 const CHAIN_ID_MOCK = '0x456' as Hex;
@@ -138,6 +138,32 @@ describe('useSignedOrSubmittedAlert', () => {
       ]);
     },
   );
+
+  it('returns no alerts for a transaction this one requires', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...TRANSACTION_META_MOCK,
+      id: '2',
+      status: TransactionStatus.approved,
+      requiredTransactionIds: ['1'],
+    } as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [TRANSACTION_META_MOCK],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([]);
+  });
 
   it('returns no alerts if on different chain', () => {
     const { result } = renderHookWithProvider(
@@ -275,9 +301,10 @@ describe('useSignedOrSubmittedAlert', () => {
     'returns alert if %s transaction on pay token chain from same account',
     (status) => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
+          address: '0x1234567890123456789012345678901234567890',
           chainId: CHAIN_ID_2_MOCK,
-        } as TransactionPaymentToken,
+        }),
         setPayToken: jest.fn(),
       });
 

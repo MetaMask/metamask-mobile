@@ -4,6 +4,20 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneyMfaSetupCard from './MoneyMfaSetupCard';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 import { useActiveMfaFlow } from '../../../../../util/identity/mfa/engine/useActiveMfaFlow';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass/BoxGlass';
+
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('../../../../../util/identity/mfa/engine/useActiveMfaFlow', () => ({
   useActiveMfaFlow: jest.fn(),
@@ -34,6 +48,20 @@ describe('MoneyMfaSetupCard', () => {
     );
   });
 
+  it('draws the glass surface when isGlass is true', () => {
+    const { getByTestId } = render(
+      <MoneyMfaSetupCard onSetUp={jest.fn()} isGlass />,
+    );
+
+    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('draws the opaque surface when isGlass is false', () => {
+    const { queryByTestId } = render(<MoneyMfaSetupCard onSetUp={jest.fn()} />);
+
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+  });
+
   it('calls onSetUp when the call to action is pressed', () => {
     const onSetUp = jest.fn();
     const { getByTestId } = render(<MoneyMfaSetupCard onSetUp={onSetUp} />);
@@ -43,16 +71,22 @@ describe('MoneyMfaSetupCard', () => {
     expect(onSetUp).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the call to action while the verification is starting', () => {
-    mockUseActiveMfaFlow.mockReturnValue({
-      flow: {},
-      state: { step: { name: 'idle' } },
-    } as ReturnType<typeof useActiveMfaFlow>);
-    const onSetUp = jest.fn();
-    const { getByTestId } = render(<MoneyMfaSetupCard onSetUp={onSetUp} />);
+  it.each([
+    ['disables', 'money.mfa.turnOn', 0],
+    ['keeps enabled', 'vba.activate', 1],
+  ])(
+    '%s the call to action while a %s verification is starting',
+    (_label, operation, expectedCalls) => {
+      mockUseActiveMfaFlow.mockReturnValue({
+        flow: { reason: { operation } },
+        state: { step: { name: 'idle' } },
+      } as ReturnType<typeof useActiveMfaFlow>);
+      const onSetUp = jest.fn();
+      const { getByTestId } = render(<MoneyMfaSetupCard onSetUp={onSetUp} />);
 
-    fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
-    expect(onSetUp).not.toHaveBeenCalled();
-  });
+      expect(onSetUp).toHaveBeenCalledTimes(expectedCalls);
+    },
+  );
 });

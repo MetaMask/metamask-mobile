@@ -3,13 +3,18 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useMfa } from '../../../../util/identity/mfa';
 import {
   selectMoneyEnableMfaFlag,
   selectMoneyEnableMoneyAccountFlag,
 } from '../selectors/featureFlags';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
@@ -17,6 +22,11 @@ import {
   moneyAccountMigration,
   type MoneyAccountMigrationStatus,
 } from '../../../../lib/Money/mfa/moneyAccountMigration';
+import { restoreMpcMoneyAccount } from '../../../../lib/Money/mfa/restoreMpcMoneyAccount';
+import { moneyAccountRestore } from '../../../../lib/Money/mfa/moneyAccountRestore';
+import { selectMfaMoneyAccountLifecycle } from '../../../../selectors/moneyAccountLifecycleController';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import Logger from '../../../../util/Logger';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -36,10 +46,23 @@ jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: jest.fn(),
 }));
 
+jest.mock('../../../../constants/featureFlags', () => ({
+  isMpcMoneyKeyringBuildEnabled: jest.fn(),
+}));
+
 jest.mock('../../../../util/identity/mfa/bindings', () => ({
   mobileMfaControllerAdapter: {
     refreshEnrolledCredentials: jest.fn(),
   },
+}));
+
+jest.mock('../../../../lib/Money/mfa/restoreMpcMoneyAccount', () => ({
+  restoreMpcMoneyAccount: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
@@ -65,6 +88,7 @@ jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMfa = jest.mocked(useMfa);
+const mockIsMpcKeyringEnabled = jest.mocked(isMpcMoneyKeyringBuildEnabled);
 const mockStart = jest.mocked(moneyAccountMigration.start);
 const setMigration = (status: MoneyAccountMigrationStatus) =>
   act(() => {
@@ -93,6 +117,21 @@ const deferMigration = () => {
 const mockRefreshEnrolledCredentials = jest.mocked(
   mobileMfaControllerAdapter.refreshEnrolledCredentials,
 );
+
+const mockRestore = jest.mocked(restoreMpcMoneyAccount);
+const mockLoggerError = jest.mocked(Logger.error);
+
+const MPC_ADDRESS = '0xAbC0000000000000000000000000000000000002';
+const EOA_ADDRESS = '0x0000000000000000000000000000000000000001';
+const mfaLifecycle = {
+  type: 'mfa',
+  identity: {
+    currentAddress: MPC_ADDRESS.toLowerCase(),
+    previousAddresses: [EOA_ADDRESS],
+    status: 'DONE',
+    migration: null,
+  },
+};
 
 const mockEnroll = jest.fn();
 const mockVerifyOrEnroll = jest.fn();
@@ -126,21 +165,31 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
+  isMpcKeyringEnabled = true,
   isMoneyAccountEnabled = true,
   credentials = [],
+  lifecycle,
+  primaryAddress,
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
+  isMpcKeyringEnabled?: boolean;
   isMoneyAccountEnabled?: boolean;
   credentials?: EnrolledCredential[];
+  lifecycle?: typeof mfaLifecycle;
+  primaryAddress?: string;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMfaFlag) return isFlagEnabled;
     if (selector === selectMfaUiKitEnabled) return isKitEnabled;
     if (selector === selectMoneyEnableMoneyAccountFlag)
       return isMoneyAccountEnabled;
+    if (selector === selectMfaMoneyAccountLifecycle) return lifecycle;
+    if (selector === selectPrimaryMoneyAccount)
+      return primaryAddress ? { address: primaryAddress } : undefined;
     return undefined;
   });
+  mockIsMpcKeyringEnabled.mockReturnValue(isMpcKeyringEnabled);
   mockUseMfa.mockReturnValue({
     credentials,
     enroll: mockEnroll,
@@ -161,6 +210,7 @@ const expectToast = (labelKey: string) =>
 
 describe('useMoneyMfa', () => {
   beforeEach(() => {
+    moneyAccountRestore.reset();
     jest.clearAllMocks();
     moneyMfaStore.reset();
     moneyAccountMigration.reset();
@@ -171,6 +221,7 @@ describe('useMoneyMfa', () => {
       setMigration('done');
     });
     mockRefreshEnrolledCredentials.mockResolvedValue([]);
+    mockRestore.mockResolvedValue(undefined);
   });
 
   describe('status', () => {
@@ -188,6 +239,12 @@ describe('useMoneyMfa', () => {
 
     it('returns unavailable when the MFA kit is disabled', () => {
       const { result } = arrange({ isKitEnabled: false });
+
+      expect(result.current.status).toBe('unavailable');
+    });
+
+    it('returns unavailable when the build has no MPC Money keyring', () => {
+      const { result } = arrange({ isMpcKeyringEnabled: false });
 
       expect(result.current.status).toBe('unavailable');
     });
@@ -230,12 +287,31 @@ describe('useMoneyMfa', () => {
       const { result } = arrange();
 
       expect(result.current.status).toBe('setting_up');
-      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledWith('resume');
       await act(async () => {
         finish(true);
       });
       expect(result.current.status).toBe('enabled');
       expectConfirmationPending();
+    });
+
+    it('returns sign_in_required when the mfa account is not restored on this device', () => {
+      const { result } = arrange({
+        lifecycle: mfaLifecycle,
+        primaryAddress: EOA_ADDRESS,
+      });
+
+      expect(result.current.status).toBe('sign_in_required');
+    });
+
+    it('returns enabled when the primary Money account is the restored mfa account', () => {
+      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
+      const { result } = arrange({
+        lifecycle: mfaLifecycle,
+        primaryAddress: MPC_ADDRESS,
+      });
+
+      expect(result.current.status).toBe('enabled');
     });
 
     it('does not resume while the flag is off', () => {
@@ -288,11 +364,37 @@ describe('useMoneyMfa', () => {
         await result.current.turnOn();
       });
 
-      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledWith('turn_on');
       expect(result.current.status).toBe('enabled');
       expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(true);
       expectConfirmationPending();
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('turns 2FA back on without migrating when the restored account is already the 2FA account', async () => {
+      setMigration('failed');
+      const { result } = arrange({
+        lifecycle: mfaLifecycle,
+        primaryAddress: MPC_ADDRESS,
+      });
+
+      await act(async () => {
+        await result.current.turnOn();
+      });
+
+      expect(mockStart).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('enabled');
+      expectToast('money.mfa.toast_on');
+    });
+
+    it('shows the failed banner when a run failed on an account that is already the 2FA account', () => {
+      setMigration('failed');
+      const { result } = arrange({
+        lifecycle: mfaLifecycle,
+        primaryAddress: MPC_ADDRESS,
+      });
+
+      expect(result.current.status).toBe('failed');
     });
 
     it('shows the setting-up banner again for a new migration', async () => {
@@ -498,7 +600,7 @@ describe('useMoneyMfa', () => {
         await result.current.retry();
       });
 
-      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledWith('retry');
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
       expect(result.current.status).toBe('enabled');
       expectConfirmationPending();
@@ -558,6 +660,28 @@ describe('useMoneyMfa', () => {
       );
     });
 
+    it('asks for a passkey or authenticator app even when email is the only active method', async () => {
+      const activeEmail: EnrolledCredential = {
+        id: 'email',
+        type: 'email_otp',
+        status: 'active',
+        verified: true,
+      };
+      const { result } = arrange({ credentials: [activeEmail] });
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          methods: ['passkey', 'totp'],
+          verifyWith: ['passkey', 'totp'],
+          verifyOnly: true,
+        }),
+      );
+    });
+
     it('keeps 2FA on when verification is cancelled', async () => {
       mockVerifyOrEnroll.mockRejectedValue(new Error('flow_cancelled'));
       const { result } = arrange({ credentials: [activePasskey] });
@@ -568,6 +692,203 @@ describe('useMoneyMfa', () => {
 
       expect(result.current.status).toBe('enabled');
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('signIn', () => {
+    const arrangeSignIn = () =>
+      arrange({ lifecycle: mfaLifecycle, primaryAddress: EOA_ADDRESS });
+
+    it('verifies with any enrolled money method and a fresh check, without asking to set up a missing one', async () => {
+      const { result } = arrangeSignIn();
+
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+        methods: ['passkey', 'totp'],
+        verifyWith: ['passkey', 'totp'],
+        maxSessionAgeMs: 0,
+        verifyOnly: true,
+        reason: {
+          operation: 'money.mpcRestore',
+          verifyDescription: strings('money.mfa.sign_in_verify_description'),
+        },
+      });
+    });
+
+    it('restores the mfa account, turns 2FA on and shows a toast', async () => {
+      const { result } = arrangeSignIn();
+
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      expect(mockRestore).toHaveBeenCalledWith(MPC_ADDRESS.toLowerCase());
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(true);
+      expectToast('money.mfa.sign_in_toast');
+    });
+
+    it('skips the restore when verification is cancelled', async () => {
+      mockVerifyOrEnroll.mockRejectedValue(new Error('flow_cancelled'));
+      const { result } = arrangeSignIn();
+
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      expect(mockRestore).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('sign_in_required');
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('logs the failure and returns sign_in_failed without a toast', async () => {
+      const error = new Error('restore failed');
+      mockRestore.mockRejectedValue(error);
+      const { result } = arrangeSignIn();
+
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        error,
+        'Money MPC account restore failed',
+      );
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(false);
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('sign_in_failed');
+    });
+
+    it('returns sign_in_required again after a retry starts', async () => {
+      mockRestore.mockRejectedValueOnce(new Error('restore failed'));
+      const { result } = arrangeSignIn();
+      await act(async () => {
+        await result.current.signIn();
+      });
+      let finish: () => void = () => undefined;
+      mockRestore.mockImplementation(
+        async () =>
+          new Promise<void>((resolve) => {
+            finish = resolve;
+          }),
+      );
+
+      let retry: Promise<void> = Promise.resolve();
+      await act(async () => {
+        retry = result.current.signIn();
+      });
+
+      expect(result.current.status).toBe('signing_in');
+      await act(async () => {
+        finish();
+        await retry;
+      });
+    });
+
+    it('returns signing_in and restores once while a restore is running', async () => {
+      let finish: () => void = () => undefined;
+      mockRestore.mockImplementation(
+        async () =>
+          new Promise<void>((resolve) => {
+            finish = resolve;
+          }),
+      );
+      const { result } = arrangeSignIn();
+
+      let first: Promise<void> = Promise.resolve();
+      let second: Promise<void> = Promise.resolve();
+      await act(async () => {
+        first = result.current.signIn();
+        second = result.current.signIn();
+      });
+
+      expect(result.current.status).toBe('signing_in');
+      expect(mockRestore).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        finish();
+        await Promise.all([first, second]);
+      });
+      expectToast('money.mfa.sign_in_toast');
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps sign_in_required while verification is open', async () => {
+      let finishVerify: () => void = () => undefined;
+      mockVerifyOrEnroll.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finishVerify = () => resolve({ token: { accessToken: 't' } });
+          }) as ReturnType<typeof mockVerifyOrEnroll>,
+      );
+      const { result } = arrangeSignIn();
+
+      let signIn: Promise<void> = Promise.resolve();
+      await act(async () => {
+        signIn = result.current.signIn();
+      });
+      const statusDuringVerify = result.current.status;
+      await act(async () => {
+        finishVerify();
+        await signIn;
+      });
+
+      expect(statusDuringVerify).toBe('sign_in_required');
+      expect(mockRestore).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores a second sign-in while verification is open', async () => {
+      let finishVerify: () => void = () => undefined;
+      mockVerifyOrEnroll.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishVerify = () => resolve({ token: { accessToken: 't' } });
+          }) as ReturnType<typeof mockVerifyOrEnroll>,
+      );
+      const { result } = arrangeSignIn();
+
+      let first: Promise<void> = Promise.resolve();
+      await act(async () => {
+        first = result.current.signIn();
+      });
+      await act(async () => {
+        await result.current.signIn();
+      });
+      await act(async () => {
+        finishVerify();
+        await first;
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
+      expect(mockRestore).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets the user sign in again after cancelling verification', async () => {
+      mockVerifyOrEnroll.mockRejectedValueOnce(new Error('flow_cancelled'));
+      const { result } = arrangeSignIn();
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(2);
+      expect(mockRestore).toHaveBeenCalledTimes(1);
+      expectToast('money.mfa.sign_in_toast');
+    });
+
+    it('does nothing without an mfa account', async () => {
+      const { result } = arrange();
+
+      await act(async () => {
+        await result.current.signIn();
+      });
+
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(mockRestore).not.toHaveBeenCalled();
     });
   });
 

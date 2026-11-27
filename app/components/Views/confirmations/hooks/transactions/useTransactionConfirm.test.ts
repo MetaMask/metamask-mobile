@@ -26,7 +26,10 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  isHardwareAccount,
+  isMpcMoneyAccount,
+} from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   ConfirmationLaunchSource,
@@ -89,6 +92,19 @@ const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+const isMpcMoneyAccountMock = jest.mocked(isMpcMoneyAccount);
+const mockWaitForMfaFlowSuccess = jest.fn();
+const MPC_MONEY_ADDRESS = '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6';
+jest.mock('../../../../../selectors/moneyAccountController', () => ({
+  ...jest.requireActual('../../../../../selectors/moneyAccountController'),
+  selectPrimaryMoneyAccount: () => ({
+    address: '0x3be95e6b8af3c8bb3bb24177a4721de27ef479c6',
+  }),
+}));
+jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
+  waitForMfaFlowSuccess: (...args: unknown[]) =>
+    mockWaitForMfaFlowSuccess(...args),
+}));
 const useHandleHwSendMock = jest.mocked(useHandleHwSend);
 const onFiatConfirmMock = jest.fn();
 const useParamsMock = jest.mocked(useParams);
@@ -272,9 +288,7 @@ describe('useTransactionConfirm', () => {
   });
 
   it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
-    useSelectedGasFeeTokenMock.mockReturnValue(
-      undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-    );
+    useSelectedGasFeeTokenMock.mockReturnValue(undefined);
     const { result } = renderHook();
 
     await act(async () => {
@@ -287,6 +301,76 @@ describe('useTransactionConfirm', () => {
       }),
       expect.anything(),
     );
+  });
+
+  describe('Money MPC account signer', () => {
+    beforeEach(() => {
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
+      isMpcMoneyAccountMock.mockReturnValue(true);
+    });
+
+    it('navigates once signing verification succeeds', async () => {
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: Promise.resolve(),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ waitForResult: true }),
+        expect.anything(),
+      );
+      expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('waits for verification when the Money account pays', async () => {
+      isMpcMoneyAccountMock.mockImplementation(
+        (address: string) => address === MPC_MONEY_ADDRESS,
+      );
+      useParamsMock.mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: new Promise(() => undefined),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      act(() => {
+        void result.current.onConfirm();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockWaitForMfaFlowSuccess).toHaveBeenCalledWith('money.mpcSign');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('stays until verification succeeds', async () => {
+      onApprovalConfirm.mockReturnValue(new Promise(() => undefined));
+      mockWaitForMfaFlowSuccess.mockReturnValue({
+        promise: new Promise(() => undefined),
+        stop: jest.fn(),
+      });
+      const { result } = renderHook();
+
+      act(() => {
+        void result.current.onConfirm();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   it('does not wait for result if smart transaction', async () => {
@@ -835,9 +919,7 @@ describe('useTransactionConfirm', () => {
         pending: false,
       });
 
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
 
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -903,9 +985,7 @@ describe('useTransactionConfirm', () => {
     });
 
     it('does nothing if selectedGasFeeToken missing', async () => {
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
 
       const { result } = renderHook();
 
@@ -1010,9 +1090,7 @@ describe('useTransactionConfirm', () => {
     });
 
     it('does nothing if selectedGasFeeToken is missing', async () => {
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
 
       const { result } = renderHook();
 

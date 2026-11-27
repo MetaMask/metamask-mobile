@@ -4,7 +4,10 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
-import { createMarketGroupProjection } from './createMarketGroupProjection';
+import {
+  createMarketGroupProjection,
+  refreshMarketGroupProjection,
+} from './createMarketGroupProjection';
 
 const createMarket = (
   id: string,
@@ -242,5 +245,68 @@ describe('createMarketGroupProjection', () => {
       { type: 'standard', market: duplicate, firstIndex: 0 },
       { type: 'standard', market: duplicateAgain, firstIndex: 1 },
     ]);
+  });
+});
+
+describe('refreshMarketGroupProjection', () => {
+  const retick = (market: PredictMarket): PredictMarket => ({
+    ...market,
+    lastPrice: '0.2' as PredictMarket['lastPrice'],
+  });
+
+  it('keeps an untouched row and matches a rebuild after a quote', () => {
+    const markets = [
+      createMarket('standard'),
+      createMarket(
+        'total-high',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 220.5, 1),
+      ),
+      createMarket(
+        'total-low',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 218.5, 0),
+      ),
+    ];
+    const projection = createMarketGroupProjection(markets);
+    const nextMarkets = [markets[0], retick(markets[1]), markets[2]];
+    const refreshed = refreshMarketGroupProjection(
+      markets,
+      projection,
+      nextMarkets,
+    );
+
+    expect(refreshed).toEqual(createMarketGroupProjection(nextMarkets));
+    expect(refreshed[0]).toBe(projection[0]);
+    expect(refreshed[1]).not.toBe(projection[1]);
+    expect(refreshed[1]).toMatchObject({
+      markets: [markets[2], nextMarkets[1]],
+    });
+  });
+
+  it('rebuilds when the group object changes', () => {
+    const markets = [
+      createMarket(
+        'total-low',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 218.5, 0),
+      ),
+      createMarket(
+        'total-high',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 220.5, 1),
+      ),
+    ];
+    const projection = createMarketGroupProjection(markets);
+    const nextMarkets = [
+      markets[0],
+      createMarket(
+        'total-high',
+        createGroup(PREDICT_MARKET_TYPES.TOTAL, 'totals', 230, 1),
+      ),
+    ];
+
+    expect(
+      refreshMarketGroupProjection(markets, projection, nextMarkets),
+    ).toEqual(createMarketGroupProjection(nextMarkets));
+    expect(
+      refreshMarketGroupProjection(markets, projection, nextMarkets),
+    ).not.toBe(projection);
   });
 });

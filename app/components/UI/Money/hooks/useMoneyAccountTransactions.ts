@@ -6,7 +6,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyAccountDisplayAddress } from '../../../../selectors/moneyAccountLifecycleController';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
@@ -71,13 +71,16 @@ export interface UseMoneyAccountTransactionsResult {
  * involving the primary Money account address.
  */
 export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult {
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = useSelector(selectMoneyAccountDisplayAddress);
   const nonReplacedTransactions = useSelector(selectNonReplacedTransactions);
 
-  const moneyAddress = useMemo(() => {
-    const raw = primaryMoneyAccount?.address;
-    return raw ? toChecksumHexAddress(raw) : undefined;
-  }, [primaryMoneyAccount]);
+  const moneyAddress = useMemo(
+    () =>
+      moneyAccountAddress
+        ? toChecksumHexAddress(moneyAccountAddress)
+        : undefined,
+    [moneyAccountAddress],
+  );
 
   return useMemo(() => {
     const moneyTransactions = nonReplacedTransactions

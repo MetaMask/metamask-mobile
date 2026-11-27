@@ -13,13 +13,14 @@ import {
 } from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
+import { trackMoneyMpcSigningRequested } from '../../util/analytics/moneyMfaTracking';
 
 const envOrDefault = (value: string | undefined, fallback: string): string =>
   value === undefined || value === '' ? fallback : value;
 
 const MPC_CLOUD_URL = envOrDefault(
   process.env.MM_MONEY_MPC_CLOUD_URL,
-  'https://mpc-service.dev-api.cx.metamask.io/v2',
+  'https://mpc-service.dev-api.cx.metamask.io/v1',
 );
 const MPC_RELAYER_URL = envOrDefault(
   process.env.MM_MONEY_MPC_RELAYER_URL,
@@ -37,6 +38,7 @@ export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
     ExactExecutionEnforcer: '0x146713078D39eCC1F5338309c28405ccf85Abfbb',
     LimitedCallsEnforcer: '0x04658B29F6b82ed55274221a06Fc97D318E25416',
     RedeemerEnforcer: '0xE144b0b2618071B4E56f746313528a669c7E65c5',
+    TimestampEnforcer: '0x1046bb45C8d673d4ea75321280DB34899413c069',
     ValueLteEnforcer: '0x92Bf12322527cAA612fd31a0e810472BBB106A8F',
   },
   musdTokenAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
@@ -54,6 +56,7 @@ export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
     },
   ],
   cardSignInDomain: 'link.metamask.io',
+  chompSignInDomain: 'chomp.dev-api.cx.metamask.io',
 };
 
 /**
@@ -107,6 +110,10 @@ export function buildMpcMoneyKeyringV2Builder(): KeyringV2Builder {
 
 export interface RealMpcMoneyKeyringBuilderOptions {
   getBearerToken: () => Promise<string>;
+  /** Returns a one-time 2FA approval for a signature hash. */
+  getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>;
+  /** Returns a 2FA-verified profile token, for 2FA calls without a hash. */
+  getTwoFactorToken?: () => Promise<string>;
 }
 
 let twoFactorTokenProvider: (() => Promise<string>) | undefined;
@@ -130,6 +137,8 @@ const getProfileId = (token: string): string => {
 // Without a 2FA token provider, 2FA calls use the bearer token; the dev MPC service accepts it.
 export function buildRealMpcMoneyKeyringBuilder({
   getBearerToken,
+  getTwoFactorApproval,
+  getTwoFactorToken,
 }: RealMpcMoneyKeyringBuilderOptions): KeyringBuilder {
   const builder: KeyringBuilder = () => {
     // Lazy so builds without the real keyring never load the native module.
@@ -140,10 +149,21 @@ export function buildRealMpcMoneyKeyringBuilder({
       dkls23Lib,
       cloudURL: MPC_CLOUD_URL,
       relayerURL: MPC_RELAYER_URL,
-      getProfileToken: async (options?: { twoFactor?: boolean }) =>
-        options?.twoFactor && twoFactorTokenProvider
-          ? twoFactorTokenProvider()
-          : getBearerToken(),
+      getProfileToken: async (options?: {
+        twoFactor?: boolean;
+        challenge?: Uint8Array;
+      }) => {
+        if (options?.twoFactor && twoFactorTokenProvider) {
+          return twoFactorTokenProvider();
+        }
+        if (options?.twoFactor && options.challenge && getTwoFactorApproval) {
+          return getTwoFactorApproval(options.challenge);
+        }
+        if (options?.twoFactor && !options.challenge && getTwoFactorToken) {
+          return getTwoFactorToken();
+        }
+        return getBearerToken();
+      },
       // Placeholder until the backup key source is decided.
       getBackupEncryptionKey: async () =>
         sha256(
@@ -151,14 +171,15 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
-      isMfaRequired: async (request, { address, hash }) =>
-        Promise.resolve(
-          getMfaRequirement(request, {
-            address,
-            hash,
-            config: MPC_MFA_WHITELIST_CONFIG,
-          }).mfaRequired,
-        ),
+      isMfaRequired: async (request, { address, hash }) => {
+        const requirement = getMfaRequirement(request, {
+          address,
+          hash,
+          config: MPC_MFA_WHITELIST_CONFIG,
+        });
+        trackMoneyMpcSigningRequested(request, requirement);
+        return requirement.mfaRequired;
+      },
       webSocket: WebSocket,
     });
   };

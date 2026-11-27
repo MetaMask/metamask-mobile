@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Platform } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -18,6 +18,7 @@ interface MoneyMfaStatusBannerProps {
   isSettingUpDismissed: boolean;
   onDismissSettingUp: () => void;
   onRetry: () => void;
+  onRetrySignIn: () => void;
 }
 
 const MoneyMfaStatusBanner = ({
@@ -25,16 +26,29 @@ const MoneyMfaStatusBanner = ({
   isSettingUpDismissed,
   onDismissSettingUp,
   onRetry,
+  onRetrySignIn,
 }: MoneyMfaStatusBannerProps) => {
-  const isSettingUp = status === 'setting_up';
+  const isSigningIn = status === 'signing_in';
+  const isSettingUp = status === 'setting_up' || isSigningIn;
+  const isSignInFailed = status === 'sign_in_failed';
   const isVisible =
-    (isSettingUp && !isSettingUpDismissed) || status === 'failed';
-  const title = strings(
-    isSettingUp ? 'money.mfa.setting_up_title' : 'money.mfa.failed_title',
-  );
+    isSigningIn ||
+    (isSettingUp && !isSettingUpDismissed) ||
+    status === 'failed' ||
+    isSignInFailed;
+  let titleKey = 'money.mfa.failed_title';
+  if (isSigningIn) {
+    titleKey = 'money.mfa.signing_in_title';
+  } else if (isSettingUp) {
+    titleKey = 'money.mfa.setting_up_title';
+  } else if (isSignInFailed) {
+    titleKey = 'money.mfa.sign_in_failed_title';
+  }
+  const title = strings(titleKey);
 
   useEffect(() => {
-    if (isVisible) {
+    // Android reads the live region.
+    if (isVisible && Platform.OS === 'ios') {
       AccessibilityInfo.announceForAccessibility(title);
     }
   }, [isVisible, title]);
@@ -51,14 +65,20 @@ const MoneyMfaStatusBanner = ({
         twClassName="mx-4 mt-2"
         startAccessory={<PendingSpinner size={IconSize.Md} />}
         title={title}
-        description={strings('money.mfa.setting_up_description')}
+        description={
+          isSigningIn ? undefined : strings('money.mfa.setting_up_description')
+        }
         descriptionProps={{ color: TextColor.TextAlternative }}
-        onClose={onDismissSettingUp}
+        onClose={isSigningIn ? undefined : onDismissSettingUp}
         closeButtonProps={{
           accessibilityLabel: strings('money.mfa.dismiss'),
           testID: MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE,
         }}
-        testID={MoneyMfaTestIds.SETTING_UP_BANNER}
+        testID={
+          isSigningIn
+            ? MoneyMfaTestIds.SIGNING_IN_BANNER
+            : MoneyMfaTestIds.SETTING_UP_BANNER
+        }
       />
     );
   }
@@ -69,11 +89,23 @@ const MoneyMfaStatusBanner = ({
       severity={BannerAlertSeverity.Danger}
       twClassName="mx-4 mt-2"
       title={title}
-      description={strings('money.mfa.failed_description')}
+      description={strings(
+        isSignInFailed
+          ? 'money.mfa.sign_in_failed_description'
+          : 'money.mfa.failed_description',
+      )}
       actionButtonLabel={strings('money.mfa.failed_retry')}
-      actionButtonOnPress={onRetry}
-      actionButtonProps={{ testID: MoneyMfaTestIds.FAILED_BANNER_RETRY }}
-      testID={MoneyMfaTestIds.FAILED_BANNER}
+      actionButtonOnPress={isSignInFailed ? onRetrySignIn : onRetry}
+      actionButtonProps={{
+        testID: isSignInFailed
+          ? MoneyMfaTestIds.SIGN_IN_FAILED_BANNER_RETRY
+          : MoneyMfaTestIds.FAILED_BANNER_RETRY,
+      }}
+      testID={
+        isSignInFailed
+          ? MoneyMfaTestIds.SIGN_IN_FAILED_BANNER
+          : MoneyMfaTestIds.FAILED_BANNER
+      }
     />
   );
 };

@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "复制 {{field}}",
       "copied_label": "已复制 {{field}}",
-      "copy_all_button": "复制所有信息",
-      "copied_all_label": "银行账户信息已复制",
       "button": "完成",
       "waiting_for_details": "您的账户详情将很快显示在这里。",
       "loading_details": "正在加载账户详情",
@@ -1478,9 +1476,7 @@
       },
       "sub_header": {
         "at_connector": "于",
-        "market_cap_suffix": "市值",
-        "size_at_price": "{{size}}，价格为 {{price}}",
-        "size_at_market_cap": "{{size}}，市值 {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "市值"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} 盈亏（30 天）",
@@ -1995,22 +1991,6 @@
         "4": "周四",
         "5": "周五",
         "6": "周六"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "已买入",
-        "sold": "已卖出",
-        "perps_closed": "已平仓",
-        "perps_long_opened": "已开设多头仓位",
-        "perps_long_added": "已添加到多头仓位",
-        "perps_long_reduced": "已减持多头仓位",
-        "perps_short_opened": "已开空",
-        "perps_short_added": "已添加到空头仓位",
-        "perps_short_reduced": "回补",
-        "spot_opened": "已买入",
-        "spot_added": "已继续买入",
-        "spot_reduced": "卖出一部分",
-        "spot_closed": "全部卖出"
       }
     },
     "trader_position": {

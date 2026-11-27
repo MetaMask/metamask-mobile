@@ -1,5 +1,9 @@
 import React from 'react';
 import {
+  Box,
+  BannerBaseActionButtonLayout,
+  IconAlert,
+  IconAlertSeverity,
   IconColor,
   IconSize,
   Spinner,
@@ -43,10 +47,17 @@ export function buildQuickBuyToastOptions(
   );
 
   const description = trade.rate || undefined;
+  // Pin the action to the trailing edge; the design-system default stacks it
+  // below the title and description. Drop the close X as well: with the X the
+  // action, X and text compete for width and the text wraps into a narrow
+  // column. Swipe and auto-dismiss still close the toast, and this matches the
+  // Perps post-to-feed toast, which has no X.
   const actionButton = linkButtonOptions
     ? {
         actionButtonLabel: linkButtonOptions.label,
         actionButtonOnPress: linkButtonOptions.onPress,
+        actionButtonLayout: BannerBaseActionButtonLayout.End,
+        showCloseButton: false,
       }
     : {};
 
@@ -57,6 +68,17 @@ export function buildQuickBuyToastOptions(
         hasNoTimeout: false,
         title,
         description,
+        // The design-system toast top-aligns its content when the title wraps,
+        // which pins the default check to the first line. Wrapping the check in
+        // a self-centered box keeps it level with the middle of the text block.
+        startAccessory: (
+          <Box twClassName="self-center">
+            <IconAlert
+              severity={IconAlertSeverity.Success}
+              size={IconSize.Lg}
+            />
+          </Box>
+        ),
         ...actionButton,
       };
     case 'failed':

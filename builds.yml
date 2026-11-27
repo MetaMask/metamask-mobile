@@ -359,6 +359,9 @@ builds:
     signing: *signing_dev
     env:
       <<: *main_dev_env
+      # Money MPC test build only. Not for merge.
+      MM_MONEY_MFA_ENABLED: 'true'
+      MM_MONEY_MPC_KEYRING_ENABLED: 'true'
 
   # Same app config as main-dev, but signed with the RC certificate so the IPA is
   # accepted by TestFlight.
@@ -370,6 +373,9 @@ builds:
     env:
       <<: *main_dev_env
       PROFILE: 'release'
+      # Money MPC test build only. Not for merge.
+      MM_MONEY_MFA_ENABLED: 'true'
+      MM_MONEY_MPC_KEYRING_ENABLED: 'true'
 
   # Expo dev build (Debug, simulator + device — triggered on push to main)
   main-dev-expo:
