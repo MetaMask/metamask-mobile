@@ -248,7 +248,9 @@ const SocialAINotificationPreferencesContent = ({
     `h-px bg-muted${withHorizontalPadding ? ' mx-4' : ''}`,
   );
   const showPushPermissionWarning =
-    isOsPushPermissionDenied && Boolean(preferences.pushNotificationsEnabled);
+    !isLoadingPreferences &&
+    isOsPushPermissionDenied &&
+    Boolean(preferences.pushNotificationsEnabled);
 
   return (
     <>
