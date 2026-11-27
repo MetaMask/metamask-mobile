@@ -158,14 +158,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   // WalletRecovery MFA is only for true social-login rehydration
   // (`oauthLoginSuccess` from onboarding). App lock / password-outdated /
   // Login→REHYDRATE handoffs omit that flag and must keep legacy unlock.
-  // Stay on legacy until listing finds ≥1 enrolled factor — no loader flash
-  // when there are none.
+  // While the locked list runs, show the WalletRecovery loader (not legacy)
+  // so we do not flash fox unlock before MFA.
   const canAttemptSocialMfaVerify =
     Boolean(isComingFromOauthOnboarding) &&
     isMfaUiKitEnabled &&
     isMfaRecoveryEnabled;
   const [hasEnrolledSocialMfaFactor, setHasEnrolledSocialMfaFactor] =
     useState(false);
+  const [isListingSocialMfaFactors, setIsListingSocialMfaFactors] = useState(
+    () => canAttemptSocialMfaVerify,
+  );
   const canOfferSocialMfaVerify =
     canAttemptSocialMfaVerify && hasEnrolledSocialMfaFactor;
   const authConnection =
@@ -677,10 +680,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
    */
   const offerLockedSocialMfaVerify = useCallback(async () => {
     if (!canAttemptSocialMfaVerify) {
+      setIsListingSocialMfaFactors(false);
       setHasEnrolledSocialMfaFactor(false);
       return;
     }
 
+    setIsListingSocialMfaFactors(true);
     setError(null);
     setVerifyError(null);
     setPasswordFromVerify(false);
@@ -708,10 +713,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setHasEnrolledSocialMfaFactor(false);
         return;
       }
-      // Only now switch off legacy onto WalletRecovery (loader covers OS sheet).
+      // Factors found: leave the blank hold and open WalletRecovery (loader
+      // covers the OS passkey / MFA sheet).
       setHasEnrolledSocialMfaFactor(true);
       setFallbackMethods(allowedMethods);
       setWalletRecoveryStep('loading');
+      setIsListingSocialMfaFactors(false);
 
       const highestMethod = allowedMethods[0];
       await exchangeSocialTokenForLockedMfa();
@@ -753,6 +760,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
     } finally {
       lockedVerifyInFlightRef.current = false;
+      setIsListingSocialMfaFactors(false);
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
   }, [
@@ -1058,6 +1066,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
       hasOfferedLockedSocialMfa.current = true;
       setHasEnrolledSocialMfaFactor(false);
+      setIsListingSocialMfaFactors(false);
     }, 10_000);
     return () => clearTimeout(timer);
   }, [canAttemptSocialMfaVerify, hasSocialAuthConnection]);
@@ -1321,7 +1330,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
     >
       <ThrowErrorIfNeeded />
-      {canOfferSocialMfaVerify ? renderWalletRecovery() : renderLegacyUnlock()}
+      {canOfferSocialMfaVerify ? (
+        renderWalletRecovery()
+      ) : canAttemptSocialMfaVerify && isListingSocialMfaFactors ? (
+        // Loader while listing — avoids legacy flash before MFA.
+        <WalletRecoveryLoading />
+      ) : (
+        renderLegacyUnlock()
+      )}
     </ErrorBoundary>
   );
 };

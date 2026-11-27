@@ -1608,11 +1608,11 @@ describe('OAuthRehydration', () => {
         },
       );
 
-      // Listing in progress: stay on legacy — no WalletRecovery loader flash.
-      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeOnTheScreen();
+      // Listing in progress: loader, not legacy.
+      expect(queryByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeNull();
       expect(
-        queryByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
-      ).toBeNull();
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
 
       await act(async () => {
         resolveList(['passkey', 'totp']);
@@ -1689,20 +1689,25 @@ describe('OAuthRehydration', () => {
         },
       );
 
-      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeOnTheScreen();
+      // While listing: loader, not legacy.
+      expect(queryByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeNull();
       expect(
-        queryByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
-      ).toBeNull();
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
 
       await waitFor(() => {
-        expect(mockListActiveSocialLoginMethods).toHaveBeenCalled();
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
       });
-      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeOnTheScreen();
       expect(
         queryByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
       ).toBeNull();
       expect(
         queryByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
       ).toBeNull();
       expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
     });
@@ -1753,12 +1758,11 @@ describe('OAuthRehydration', () => {
           },
         );
 
+        // Waiting for social auth: loader, not legacy.
+        expect(queryByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeNull();
         expect(
-          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+          getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
         ).toBeOnTheScreen();
-        expect(
-          queryByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
-        ).toBeNull();
         expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
 
         await act(async () => {
