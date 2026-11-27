@@ -8,7 +8,13 @@ import {
   onFirstOhlcvData,
 } from '../ohlcvIngestion';
 import {
+  isLegendOverlayEnabled,
+  requestLegendRealtimeRefresh,
+} from '../../features/indicators/legend';
+import {
   __resetStateForTests,
+  doesLegendOwnLayoutSettle,
+  registerStudy,
   getCurrentResolution,
   getOhlcvData,
   getOhlcvGeneration,
@@ -23,6 +29,11 @@ import type {
   TVActiveChart,
   TVChartingLibraryWidget,
 } from '../../core/types';
+
+jest.mock('../../features/indicators/legend', () => ({
+  isLegendOverlayEnabled: jest.fn(() => false),
+  requestLegendRealtimeRefresh: jest.fn(),
+}));
 
 const bar = (time: number, close = 1): OHLCVBar => ({
   time,
@@ -985,5 +996,60 @@ describe('error paths', () => {
       },
     );
     expect(errorCalls.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('legend integration', () => {
+  const makeReadyChart = (): TVActiveChart =>
+    ({
+      resetData: jest.fn(),
+      setResolution: jest.fn(),
+      onDataLoaded: jest
+        .fn()
+        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+      getPanes: jest.fn().mockReturnValue([]),
+    }) as unknown as TVActiveChart;
+
+  beforeEach(() => {
+    __resetStateForTests();
+    __resetOhlcvIngestionForTests();
+    (isLegendOverlayEnabled as jest.Mock).mockReset();
+    (requestLegendRealtimeRefresh as jest.Mock).mockClear();
+  });
+
+  it('M2: requests a (throttled) legend refresh on every realtime tick', () => {
+    handleRealtimeUpdate({ bar: bar(60_000, 2) });
+    expect(requestLegendRealtimeRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('M5: does not claim layout-settle ownership when the overlay is disabled', () => {
+    (isLegendOverlayEnabled as jest.Mock).mockReturnValue(false);
+    handleSetOHLCVData({ data: oneMinuteApart(3) });
+    setWidget({
+      activeChart: () => makeReadyChart(),
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+    registerStudy('active', 'RSI', 'sid-rsi');
+    // Resolution change (1m -> 5m) is the path that claims ownership.
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+    expect(doesLegendOwnLayoutSettle()).toBe(false);
+  });
+
+  it('M5: claims layout-settle ownership when the overlay is enabled', () => {
+    (isLegendOverlayEnabled as jest.Mock).mockReturnValue(true);
+    handleSetOHLCVData({ data: oneMinuteApart(3) });
+    setWidget({
+      activeChart: () => makeReadyChart(),
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+    registerStudy('active', 'RSI', 'sid-rsi');
+    // Resolution change (1m -> 5m) is the path that claims ownership.
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+    expect(doesLegendOwnLayoutSettle()).toBe(true);
   });
 });

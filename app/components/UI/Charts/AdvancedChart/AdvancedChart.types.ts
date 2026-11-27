@@ -850,7 +850,15 @@ export interface LegendPlotConfig {
 export interface LegendIndicatorConfig {
   plots: LegendPlotConfig[];
   isMA?: boolean;
-  useIndex?: boolean;
+  /**
+   * 'tv' (default): show the value exactly as TradingView formats it.
+   * 'compact': K/M/B abbreviation from the raw number (e.g. Volume).
+   */
+  valueFormat?: 'tv' | 'compact';
+  /** Color for `negativeColorPlot` when its value is negative (e.g. MACD Hist). */
+  negativeColor?: string | null;
+  /** tvTitle of the plot that switches to `negativeColor` when negative. */
+  negativeColorPlot?: string;
   /** Render all plots in a single pill (e.g. BB(20,2) U:… M:… L:…). */
   combineInOnePill?: boolean;
   /** Leading title when combineInOnePill is true (e.g. BB(20,2)). */

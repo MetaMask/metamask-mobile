@@ -44,6 +44,10 @@ import {
   setVisibleToMs,
 } from '../core/state';
 import type { TVActiveChart, TVChartingLibraryWidget } from '../core/types';
+import {
+  isLegendOverlayEnabled,
+  requestLegendRealtimeRefresh,
+} from '../features/indicators/legend';
 import { forwardRealtimeTick } from './datafeed';
 import { resolveAllPendingOlderBarsNoData } from '../pagination/rnBacked';
 import { slbCenterViewport } from '../overlays/socialLeaderboard';
@@ -63,7 +67,12 @@ let firstDataDelivered = false;
  * the premature 2-rAF timer in emitLayoutSettled.
  */
 function claimLegendSettleOwnership(): void {
-  if (getActiveStudies().size > 0 || getMaStudies().size > 0) {
+  // M5: only the legend overlay ever releases the claim (notifyLegendRendered),
+  // so never claim when the overlay is disabled.
+  if (
+    isLegendOverlayEnabled() &&
+    (getActiveStudies().size > 0 || getMaStudies().size > 0)
+  ) {
     setLegendOwnsLayoutSettle(true);
   }
 }
@@ -180,6 +189,9 @@ export function handleRealtimeUpdate(
     close: bar.close,
     volume: bar.volume,
   });
+  // M2: study values change with every tick — refresh the legend (throttled,
+  // skipped while the user is scrubbing).
+  requestLegendRealtimeRefresh();
 }
 
 function applyVisibleRange(

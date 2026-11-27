@@ -107,6 +107,12 @@ export const getMAOptions = (
   }));
 };
 
+/**
+ * Legend config for the custom overlay. Each plot is matched to TradingView's
+ * export / crosshair data by `tvTitle`, which must equal the plot title in the
+ * v30.1.0 study metainfo (never by column position: TV orders MACD columns as
+ * Histogram, MACD, Signal and BB columns as Median, Upper, Lower).
+ */
 export const buildIndicatorLegendConfig = (
   colors: IndicatorColorSet,
 ): Record<string, LegendIndicatorConfig> => {
@@ -115,7 +121,6 @@ export const buildIndicatorLegendConfig = (
       key,
       {
         isMA: true,
-        useIndex: true,
         plots: [
           {
             tvTitle: 'Plot',
@@ -139,12 +144,12 @@ export const buildIndicatorLegendConfig = (
           color: colors.MACD.histogramPositive,
         },
       ],
-      useIndex: true,
+      negativeColorPlot: 'Histogram',
+      negativeColor: colors.MACD.histogramNegative,
     },
     RSI: {
       subPaneLegend: true,
       plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: colors.RSI.plot }],
-      useIndex: true,
     },
     BOL: {
       combineInOnePill: true,
@@ -154,11 +159,10 @@ export const buildIndicatorLegendConfig = (
         { tvTitle: 'Median', label: 'M:', color: colors.BOL.basis },
         { tvTitle: 'Lower', label: 'L:', color: colors.BOL.lower },
       ],
-      useIndex: true,
     },
     Volume: {
-      plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
-      useIndex: true,
+      valueFormat: 'compact',
+      plots: [{ tvTitle: 'Volume', label: 'Vol', color: null }],
     },
     ...maLegendEntries,
   };

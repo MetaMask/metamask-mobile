@@ -7,6 +7,15 @@ import {
   attachTapDismiss,
 } from '../crosshair';
 import { __resetStateForTests, setOhlcvData } from '../../core/state';
+import {
+  onLegendCrosshairDismissed,
+  renderLegendFromEntityValues,
+} from '../../features/indicators/legend';
+
+jest.mock('../../features/indicators/legend', () => ({
+  onLegendCrosshairDismissed: jest.fn(),
+  renderLegendFromEntityValues: jest.fn(),
+}));
 import type {
   TVActiveChart,
   TVChartingLibraryWidget,
@@ -205,5 +214,84 @@ describe('attachTapDismiss', () => {
     emit({ time: 0, price: 1 });
     const last = bridge.postMessage.mock.calls.at(-1)?.[0];
     expect(last).toContain('"data":null');
+  });
+});
+
+describe('crosshair → legend overlay (H2)', () => {
+  beforeEach(() => {
+    __resetStateForTests();
+    __resetCrosshairForTests();
+    (renderLegendFromEntityValues as jest.Mock).mockClear();
+    (onLegendCrosshairDismissed as jest.Mock).mockClear();
+    installRNBridge();
+    jest
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((cb: FrameRequestCallback) => {
+        cb(0);
+        return 1;
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const entityValues = {
+    'sid-rsi': {
+      isHovered: false,
+      title: 'RSI',
+      values: [{ title: 'Plot', value: '42.00' }],
+    },
+  };
+
+  it('feeds entityValues to the legend overlay on crosshair move', () => {
+    setOhlcvData([{ time: 0, open: 1, high: 1, low: 1, close: 1 }]);
+    const { chart, emit } = makeChart();
+    attachCrosshairListener(chart);
+    emit({ time: 1_700_000_000, price: 1, entityValues });
+    expect(renderLegendFromEntityValues).toHaveBeenCalledWith(entityValues);
+  });
+
+  it('coalesces multiple moves into one legend render per frame', () => {
+    const frames: FrameRequestCallback[] = [];
+    (window.requestAnimationFrame as jest.Mock).mockImplementation(
+      (cb: FrameRequestCallback) => {
+        frames.push(cb);
+        return frames.length;
+      },
+    );
+    setOhlcvData([{ time: 0, open: 1, high: 1, low: 1, close: 1 }]);
+    const { chart, emit } = makeChart();
+    attachCrosshairListener(chart);
+    emit({ time: 1, price: 1, entityValues });
+    emit({ time: 2, price: 1, entityValues });
+    emit({ time: 3, price: 1, entityValues });
+    expect(frames).toHaveLength(1);
+    frames[0](0);
+    expect(renderLegendFromEntityValues).toHaveBeenCalledTimes(1);
+    expect(renderLegendFromEntityValues).toHaveBeenCalledWith(entityValues);
+  });
+
+  it('reverts the legend when the crosshair leaves the chart', () => {
+    const { chart, emit } = makeChart();
+    attachCrosshairListener(chart);
+    emit({ time: undefined, price: undefined });
+    expect(onLegendCrosshairDismissed).toHaveBeenCalled();
+  });
+
+  it('reverts the legend on tap-dismiss', () => {
+    jest.useFakeTimers();
+    setOhlcvData([{ time: 0, open: 1, high: 1, low: 1, close: 1 }]);
+    const { chart, emit } = makeChart();
+    const { widget, fire } = makeWidget();
+    attachCrosshairListener(chart);
+    attachTapDismiss(widget);
+    emit({ time: 0, price: 1, entityValues });
+    jest.advanceTimersByTime(600);
+    fire('mouse_down');
+    fire('mouse_up');
+    jest.advanceTimersByTime(60);
+    expect(onLegendCrosshairDismissed).toHaveBeenCalled();
+    jest.useRealTimers();
   });
 });

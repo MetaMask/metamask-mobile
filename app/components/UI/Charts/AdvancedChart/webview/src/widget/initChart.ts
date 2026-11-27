@@ -88,13 +88,21 @@ function resolveEnabledFeatures(features: ChartFeaturesConfig): string[] {
   return list;
 }
 
-function resolveDisabledFeatures(features: ChartFeaturesConfig): string[] {
+function resolveDisabledFeatures(
+  features: ChartFeaturesConfig,
+  legendOverlayEnabled = false,
+): string[] {
   const list = (features.disabledFeatures ?? []).slice();
   if (!features.enableDrawingTools) {
     list.push('left_toolbar', 'context_menus');
   }
   if (!features.showBuiltInLegend) {
     list.push('legend_widget');
+  }
+  if (legendOverlayEnabled) {
+    // v30.1.0 featureset: hides show/hide, settings and delete buttons in
+    // TV's legend (replaces relying only on the CSS in legend.ts).
+    list.push('edit_buttons_in_legend');
   }
   list.push('use_localstorage_for_settings');
   return list;
@@ -181,7 +189,10 @@ export function createChartWidget(
   }
 
   const features = config.features ?? {};
-  const disabledFeatures = resolveDisabledFeatures(features);
+  const disabledFeatures = resolveDisabledFeatures(
+    features,
+    config.legendOverlay?.enabled === true,
+  );
 
   const widget = new TradingView.widget({
     symbol: getCurrentSymbol(),

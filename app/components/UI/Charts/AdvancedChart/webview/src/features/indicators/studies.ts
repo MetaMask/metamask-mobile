@@ -53,8 +53,15 @@ function macdPreset(colors: IndicatorColors | undefined): StudyPreset {
     overrides: {
       'MACD.color': c.macd,
       'Signal.color': c.signal,
+      // v30.1.0 MACD histogram palette has 4 slots driven by its colorer:
+      //   0 = above zero & rising,  1 = above zero & falling,
+      //   2 = below zero & rising,  3 = below zero & falling.
+      // Previously only 0/1 were set, so "above zero & falling" bars were
+      // painted with the negative color and 2/3 kept TV defaults.
       'Histogram.color.0': c.histogramPositive,
-      'Histogram.color.1': c.histogramNegative,
+      'Histogram.color.1': c.histogramPositive,
+      'Histogram.color.2': c.histogramNegative,
+      'Histogram.color.3': c.histogramNegative,
     },
     paneTarget: 'sub',
   };
@@ -64,7 +71,9 @@ function rsiPreset(colors: IndicatorColors | undefined): StudyPreset {
   const c = colors?.RSI ?? {};
   return {
     studyName: 'Relative Strength Index',
-    inputs: { in_0: 14 },
+    // v30.1.0 RSI input id is `length` (not positional `in_0`, which TV
+    // silently ignores).
+    inputs: { length: 14 },
     overrides: {
       'Plot.color': c.plot,
       'hlines background.visible': false,
@@ -80,17 +89,10 @@ function bolPreset(colors: IndicatorColors | undefined): StudyPreset {
     inputs: { in_0: 20, in_1: 2 },
     overrides: {
       'Upper.color': c.upper,
-      'Basis.color': c.basis,
+      // v30.1.0 BB middle plot is titled "Median" (not "Basis").
+      'Median.color': c.basis,
       'Lower.color': c.lower,
     },
-  };
-}
-
-function ma200Preset(): StudyPreset {
-  return {
-    studyName: 'Moving Average',
-    inputs: { length: 200 },
-    overrides: {},
   };
 }
 
@@ -134,12 +136,11 @@ export function resolveStudyPreset(
       return rsiPreset(indicatorColors);
     case 'BOL':
       return bolPreset(indicatorColors);
-    case 'MA200':
-      return ma200Preset();
     case 'MA5':
     case 'MA10':
     case 'MA20':
     case 'MA50':
+    case 'MA200':
       return maVariantPreset(name, indicatorColors);
     default: {
       const preset = fallbackPreset(inputsOverride);
@@ -155,17 +156,25 @@ export function isSubPanePreset(preset: StudyPreset): boolean {
 
 /**
  * Creates the indicator study on the given chart, returning the studyId once
- * TradingView resolves the create promise.
+ * TradingView resolves the create promise. v30.1.0 `createStudy` resolves to
+ * `null` when the study could not be created — surface that as an error.
  */
 export function createIndicatorStudy(
   chart: TVActiveChart,
   preset: StudyPreset,
 ): Promise<StudyId> {
-  return chart.createStudy(
-    preset.studyName,
-    false,
-    false,
-    preset.inputs,
-    preset.overrides,
-  );
+  return chart
+    .createStudy(
+      preset.studyName,
+      false,
+      false,
+      preset.inputs,
+      preset.overrides,
+    )
+    .then((studyId) => {
+      if (!studyId) {
+        throw new Error(`createStudy returned null for ${preset.studyName}`);
+      }
+      return studyId;
+    });
 }
