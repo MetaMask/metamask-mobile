@@ -46,7 +46,13 @@ interface HostileProfile {
       kind: string;
       method: string;
       path: string;
-      body: { json: { key: string; value: Record<string, unknown> }[] };
+      query?: { key: string; value: Record<string, unknown> }[];
+      pathParams?: Record<string, Record<string, unknown>>;
+      body: {
+        json: { key: string; value: Record<string, unknown> }[];
+        maxBytes: number;
+      };
+      idempotencyKey?: Record<string, unknown>;
       invariants: { implementation: string; params: Record<string, unknown> }[];
     }
   >;
@@ -323,6 +329,66 @@ const hostileVariants: {
         salt: 'kalshi-device-key-salt',
         extra: 'hostile-header',
       };
+    },
+  },
+  {
+    name: 'an added query pair',
+    reason: 'invalid_payload_contract',
+    mutate: (profile) => {
+      profile.payloads.create_order.query = [
+        { key: 'decoy', value: { input: 'price' } },
+      ];
+    },
+  },
+  {
+    name: 'added path parameters',
+    reason: 'invalid_payload_contract',
+    mutate: (profile) => {
+      profile.payloads.wallet_register.pathParams = {
+        wallet: { input: 'walletAddress' },
+      };
+    },
+  },
+  {
+    name: 'a cross-intent idempotency source',
+    reason: 'invalid_payload_contract',
+    mutate: (profile) => {
+      profile.payloads.crypto_deposit_address.idempotencyKey = {
+        input: 'idempotencyKey',
+        shape: { kind: 'uuid-v4' },
+      };
+    },
+  },
+  {
+    name: 'an extra idempotency key field',
+    reason: 'invalid_payload_contract',
+    mutate: (profile) => {
+      profile.payloads.wallet_register.idempotencyKey = {
+        input: 'idempotencyKey',
+        shape: { kind: 'uuid-v4' },
+        optional: true,
+      };
+    },
+  },
+  {
+    name: 'a missing idempotency key',
+    reason: 'invalid_payload_contract',
+    mutate: (profile) => {
+      delete profile.payloads.wallet_register.idempotencyKey;
+    },
+  },
+  {
+    name: 'an inflated body ceiling',
+    reason: 'invalid_body_contract',
+    mutate: (profile) => {
+      profile.payloads.create_order.body.maxBytes = 4096;
+    },
+  },
+  {
+    name: 'a reduced body ceiling',
+    reason: 'invalid_body_contract',
+    mutate: (profile) => {
+      profile.payloads.crypto_deposit_address.body.maxBytes = 128;
     },
   },
 ];

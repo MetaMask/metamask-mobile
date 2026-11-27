@@ -195,7 +195,7 @@ export const sendSigned = async <Response>(
   let retrySigned: SignedOperation;
   try {
     if (stale) {
-      const { changed } = await refreshProfileOnce();
+      await refreshProfileOnce();
       const snapshot = await resolveVenueProfile();
       if (described.code === 'venue_profile_not_ready') {
         if (!snapshot) {
@@ -214,7 +214,15 @@ export const sendSigned = async <Response>(
           return response;
         }
         throw new VenueProfilePreviewExpiredError();
-      } else if (!changed) {
+      } else if (
+        !snapshot ||
+        (snapshot.version === signed.profile.version &&
+          snapshot.sha256 === signed.profile.sha256)
+      ) {
+        // A background refresh may have admitted the new version before this
+        // refusal, in which case the refresh just now reports no change. The
+        // retry is correct whenever the admitted snapshot differs from the
+        // one that signed the refused request.
         return response;
       }
     }

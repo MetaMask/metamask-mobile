@@ -87,6 +87,25 @@ const BODY_SOURCES: Readonly<Record<string, Readonly<Record<string, Source>>>> =
       },
     },
   };
+/** Payload-level signing inputs beyond the confirmed body. Each intent pins
+ * its exact idempotency source and rendered body ceiling; a profile may not
+ * add query pairs, path parameters, or widen the body budget. */
+const INTENT_PAYLOAD_CONTRACTS: Readonly<
+  Record<VenueIntentName, { idempotencyKey: Source; maxBytes: number }>
+> = {
+  'order.place': {
+    idempotencyKey: { input: 'idempotencyKey', shape: { kind: 'uuid-v4' } },
+    maxBytes: 1024,
+  },
+  'account.activate': {
+    idempotencyKey: { input: 'idempotencyKey', shape: { kind: 'uuid-v4' } },
+    maxBytes: 512,
+  },
+  'funding.deposit': {
+    idempotencyKey: { input: 'clientOperationId', shape: { kind: 'uuid-v4' } },
+    maxBytes: 256,
+  },
+};
 const ORDER_PARAMS = {
   pricing: 'yes-leg',
   amountInput: 'amountCents',
@@ -262,10 +281,21 @@ export const applyVenueProfileCeiling = (
     ) {
       return { ok: false, reason: 'invalid_payload_contract' };
     }
+    const contract = INTENT_PAYLOAD_CONTRACTS[intent.id as VenueIntentName];
+    if (
+      payload.query !== undefined ||
+      payload.pathParams !== undefined ||
+      !matchesValue(payload.idempotencyKey, contract.idempotencyKey)
+    ) {
+      return { ok: false, reason: 'invalid_payload_contract' };
+    }
     if (!isSafeIntegerWithin(intent.confirm.signLimit, 1, 3)) {
       return { ok: false, reason: 'invalid_sign_limit' };
     }
-    if (!hasCanonicalBody(payload, intent.id)) {
+    if (
+      !hasCanonicalBody(payload, intent.id) ||
+      payload.body?.maxBytes !== contract.maxBytes
+    ) {
       return { ok: false, reason: 'invalid_body_contract' };
     }
     if (intent.id === 'order.place') {
