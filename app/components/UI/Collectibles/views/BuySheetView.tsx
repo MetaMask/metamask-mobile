@@ -34,10 +34,7 @@ const minPackQuantity = 1;
 const hapticQuantities = [...quantityOptions.map(Number), mockMaxPackQuantity];
 
 const toOption = (quantity: number) =>
-  quantity === mockMaxPackQuantity &&
-  !quantityOptions.includes(String(quantity))
-    ? maxOption
-    : String(quantity);
+  quantity === mockMaxPackQuantity ? maxOption : String(quantity);
 const toQuantity = (option: string) =>
   option === maxOption ? mockMaxPackQuantity : Number(option);
 const toTrackPercent = (quantity: number) =>

@@ -233,7 +233,29 @@ describe('BuySheetView', () => {
     ).toHaveAccessibilityValue({ now: 10 });
   });
 
-  it('selects the 10 packs chip when max is pressed', () => {
+  it('selects the max chip at the cap', () => {
+    render(
+      <BuySheetView
+        name={pack.name}
+        priceUsd={pack.priceUsd}
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.max'),
+      }),
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: strings('collectibles.buy_sheet.max'),
+      }),
+    ).toBeSelected();
+  });
+
+  it('does not select the 10 packs chip at the cap', () => {
     render(
       <BuySheetView
         name={pack.name}
@@ -252,6 +274,6 @@ describe('BuySheetView', () => {
       screen.getByRole('button', {
         name: strings('collectibles.buy_sheet.pack_count', { count: 10 }),
       }),
-    ).toBeSelected();
+    ).not.toBeSelected();
   });
 });
