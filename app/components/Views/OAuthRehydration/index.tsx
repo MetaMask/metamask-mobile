@@ -155,13 +155,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
   const isSeedlessPasswordOutdated = route?.params?.isSeedlessPasswordOutdated;
   const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess;
-  // WalletRecovery MFA verify is only for true social-login rehydration
+  // WalletRecovery MFA is only for true social-login rehydration
   // (`oauthLoginSuccess` from onboarding). App lock / password-outdated /
   // Login→REHYDRATE handoffs omit that flag and must keep legacy unlock.
-  const canOfferSocialMfaVerify =
+  // Stay on legacy until listing finds ≥1 enrolled factor — no loader flash
+  // when there are none.
+  const canAttemptSocialMfaVerify =
     Boolean(isComingFromOauthOnboarding) &&
     isMfaUiKitEnabled &&
     isMfaRecoveryEnabled;
+  const [hasEnrolledSocialMfaFactor, setHasEnrolledSocialMfaFactor] =
+    useState(false);
+  const canOfferSocialMfaVerify =
+    canAttemptSocialMfaVerify && hasEnrolledSocialMfaFactor;
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const analyticsId = useSelector(selectAnalyticsId);
@@ -670,8 +676,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
    * Telegram (sign-in email is never a Google/Apple recovery factor).
    */
   const offerLockedSocialMfaVerify = useCallback(async () => {
-    if (!canOfferSocialMfaVerify) {
-      setWalletRecoveryStep('password');
+    if (!canAttemptSocialMfaVerify) {
+      setHasEnrolledSocialMfaFactor(false);
       return;
     }
 
@@ -692,15 +698,20 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       } catch (listError) {
         Logger.log('OAuthRehydration: locked MFA list failed', {
           code: getMfaErrorCode(listError),
+          message:
+            listError instanceof Error ? listError.message : String(listError),
         });
-        setWalletRecoveryStep('password');
+        setHasEnrolledSocialMfaFactor(false);
         return;
       }
       if (allowedMethods.length === 0) {
-        setWalletRecoveryStep('password');
+        setHasEnrolledSocialMfaFactor(false);
         return;
       }
+      // Only now switch off legacy onto WalletRecovery (loader covers OS sheet).
+      setHasEnrolledSocialMfaFactor(true);
       setFallbackMethods(allowedMethods);
+      setWalletRecoveryStep('loading');
 
       const highestMethod = allowedMethods[0];
       await exchangeSocialTokenForLockedMfa();
@@ -726,9 +737,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             mfaError instanceof Error ? mfaError.message : String(mfaError),
         });
         if (allowedMethods.length === 0) {
-          setWalletRecoveryStep('password');
+          setHasEnrolledSocialMfaFactor(false);
           return;
         }
+        setHasEnrolledSocialMfaFactor(true);
         setFallbackMethods(allowedMethods);
         setWalletRecoveryStep('verify');
         return;
@@ -744,7 +756,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
   }, [
-    canOfferSocialMfaVerify,
+    canAttemptSocialMfaVerify,
     authConnection,
     lockedMfaReason,
     listActiveSocialLoginMethods,
@@ -1020,7 +1032,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     authConnection === 'telegram';
   useEffect(() => {
     if (
-      !canOfferSocialMfaVerify ||
+      !canAttemptSocialMfaVerify ||
       !hasSocialAuthConnection ||
       hasOfferedLockedSocialMfa.current
     ) {
@@ -1029,30 +1041,26 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     hasOfferedLockedSocialMfa.current = true;
     void offerLockedSocialMfaVerify();
   }, [
-    canOfferSocialMfaVerify,
+    canAttemptSocialMfaVerify,
     hasSocialAuthConnection,
     offerLockedSocialMfaVerify,
   ]);
 
-  // Safety: don't leave the loading gate forever if social state never arrives.
+  // Safety: give up waiting for social state so a late connection cannot
+  // start MFA after we have already settled on legacy unlock.
   useEffect(() => {
-    if (
-      !canOfferSocialMfaVerify ||
-      walletRecoveryStep !== 'loading' ||
-      hasSocialAuthConnection
-    ) {
+    if (!canAttemptSocialMfaVerify || hasSocialAuthConnection) {
       return;
     }
     const timer = setTimeout(() => {
       Logger.log(
         'OAuthRehydration: locked MFA gate timed out waiting for social auth',
       );
-      // Prevent a late authConnection from launching MFA after we give up.
       hasOfferedLockedSocialMfa.current = true;
-      setWalletRecoveryStep('password');
+      setHasEnrolledSocialMfaFactor(false);
     }, 10_000);
     return () => clearTimeout(timer);
-  }, [canOfferSocialMfaVerify, walletRecoveryStep, hasSocialAuthConnection]);
+  }, [canAttemptSocialMfaVerify, hasSocialAuthConnection]);
 
   const handleUseOtherMethod = useCallback(() => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
