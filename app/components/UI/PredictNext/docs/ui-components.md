@@ -50,7 +50,7 @@ Build the parts and variants required by the active vertical slice. Do not creat
 
 `KalshiActivationPrompt` refreshes predict-api status when Home gains focus or KYC becomes approved while Home is focused. The PredictNext KYC selector reads the vendor's `decision` / `approved` state directly; the API's `approved` state then means withdrawal-wallet activation is pending, while `active` means it is complete.
 
-The trigger owns refresh timing and dismissal. `useKalshiActivation` owns status reads, registration, and polling, with no automatic status read on mount.
+The trigger owns refresh timing and dismissal. `useKalshiActivation` owns status reads, registration, and polling, with no automatic status read on mount. A failed status read keeps the last known state, so the sheet and its retry stay up. Once Kalshi accepts the register, later attempts re-read status instead of writing again, even across a dismissal. The sheet announces a new failure and the `Account ready` transition to screen readers.
 
 ### Withdrawal privacy and recovery
 

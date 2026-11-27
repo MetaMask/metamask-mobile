@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { AppState } from 'react-native';
+import { AccessibilityInfo, AppState } from 'react-native';
 
 import type { PredictVenueId } from '../types';
 import type { KalshiActivationApi } from './internal/useKalshiActivation';
@@ -81,8 +81,11 @@ const flush = async () => {
 };
 
 describe('KalshiActivationPrompt', () => {
+  let announceForAccessibility: jest.SpyInstance | undefined;
+
   afterEach(() => {
     jest.useRealTimers();
+    announceForAccessibility?.mockRestore();
   });
 
   beforeEach(() => {
@@ -105,7 +108,9 @@ describe('KalshiActivationPrompt', () => {
 
     expect(mockCreateClient).toHaveBeenCalledTimes(1);
     expect(mockClient.getStatus).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET)).toBeTruthy();
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
   });
 
   it('opens when KYC approves while Home is focused', async () => {
@@ -188,6 +193,9 @@ describe('KalshiActivationPrompt', () => {
   });
 
   it('shows the ready state after activation and closes on Done', async () => {
+    announceForAccessibility = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
     jest.useFakeTimers();
     (mockClient.getStatus as jest.Mock)
       .mockResolvedValueOnce({ state: 'approved' })
@@ -203,7 +211,10 @@ describe('KalshiActivationPrompt', () => {
       await jest.runAllTimersAsync();
     });
 
-    expect(screen.getByTestId(KalshiDemoOnboardingTestIds.DONE)).toBeTruthy();
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.DONE),
+    ).toBeOnTheScreen();
+    expect(announceForAccessibility).toHaveBeenCalledWith('Account ready');
     expect(mockInvalidateQueries).toHaveBeenCalled();
     expect(mockClient.activate).toHaveBeenCalledTimes(1);
 
@@ -227,6 +238,50 @@ describe('KalshiActivationPrompt', () => {
     expect(mockClient.getStatus).toHaveBeenCalledTimes(2);
     expect(
       screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('announces a failed activation and keeps the sheet open', async () => {
+    announceForAccessibility = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    (mockClient.activate as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+
+    renderPrompt();
+    await flush();
+    fireEvent.press(screen.getByTestId(KalshiDemoOnboardingTestIds.ACTIVATE));
+    await flush();
+
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+    const message = screen.getByTestId(KalshiDemoOnboardingTestIds.MESSAGE);
+    expect(message).toHaveTextContent('Something went wrong.');
+    expect(message.props.accessibilityRole).toBe('alert');
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      'Something went wrong.',
+    );
+  });
+
+  it('keeps the sheet open when a status re-read fails', async () => {
+    const { rerender } = renderPrompt();
+    await flush();
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+
+    (mockClient.getStatus as jest.Mock).mockRejectedValue(new Error('offline'));
+    mockState.isFocused = false;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    mockState.isFocused = true;
+    rerender(<KalshiActivationPrompt venueId={'kalshi' as PredictVenueId} />);
+    await flush();
+
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.ACTIVATE),
     ).toBeOnTheScreen();
   });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal } from 'react-native';
+import { AccessibilityInfo, Modal } from 'react-native';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -74,11 +74,29 @@ export const KalshiActivationModal = ({
 }: KalshiActivationModalProps): React.ReactElement => {
   const coolingDown = useCooldown(activation.failure?.cooldownSec);
   const disabled = activation.busy || coolingDown;
-  const action = activation.failure?.action ?? 'activate';
+  const action =
+    activation.failure?.action ??
+    (activation.registerAccepted ? 'checkAgain' : 'activate');
   const walletNetwork = WALLET_NETWORKS[network];
   const message = activation.failure
     ? KALSHI_ONBOARDING_MESSAGES[activation.failure.message]
     : undefined;
+
+  // iOS has no live region, so each new failure is announced explicitly.
+  useEffect(() => {
+    if (activation.failure) {
+      AccessibilityInfo.announceForAccessibility(
+        KALSHI_ONBOARDING_MESSAGES[activation.failure.message],
+      );
+    }
+  }, [activation.failure]);
+
+  // The sheet swaps to the terminal state without a focus change; say so.
+  useEffect(() => {
+    if (activation.completed) {
+      AccessibilityInfo.announceForAccessibility('Account ready');
+    }
+  }, [activation.completed]);
 
   return (
     <Modal
@@ -169,6 +187,8 @@ export const KalshiActivationModal = ({
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.ErrorDefault}
+                    accessibilityRole="alert"
+                    accessibilityLiveRegion="polite"
                     testID={TestIds.MESSAGE}
                   >
                     {message}

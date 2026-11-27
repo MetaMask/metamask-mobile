@@ -39,6 +39,11 @@ export interface KalshiActivation {
   requiresActivation: boolean;
   /** The register landed and Kalshi confirmed `active` this visit. */
   completed: boolean;
+  /**
+   * Kalshi accepted the register but has not confirmed `active` yet. Survives
+   * `dismiss`, so the next attempt re-reads status instead of writing again.
+   */
+  registerAccepted: boolean;
   busy: boolean;
   failure?: KalshiActivationFailure;
   /** Reads status without a write. The trigger decides when to refresh. */
@@ -106,6 +111,7 @@ export const useKalshiActivation = (
   const { enabled } = options;
   const [status, setStatus] = useState<KalshiOnboardingState>();
   const [completed, setCompleted] = useState(false);
+  const [registerAccepted, setRegisterAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<KalshiActivationFailure>();
 
@@ -157,8 +163,8 @@ export const useKalshiActivation = (
           ensureError(error, 'KalshiActivation.readStatus'),
           'PredictNext: Kalshi activation status read failed',
         );
-        statusRef.current = undefined;
-        setStatus(undefined);
+        // A failed read is not a state. Keep the last answer so the sheet and
+        // its retry stay on screen instead of unmounting on a network blip.
         return undefined;
       }
     })().finally(() => {
@@ -189,6 +195,7 @@ export const useKalshiActivation = (
       pendingRead.current = null;
       setStatus(undefined);
       setCompleted(false);
+      setRegisterAccepted(false);
       setFailure(undefined);
       setBusy(false);
     }
@@ -303,8 +310,10 @@ export const useKalshiActivation = (
     }
 
     // Kalshi accepted the register. Drop the key so no path can send a
-    // second, conflicting register for this attempt.
+    // second, conflicting register for this attempt, and remember the write
+    // landed so a later visit only re-reads status.
     keyRef.current = undefined;
+    setRegisterAccepted(true);
     let active = false;
     try {
       active = await pollForActivation(run);
@@ -365,8 +374,8 @@ export const useKalshiActivation = (
 
   const dismiss = useCallback(() => {
     // Stop the poll: the register may already be on the wire, so a later visit
-    // re-reads status instead of waiting here. The key stays for the same
-    // reason: a retry before the first response lands must be the same write.
+    // re-reads status instead of waiting here. The key and the accepted flag
+    // stay for the same reason: a retry must not become a second write.
     runRef.current += 1;
     pendingRead.current = null;
     busyRef.current = false;
@@ -379,6 +388,7 @@ export const useKalshiActivation = (
     status,
     requiresActivation: enabled && status === 'approved',
     completed,
+    registerAccepted,
     busy,
     failure,
     refresh,

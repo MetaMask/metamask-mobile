@@ -158,6 +158,7 @@ describe('useKalshiActivation', () => {
     });
     expect(result.current.busy).toBe(false);
     expect(result.current.completed).toBe(false);
+    expect(result.current.registerAccepted).toBe(true);
     expect(onActivated).not.toHaveBeenCalled();
 
     act(() => result.current.checkAgain());
@@ -165,6 +166,54 @@ describe('useKalshiActivation', () => {
 
     expect(client.activate).toHaveBeenCalledTimes(1);
     expect(result.current.failure?.action).toBe('checkAgain');
+  });
+
+  it('keeps the accepted register after dismiss so the next attempt only re-reads', async () => {
+    const { result, client } = build();
+    let clock = 0;
+    (client.getStatus as jest.Mock).mockImplementation(async () => {
+      clock += 120_000;
+      return statusOf('approved');
+    });
+
+    act(() => result.current.refresh());
+    await flush();
+    act(() => result.current.activate());
+    await flush();
+    expect(result.current.registerAccepted).toBe(true);
+    expect(result.current.failure?.action).toBe('checkAgain');
+
+    act(() => result.current.dismiss());
+    act(() => result.current.refresh());
+    await flush();
+
+    expect(result.current.registerAccepted).toBe(true);
+    expect(result.current.requiresActivation).toBe(true);
+    expect(client.activate).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the last status and the retry when a read fails', async () => {
+    const { result, client } = build();
+    act(() => result.current.refresh());
+    await flush();
+    expect(result.current.status).toBe('approved');
+
+    (client.getStatus as jest.Mock).mockRejectedValue(new Error('offline'));
+    act(() => result.current.refresh());
+    await flush();
+    expect(result.current.status).toBe('approved');
+    expect(result.current.requiresActivation).toBe(true);
+
+    act(() => result.current.checkAgain());
+    await flush();
+
+    expect(result.current.failure).toEqual({
+      message: 'generic',
+      action: 'checkAgain',
+      cooldownSec: undefined,
+    });
+    expect(result.current.status).toBe('approved');
+    expect(result.current.requiresActivation).toBe(true);
   });
 
   it('closes the prompt when a status re-read finds the account active', async () => {
