@@ -6,15 +6,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
-  composePredictNextFundingService,
-  composePredictNextOrderService,
   composePredictNextPortfolioTrading,
   configurePredictNextCatalog,
   configurePredictNextFeeds,
   makePredictNextPlayerPropsEvent,
   makePredictNextPosition,
-  makePredictNextSellPreview,
-  makePredictNextSellReceipt,
   makePredictNextSettlement,
   makePredictNextSummary,
   makePredictNextThresholdEntry,
@@ -27,8 +23,6 @@ import {
 import Engine from '../../../../../core/Engine';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
-import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
-import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
 // eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
 import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
@@ -135,24 +129,44 @@ describe('PredictPortfolioScreen', () => {
     });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
+    const summaryCard = view.getByTestId(
+      PredictPortfolioScreenTestIds.SUMMARY_CARD,
+    );
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
-    ).toHaveTextContent('$153.50');
-
-    expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      await within(summaryCard).findByTestId(
+        PredictPortfolioScreenTestIds.BALANCE_VALUE,
+      ),
     ).toHaveTextContent('$120.50');
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_VALUE),
-    ).toHaveTextContent('$33.00');
-    expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.UNREALIZED_PNL),
+      within(summaryCard).getByTestId(
+        PredictPortfolioScreenTestIds.UNREALIZED_PNL,
+      ),
     ).toHaveTextContent('+$0.64 (+2.32%)');
     expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE),
+      within(summaryCard).queryByTestId(
+        PredictPortfolioScreenTestIds.SUMMARY_INCOMPLETE,
+      ),
     ).not.toBeOnTheScreen();
     expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.CLAIMABLE_VALUE),
+      within(summaryCard).queryByText(
+        strings('predict_next.portfolio.total_value'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(summaryCard).queryByText(
+        strings('predict_next.portfolio.positions_value'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(summaryCard).queryByText(
+        strings('predict_next.portfolio.claimable_value'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByText(strings('predict_next.withdraw.title')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByText(strings('predict_next.portfolio.add_funds')),
     ).not.toBeOnTheScreen();
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictPortfolioService:getPortfolioSummary',
@@ -170,33 +184,6 @@ describe('PredictPortfolioScreen', () => {
         }),
       ),
     );
-  });
-
-  it('offers Withdraw from the Summary card and opens the screen', async () => {
-    const funding = composePredictNextFundingService();
-    (Engine.context as Record<string, unknown>).PredictFundingService = funding;
-    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
-
-    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.WITHDRAW));
-
-    expect(
-      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
-    ).toBeOnTheScreen();
-    funding.destroy();
-  });
-
-  it('hides Withdraw when the Venue does not list it', async () => {
-    configurePredictNextCatalog({
-      ...KALSHI_STATIC_VENUE_CATALOG,
-      actions: ['buy', 'sell'],
-    });
-    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
-
-    expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.WITHDRAW),
-    ).not.toBeOnTheScreen();
   });
 
   it('flags an incomplete Summary instead of hiding or zeroing it', async () => {
@@ -218,8 +205,11 @@ describe('PredictPortfolioScreen', () => {
       "Partial total: some positions couldn't be valued right now.",
     );
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
-    ).toHaveTextContent('$74.40');
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+    ).toHaveTextContent('$50.00');
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.UNREALIZED_PNL),
+    ).toHaveTextContent('+$1.78 (+7.85%)');
   });
 
   it('renders a Summary PnL without a percent when the backend sends none', async () => {
@@ -239,48 +229,14 @@ describe('PredictPortfolioScreen', () => {
     expect(view.queryByText(/%/u)).not.toBeOnTheScreen();
   });
 
-  it('offers Add funds only when the Kalshi catalog includes deposit, and opens the deposit', async () => {
-    configurePredictNextCatalog({
-      ...KALSHI_STATIC_VENUE_CATALOG,
-      actions: ['buy', 'sell', 'withdraw'],
-    });
-    const off = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await off.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
-    expect(
-      off.queryByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS),
-    ).not.toBeOnTheScreen();
-    off.unmount();
-
-    const { environment: _omitted, ...legacyCatalog } =
-      KALSHI_STATIC_VENUE_CATALOG;
-    configurePredictNextCatalog(legacyCatalog);
-    const legacy = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await legacy.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
-    expect(
-      legacy.queryByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS),
-    ).not.toBeOnTheScreen();
-    legacy.unmount();
-
-    resetPredictNextCatalog();
-    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
-
-    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS));
-
-    expect(
-      await view.findByTestId('route-PredictNextDeposit'),
-    ).toBeOnTheScreen();
-  });
-
   it('masks the Summary in privacy mode', async () => {
     const view = renderPredictPortfolioScreen(
       { venueId: KALSHI_VENUE_ID },
       true,
     );
 
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
-    expect(view.queryByText('$168.13')).not.toBeOnTheScreen();
     expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
     expect(view.queryByText('+$3.75 (+9.09%)')).not.toBeOnTheScreen();
   });
@@ -307,7 +263,7 @@ describe('PredictPortfolioScreen', () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
     await view.findByTestId(PredictPortfolioScreenTestIds.SUMMARY_ERROR);
     expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      view.queryByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).not.toBeOnTheScreen();
 
     fails = false;
@@ -316,14 +272,14 @@ describe('PredictPortfolioScreen', () => {
     );
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toHaveTextContent('$5.00');
   });
 
   it('keeps the cached Summary visible when a later refetch fails', async () => {
     const now = jest.spyOn(Date, 'now').mockReturnValue(1_000);
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
     messengerCall.mockClear();
     mockPredictNextMessenger((action: string) =>
@@ -354,8 +310,8 @@ describe('PredictPortfolioScreen', () => {
     });
 
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
-    ).toHaveTextContent('$168.13');
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+    ).toHaveTextContent('$123.13');
     expect(
       view.queryByTestId(PredictPortfolioScreenTestIds.SUMMARY_ERROR),
     ).not.toBeOnTheScreen();
@@ -382,7 +338,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('switches between mounted empty-state tabs', async () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
@@ -406,7 +362,7 @@ describe('PredictPortfolioScreen', () => {
       initialTab: 'activity',
     });
 
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB).props
@@ -416,7 +372,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('returns to Home from the empty-state CTA', async () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.BROWSE_MARKETS),
@@ -486,7 +442,7 @@ describe('PredictPortfolioScreen', () => {
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
     expect(
-      await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
@@ -542,11 +498,6 @@ describe('PredictPortfolioScreen', () => {
       within(open).getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_PNL),
     ).toHaveTextContent('+$3.75 (+9.09%)');
     expect(
-      within(open).getByTestId(
-        PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
-      ),
-    ).toBeOnTheScreen();
-    expect(
       within(settled).getByTestId(
         PredictPortfolioScreenTestIds.POSITION_ROW_STATUS,
       ),
@@ -557,19 +508,12 @@ describe('PredictPortfolioScreen', () => {
       ),
     ).toHaveTextContent('$5.00');
     expect(
-      within(settled).queryByTestId(
-        PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
-      ),
-    ).not.toBeOnTheScreen();
-    expect(
       within(claimable).getByTestId(
         PredictPortfolioScreenTestIds.POSITION_ROW_STATUS,
       ),
     ).toHaveTextContent('Claimable');
     expect(
-      within(claimable).queryByTestId(
-        PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
-      ),
+      view.queryByText(strings('predict_next.portfolio.cash_out')),
     ).not.toBeOnTheScreen();
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictPortfolioService:getPositions',
@@ -964,7 +908,7 @@ describe('PredictPortfolioScreen', () => {
     });
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
@@ -1185,7 +1129,7 @@ describe('PredictPortfolioScreen', () => {
     expect(activityRequests).toHaveLength(2);
     expect(view.queryByText('No activity yet')).not.toBeOnTheScreen();
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -1242,7 +1186,7 @@ describe('PredictPortfolioScreen', () => {
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ERROR),
@@ -1255,7 +1199,7 @@ describe('PredictPortfolioScreen', () => {
     });
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
-    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
     fireEvent.press(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
@@ -1267,7 +1211,7 @@ describe('PredictPortfolioScreen', () => {
     ).not.toBeOnTheScreen();
     // The Summary stays independently loaded.
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
 
     configurePredictNextFeeds({
@@ -1328,16 +1272,24 @@ describe('PredictPortfolioScreen', () => {
     expect(
       view.getAllByTestId(PredictPortfolioScreenTestIds.SUMMARY_LOADING),
     ).toHaveLength(1);
-    expect(within(summaryLoading).getByText('Total value')).toBeOnTheScreen();
     expect(
       within(summaryLoading).getByText('Available balance'),
     ).toBeOnTheScreen();
-    expect(within(summaryLoading).getByText('Positions')).toBeOnTheScreen();
     expect(
       within(summaryLoading).getByText('Unrealized P&L'),
     ).toBeOnTheScreen();
     expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      within(summaryLoading).queryByText(
+        strings('predict_next.portfolio.total_value'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(summaryLoading).queryByText(
+        strings('predict_next.portfolio.positions_value'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).not.toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
@@ -1361,7 +1313,7 @@ describe('PredictPortfolioScreen', () => {
     await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_ERROR);
     // The Summary stays independently loaded.
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
 
     mockPredictNextMessenger((action: string) => {
@@ -1501,341 +1453,6 @@ describe('PredictPortfolioScreen', () => {
     expect(view.getByText('Settled · Lakers')).toBeOnTheScreen();
   });
 
-  describe('Cash Out', () => {
-    const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
-    /** Composed real services to destroy after each test. */
-    const composedServices: ReturnType<
-      typeof composePredictNextPortfolioTrading
-    >[] = [];
-    /** Engine boundary restorations registered by a test. */
-    const testRestores: (() => void)[] = [];
-
-    /** Stubs the sell (Cash Out) preview and commit routes. The preview
-     * echoes the requested contract count; the commit replies with the
-     * given receipt overrides. */
-    const stubCashOutFetch = (receiptOverrides: Record<string, unknown>) => {
-      fetchMock.mockImplementation(async (url, init) => {
-        const isCommit = /\/orders\/[^/]+\/commit$/u.test(String(url));
-        if (isCommit) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => makePredictNextSellReceipt(receiptOverrides),
-          } as Response;
-        }
-        // Echo the requested Market and contract count: the adapter binds
-        // the quote to the exact intent.
-        const body = JSON.parse(String(init?.body)) as {
-          marketId: string;
-          contracts: string;
-        };
-        return {
-          ok: true,
-          status: 200,
-          json: async () =>
-            makePredictNextSellPreview({
-              marketId: body.marketId,
-              requestedContracts: Number(body.contracts),
-            }),
-        } as Response;
-      });
-      globalThis.fetch = fetchMock as unknown as typeof fetch;
-    };
-
-    /** Renders a Portfolio with one open 75-share Position and drives the
-     * shared Order flow to a terminal receipt via the Max chip. */
-    const cashOutMax = async (receiptOverrides: Record<string, unknown>) => {
-      jest.spyOn(Date, 'now').mockReturnValue(1_000);
-      configurePredictNextFeeds({ positions: [makePredictNextPosition()] });
-      stubCashOutFetch(receiptOverrides);
-      (Engine.context as Record<string, unknown>).PredictOrderService =
-        composePredictNextOrderService();
-
-      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-      fireEvent.press(
-        await view.findByTestId(
-          PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
-        ),
-      );
-      await view.findByTestId(PredictOrderFlowTestIds.SHEET);
-
-      fireEvent.press(
-        view.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
-      );
-      await waitFor(() =>
-        expect(view.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
-      );
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.REVIEW));
-      await waitFor(() =>
-        expect(
-          view.getByTestId(PredictOrderFlowTestIds.APPROVAL),
-        ).toBeOnTheScreen(),
-      );
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.APPROVE));
-      // Both filled and partially_filled receipts render the Done control.
-      await view.findByTestId(PredictOrderFlowTestIds.DONE);
-      return view;
-    };
-
-    /** Refocuses after the Position read went stale, forcing the refetch a
-     * real terminal receipt triggers through the portfolio invalidation. */
-    const refreshPositions = async () => {
-      (Date.now as jest.Mock).mockReturnValue(61_001);
-      await act(async () => {
-        focusManager.setFocused(false);
-        focusManager.setFocused(true);
-      });
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-    };
-
-    afterEach(() => {
-      testRestores.splice(0).forEach((restore) => restore());
-      composedServices.splice(0).forEach((composed) => composed.destroy());
-      delete (Engine.context as Record<string, unknown>).PredictOrderService;
-    });
-
-    it('opens the shared Order flow in sell mode with the Position as the bound', async () => {
-      configurePredictNextFeeds({ positions: [makePredictNextPosition()] });
-      (Engine.context as Record<string, unknown>).PredictOrderService =
-        composePredictNextOrderService();
-      globalThis.fetch = jest.fn();
-
-      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-      fireEvent.press(
-        await view.findByTestId(
-          PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT,
-        ),
-      );
-
-      expect(
-        await view.findByTestId(PredictOrderFlowTestIds.SHEET),
-      ).toBeOnTheScreen();
-      expect(
-        view.getByTestId(PredictOrderFlowTestIds.HELD_CONTRACTS),
-      ).toHaveTextContent('You hold 75 contracts');
-      expect(
-        view.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-      ).toHaveTextContent('Lakers');
-      expect(
-        view.queryByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
-      ).toBeOnTheScreen();
-    });
-
-    it('names a threshold Position by its Market labels in the Cash Out sheet', async () => {
-      const event = makePredictNextPlayerPropsEvent();
-      configurePredictNextFeeds({
-        positions: [
-          makePredictNextPosition(
-            makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),
-          ),
-        ],
-      });
-      (Engine.context as Record<string, unknown>).PredictOrderService =
-        composePredictNextOrderService();
-      globalThis.fetch = jest.fn();
-
-      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-      await view.findByText('No · Kenneth Walker · 50+ · 75 shares');
-      fireEvent.press(
-        view.getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT),
-      );
-
-      expect(
-        await view.findByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-      ).toHaveTextContent('No · Kenneth Walker · 50+');
-    });
-
-    it('leaves the reduced Position visible after a partial Cash Out', async () => {
-      const view = await cashOutMax({
-        status: 'partially_filled',
-        filledContracts: '42.00',
-        averageFillPrice: '0.4700',
-        fee: '0.20',
-        actualProceeds: '19.74',
-        netProceeds: '19.54',
-      });
-
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
-
-      configurePredictNextFeeds({
-        positions: [makePredictNextPosition({ shares: '33.00' })],
-      });
-      await refreshPositions();
-
-      expect(view.getByText('Lakers · 33 shares')).toBeOnTheScreen();
-      expect(view.queryByText('Lakers · 75 shares')).not.toBeOnTheScreen();
-    });
-
-    it('removes the Position after a full Cash Out', async () => {
-      const view = await cashOutMax({});
-
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
-
-      configurePredictNextFeeds({ positions: [] });
-      await refreshPositions();
-
-      expect(
-        view.getByTestId(PredictPortfolioScreenTestIds.EMPTY_STATE),
-      ).toBeOnTheScreen();
-      expect(view.queryByText('Lakers · 75 shares')).not.toBeOnTheScreen();
-    });
-
-    it('updates the mounted Position and Summary reads after a Cash Out', async () => {
-      // Real services over the stubbed transport: the reads the screen
-      // observes run through the real Portfolio service cache and its
-      // cacheUpdated events, the way the Engine composes them.
-      let positionsBody: unknown = {
-        venueId: 'kalshi',
-        positions: [makePredictNextPosition()],
-      };
-      let balanceBody: unknown = {
-        venueId: 'kalshi',
-        currency: 'USD',
-        available: '123.12',
-      };
-      let summaryBody: unknown = makePredictNextSummary({
-        availableBalance: '123.12',
-        totalValue: '168.12',
-      });
-      fetchMock.mockImplementation(async (url, init) => {
-        if (/\/orders\/[^/]+\/commit$/u.test(String(url))) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => makePredictNextSellReceipt(),
-          } as Response;
-        }
-        if (String(url).endsWith('/orders/preview')) {
-          const body = JSON.parse(String(init?.body)) as {
-            marketId: string;
-            contracts: string;
-          };
-          return {
-            ok: true,
-            status: 200,
-            json: async () =>
-              makePredictNextSellPreview({
-                marketId: body.marketId,
-                requestedContracts: Number(body.contracts),
-              }),
-          } as Response;
-        }
-        if (String(url).includes('/venues/kalshi/positions')) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => positionsBody,
-          } as Response;
-        }
-        if (String(url).includes('/venues/kalshi/balance')) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => balanceBody,
-          } as Response;
-        }
-        if (String(url).includes('/venues/kalshi/portfolio/summary')) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => summaryBody,
-          } as Response;
-        }
-        return { ok: false, status: 404, json: async () => ({}) } as Response;
-      });
-      globalThis.fetch = fetchMock as unknown as typeof fetch;
-
-      const trading = composePredictNextPortfolioTrading();
-      composedServices.push(trading);
-      (Engine.context as Record<string, unknown>).PredictOrderService =
-        trading.orderService;
-
-      // The shared renderer's UI query client delegates its messenger
-      // adapter to the Engine controller messenger: route the Predict
-      // service actions and cache events to the real services' root. The
-      // remaining actions keep the fixture answers.
-      testRestores.push(routePredictPortfolioServicesTo(trading.rootMessenger));
-
-      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-
-      await waitFor(() =>
-        expect(
-          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-        ).toHaveTextContent('$123.12'),
-      );
-      await waitFor(() =>
-        expect(view.getByText('Lakers · 75 shares')).toBeOnTheScreen(),
-      );
-
-      fireEvent.press(
-        view.getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT),
-      );
-      await view.findByTestId(PredictOrderFlowTestIds.SHEET);
-      fireEvent.press(
-        view.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
-      );
-      await waitFor(() =>
-        expect(view.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
-      );
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.REVIEW));
-      await waitFor(() =>
-        expect(
-          view.getByTestId(PredictOrderFlowTestIds.APPROVAL),
-        ).toBeOnTheScreen(),
-      );
-      // Real elapsed time between the pre-trade reads and the receipt, so
-      // the refreshed snapshot's dataUpdatedAt is strictly newer — the
-      // property the UI cache's hydration applies.
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-      });
-
-      // The venue reports the post-trade reads while the sheet is up: the
-      // terminal receipt's invalidation must refresh them through the
-      // service without any focus or staleTime workaround.
-      positionsBody = {
-        venueId: 'kalshi',
-        positions: [
-          makePredictNextPosition({
-            shares: '33.00',
-            costBasis: '18.15',
-            currentValue: '19.80',
-            unrealizedPnl: '1.65',
-          }),
-        ],
-      };
-      balanceBody = {
-        venueId: 'kalshi',
-        currency: 'USD',
-        available: '153.75',
-      };
-      summaryBody = makePredictNextSummary({
-        availableBalance: '153.75',
-        positionsValue: '19.80',
-        totalValue: '173.55',
-        unrealizedPnl: '1.65',
-      });
-
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.APPROVE));
-      await view.findByTestId(PredictOrderFlowTestIds.DONE);
-      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
-
-      await waitFor(() =>
-        expect(view.getByText('Lakers · 33 shares')).toBeOnTheScreen(),
-      );
-      await waitFor(() =>
-        expect(
-          view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
-        ).toHaveTextContent('$173.55'),
-      );
-      expect(
-        view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-      ).toHaveTextContent('$153.75');
-    });
-  });
-
   describe('platform reset', () => {
     const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
     const composedServices: ReturnType<
@@ -1934,8 +1551,8 @@ describe('PredictPortfolioScreen', () => {
       expect(statusLine).toHaveTextContent('Deposit waiting for your transfer');
       expect(statusLine).toHaveProp('hitSlop', { top: 11, bottom: 11 });
       expect(
-        await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
-      ).toHaveTextContent('$153.50');
+        await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      ).toHaveTextContent('$120.50');
 
       fireEvent.press(statusLine);
 
@@ -1965,8 +1582,8 @@ describe('PredictPortfolioScreen', () => {
         await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
       ).toHaveTextContent('Deposit processing');
       expect(
-        await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
-      ).toHaveTextContent('$153.50');
+        await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+      ).toHaveTextContent('$120.50');
 
       fireEvent.press(
         view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
@@ -2059,7 +1676,7 @@ describe('PredictPortfolioScreen', () => {
           venueId: KALSHI_VENUE_ID,
         });
         await secondVisit.findByTestId(
-          PredictPortfolioScreenTestIds.TOTAL_VALUE,
+          PredictPortfolioScreenTestIds.BALANCE_VALUE,
         );
         expect(
           secondVisit.queryByTestId(

@@ -2542,12 +2542,9 @@ describe('PredictHome', () => {
         fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
         await waitFor(() =>
           expect(
-            view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+            view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
           ).toHaveTextContent('$10.00'),
         );
-        expect(
-          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-        ).toHaveTextContent('$10.00');
         expect(
           view.getByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
         ).toHaveTextContent('Deposit processing');
@@ -2588,12 +2585,9 @@ describe('PredictHome', () => {
 
         await waitFor(() =>
           expect(
-            view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+            view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
           ).toHaveTextContent('$35.50'),
         );
-        expect(
-          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
-        ).toHaveTextContent('$35.50');
         expect(
           view.queryByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
         ).not.toBeOnTheScreen();

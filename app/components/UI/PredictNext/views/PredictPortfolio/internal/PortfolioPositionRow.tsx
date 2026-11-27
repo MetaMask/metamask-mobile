@@ -4,8 +4,6 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconName,
@@ -31,8 +29,6 @@ interface PortfolioPositionRowProps {
   position: PredictPosition;
   isPrivacyMode: boolean;
   onPress?: (position: PredictPosition) => void;
-  /** Shows the Cash Out affordance for selling an open Position back. */
-  onCashOut?: (position: PredictPosition) => void;
 }
 
 interface PortfolioPositionMetricsProps {
@@ -89,12 +85,11 @@ const PortfolioPositionMetrics = ({
 };
 
 /** Renders one Position as an optionally pressable row. Resolved Positions
- * carry a status tag; only open ones offer Cash Out. */
+ * carry a status tag. */
 export const PortfolioPositionRow = ({
   position,
   isPrivacyMode,
   onPress,
-  onCashOut,
 }: PortfolioPositionRowProps) => {
   const tw = useTailwind();
   const { context, status } = position;
@@ -167,18 +162,6 @@ export const PortfolioPositionRow = ({
             {strings(`predict_next.portfolio.position_status.${status}`)}
           </Text>
         )}
-        {onCashOut && status === 'open' ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            className="mt-2"
-            onPress={() => onCashOut(position)}
-            testID={PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('predict_next.portfolio.cash_out')}
-            </Text>
-          </Button>
-        ) : null}
       </Box>
     </TouchableOpacity>
   );

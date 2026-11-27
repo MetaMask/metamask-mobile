@@ -7,13 +7,7 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -22,14 +16,9 @@ import { useActivity } from '../../hooks/useActivity';
 import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
-import {
-  usePredictNextDepositAvailable,
-  usePredictWithdrawAvailable,
-} from '../../funding';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
-import { usePredictOrderFlow } from '../PredictOrderFlow';
-import type { PredictEntityId, PredictPosition } from '../../types';
+import type { PredictEntityId } from '../../types';
 import type {
   PredictNextStackParamList,
   PredictPortfolioTab,
@@ -40,7 +29,6 @@ import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
 import { PortfolioTabs } from './internal/PortfolioTabs';
-import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
@@ -68,8 +56,6 @@ export const PredictPortfolioScreen = () => {
   const activityQuery = useActivity(venueId, PAGE_PARAMS, {
     enabled: activityActive,
   });
-  const { openOrderFlow } = usePredictOrderFlow();
-  const withdrawResolution = usePredictWithdrawAvailable();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
@@ -85,12 +71,6 @@ export const PredictPortfolioScreen = () => {
       tab: activeTab,
     },
   });
-
-  const canDeposit = usePredictNextDepositAvailable(venueId);
-  const openDeposit = useCallback(
-    () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
-    [navigation, venueId],
-  );
 
   const browseMarkets = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -109,30 +89,6 @@ export const PredictPortfolioScreen = () => {
       });
     },
     [navigation, venueId],
-  );
-
-  const openWithdraw = useCallback(
-    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
-    [navigation, venueId],
-  );
-
-  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
-   * Position's whole-contract size, labeled from its catalog context. */
-  const cashOut = useCallback(
-    (position: PredictPosition) => {
-      openOrderFlow({
-        action: 'sell',
-        eventId: position.context?.eventId,
-        venueId,
-        marketId: position.marketId,
-        side: position.side,
-        outcomeLabel: getOutcomeName(position.side, position.context),
-        eventTitle: getEntryTitle(position.context),
-        eventImageUrl: position.context?.imageUrl,
-        maxContracts: Math.floor(Number(position.shares)),
-      });
-    },
-    [openOrderFlow, venueId],
   );
 
   return (
@@ -157,9 +113,6 @@ export const PredictPortfolioScreen = () => {
           isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
-          onWithdrawPress={
-            withdrawResolution.status === 'ready' ? openWithdraw : undefined
-          }
           depositStatus={
             <DepositStatusLine
               venueId={venueId}
@@ -167,19 +120,6 @@ export const PredictPortfolioScreen = () => {
             />
           }
         />
-        {canDeposit ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            isFullWidth
-            startIconName={IconName.Add}
-            onPress={openDeposit}
-            twClassName="mb-4"
-            testID={PredictPortfolioScreenTestIds.ADD_FUNDS}
-          >
-            {strings('predict_next.portfolio.add_funds')}
-          </Button>
-        ) : null}
         <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">
@@ -197,7 +137,6 @@ export const PredictPortfolioScreen = () => {
               isPrivacyMode={Boolean(privacyMode)}
               onOpenEvent={openEvent}
               onBrowseMarkets={browseMarkets}
-              onCashOut={cashOut}
             />
           </Box>
           <Box

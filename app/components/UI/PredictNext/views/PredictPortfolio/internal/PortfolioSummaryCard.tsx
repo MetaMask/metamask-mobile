@@ -4,7 +4,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Button,
-  ButtonSize,
   ButtonVariant,
   FontWeight,
   Icon,
@@ -25,7 +24,6 @@ import {
   formatSignedPercent,
   formatSignedUsdAmount,
   formatUsdAmount,
-  isNonZeroAmount,
   pnlToneClassName,
 } from '../../../utils/portfolioFormatting';
 
@@ -34,9 +32,6 @@ interface PortfolioSummaryCardProps {
   isLoading: boolean;
   isPrivacyMode: boolean;
   onRetry: () => void;
-  /** Omitted when the Active Venue offers no Withdraw flow, which hides the
-   * action rather than disabling it. */
-  onWithdrawPress?: () => void;
   depositStatus?: React.ReactNode;
 }
 
@@ -106,15 +101,7 @@ const formatPnl = ({
 
 const SummaryLoadingRows = () => (
   <Box testID={PredictPortfolioScreenTestIds.SUMMARY_LOADING}>
-    <SummaryRow label={strings('predict_next.portfolio.total_value')}>
-      <SummarySkeleton width={80} />
-    </SummaryRow>
-    <RowDivider />
     <SummaryRow label={strings('predict_next.available_balance')}>
-      <SummarySkeleton width={80} />
-    </SummaryRow>
-    <RowDivider />
-    <SummaryRow label={strings('predict_next.portfolio.positions_value')}>
       <SummarySkeleton width={80} />
     </SummaryRow>
     <RowDivider />
@@ -151,12 +138,20 @@ const SummaryRows = ({
   isPrivacyMode: boolean;
 }) => (
   <>
-    <SummaryRow label={strings('predict_next.portfolio.total_value')}>
+    <SummaryRow label={strings('predict_next.available_balance')}>
       <SummaryValue
-        value={formatUsdAmount(summary.totalValue)}
+        value={formatUsdAmount(summary.availableBalance)}
         isPrivacyMode={isPrivacyMode}
-        length={SensitiveTextLength.Medium}
-        testID={PredictPortfolioScreenTestIds.TOTAL_VALUE}
+        testID={PredictPortfolioScreenTestIds.BALANCE_VALUE}
+      />
+    </SummaryRow>
+    <RowDivider />
+    <SummaryRow label={strings('predict_next.portfolio.unrealized_pnl')}>
+      <SummaryValue
+        value={formatPnl(summary)}
+        isPrivacyMode={isPrivacyMode}
+        className={pnlToneClassName(summary.unrealizedPnl)}
+        testID={PredictPortfolioScreenTestIds.UNREALIZED_PNL}
       />
     </SummaryRow>
     {summary.complete ? null : (
@@ -176,57 +171,19 @@ const SummaryRows = ({
         </Text>
       </Box>
     )}
-    <RowDivider />
-    <SummaryRow label={strings('predict_next.available_balance')}>
-      <SummaryValue
-        value={formatUsdAmount(summary.availableBalance)}
-        isPrivacyMode={isPrivacyMode}
-        testID={PredictPortfolioScreenTestIds.BALANCE_VALUE}
-      />
-    </SummaryRow>
-    <RowDivider />
-    <SummaryRow label={strings('predict_next.portfolio.positions_value')}>
-      <SummaryValue
-        value={formatUsdAmount(summary.positionsValue)}
-        isPrivacyMode={isPrivacyMode}
-        testID={PredictPortfolioScreenTestIds.POSITIONS_VALUE}
-      />
-    </SummaryRow>
-    {isNonZeroAmount(summary.claimableValue) ? (
-      <>
-        <RowDivider />
-        <SummaryRow label={strings('predict_next.portfolio.claimable_value')}>
-          <SummaryValue
-            value={formatUsdAmount(summary.claimableValue)}
-            isPrivacyMode={isPrivacyMode}
-            testID={PredictPortfolioScreenTestIds.CLAIMABLE_VALUE}
-          />
-        </SummaryRow>
-      </>
-    ) : null}
-    <RowDivider />
-    <SummaryRow label={strings('predict_next.portfolio.unrealized_pnl')}>
-      <SummaryValue
-        value={formatPnl(summary)}
-        isPrivacyMode={isPrivacyMode}
-        className={pnlToneClassName(summary.unrealizedPnl)}
-        testID={PredictPortfolioScreenTestIds.UNREALIZED_PNL}
-      />
-    </SummaryRow>
   </>
 );
 
 /**
  * Renders the backend-computed Portfolio Summary. Every figure is formatted
  * from the Summary as served; nothing is summed from loaded rows. An
- * incomplete Summary keeps its total and says that it is partial.
+ * incomplete Summary keeps its values and says that it is partial.
  */
 export const PortfolioSummaryCard = ({
   summary,
   isLoading,
   isPrivacyMode,
   onRetry,
-  onWithdrawPress,
   depositStatus,
 }: PortfolioSummaryCardProps) => {
   let content: React.ReactNode;
@@ -247,17 +204,6 @@ export const PortfolioSummaryCard = ({
         {content}
       </Box>
       {depositStatus}
-      {onWithdrawPress ? (
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          isFullWidth
-          onPress={onWithdrawPress}
-          testID={PredictPortfolioScreenTestIds.WITHDRAW}
-        >
-          {strings('predict_next.withdraw.title')}
-        </Button>
-      ) : null}
     </Box>
   );
 };

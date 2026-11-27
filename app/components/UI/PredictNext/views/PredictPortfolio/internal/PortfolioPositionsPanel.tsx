@@ -17,8 +17,6 @@ interface PortfolioPositionsPanelProps {
   isPrivacyMode: boolean;
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
-  /** Opens the Cash Out (sell) Order flow for one Position. */
-  onCashOut: (position: PredictPosition) => void;
 }
 
 /** Renders the independently cached Positions list for one Venue, open
@@ -28,7 +26,6 @@ export const PortfolioPositionsPanel = ({
   isPrivacyMode,
   onOpenEvent,
   onBrowseMarkets,
-  onCashOut,
 }: PortfolioPositionsPanelProps) => {
   const {
     data,
@@ -73,10 +70,9 @@ export const PortfolioPositionsPanel = ({
         position={item}
         isPrivacyMode={isPrivacyMode}
         onPress={item.context?.eventId ? handlePress : undefined}
-        onCashOut={onCashOut}
       />
     ),
-    [handlePress, isPrivacyMode, onCashOut],
+    [handlePress, isPrivacyMode],
   );
 
   let content: React.ReactNode;
