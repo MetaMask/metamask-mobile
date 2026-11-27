@@ -2181,6 +2181,39 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  describe('Fees row deposit fee', () => {
+    const payTotalsWithUsdFee = (usd: string) => ({
+      fees: {
+        provider: { usd },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+      },
+    });
+
+    it('adds the pay-token deposit fee to the order fees', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('5');
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      ).toHaveTextContent('$50');
+    });
+
+    it('excludes pay-token quote fees for the Money Account', () => {
+      mockPaymentOverride = PaymentOverride.MoneyAccount;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('5');
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      ).toHaveTextContent('$45');
+    });
+  });
+
   it('does not open the payment token selector for a hardware account', () => {
     jest.mocked(isHardwareAccount).mockReturnValue(true);
     useTradeSheetRoute();
