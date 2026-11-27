@@ -112,6 +112,18 @@ const mockState = {
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
 
+// The real service imports core/Engine/Engine directly, bypassing the
+// core/Engine mock below and loading every controller.
+jest.mock('../../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      getQueryData: jest.fn(),
+      prefetchQuery: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+
 jest.mock('../../../../../core/Engine', () => {
   const { MOCK_ENTROPY_SOURCE } = jest.requireActual(
     '../../../../../util/test/keyringControllerTestUtils',

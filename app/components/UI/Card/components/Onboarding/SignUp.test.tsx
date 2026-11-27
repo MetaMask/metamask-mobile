@@ -124,7 +124,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock hooks
-jest.mock('../../hooks/useEmailVerificationSend');
+jest.mock('../../hooks/useEmailVerificationSend', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 const mockSignUpRegions = [
   {
     key: 'US',
@@ -287,6 +290,22 @@ jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: () => () => mockSelectedImmersveAccount,
 }));
+
+// The barrel also exports the AccountSelector screen, whose import graph is
+// most of the app; SignUp only uses the navigation details helper.
+jest.mock('../../../../Views/AccountSelector', () => {
+  const { createNavigationDetails } = jest.requireActual(
+    '../../../../../util/navigation/navUtils',
+  );
+  const { default: MockRoutes } = jest.requireActual(
+    '../../../../../constants/navigation/Routes',
+  );
+  return {
+    createAccountSelectorNavDetails: createNavigationDetails(
+      MockRoutes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
+    ),
+  };
+});
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
