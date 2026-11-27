@@ -955,6 +955,7 @@ export const PerpsTransactionSelectorsIDs = {
   TRANSACTION_ITEM_AVATAR: 'transaction-item-avatar',
 
   // Transaction Views
+  POSITION_TRANSACTION_VIEW: 'perps-position-transaction-view',
   FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
   ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
 
