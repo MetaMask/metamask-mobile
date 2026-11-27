@@ -89,7 +89,7 @@ export const HomeSportsSection = ({
                 key={index}
                 width={CARD_WIDTH}
                 height={CARD_HEIGHT}
-                twClassName="rounded-2xl"
+                twClassName="rounded-[20px]"
                 testID={testIds.SKELETON}
               />
             ))

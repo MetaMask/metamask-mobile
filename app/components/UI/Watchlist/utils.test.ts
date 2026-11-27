@@ -6,7 +6,10 @@ import {
   canUseWatchlistLivePrices,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  filterWatchlistItems,
+  getTokenWatchlistKey,
   reconcileWatchlistItemOrder,
+  reorderWatchlistItems,
   selectWatchlistSuggestions,
 } from './utils';
 
@@ -184,5 +187,34 @@ describe('watchlist utils', () => {
         row.kind === 'token' ? row.token.symbol : row.market.symbol,
       ),
     ).toEqual(['ADA', 'ETH', 'XRP']);
+  });
+
+  it('lowercases EVM token keys while preserving non-EVM CAIP-19 case', () => {
+    expect(
+      getTokenWatchlistKey('eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE'),
+    ).toBe('token:eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce');
+
+    const solanaAssetId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    expect(getTokenWatchlistKey(solanaAssetId)).toBe(`token:${solanaAssetId}`);
+  });
+
+  it('filters unified watchlist items by active tab', () => {
+    const tokenItem = createUnifiedWatchlistToken(TOKEN);
+    const perpItem = createUnifiedWatchlistPerp(PERP);
+    const items = [tokenItem, perpItem];
+
+    expect(filterWatchlistItems(items, 'all')).toEqual([tokenItem, perpItem]);
+    expect(filterWatchlistItems(items, 'tokens')).toEqual([tokenItem]);
+    expect(filterWatchlistItems(items, 'perps')).toEqual([perpItem]);
+  });
+
+  it('reorders unified watchlist items without mutating the source array', () => {
+    const tokenItem = createUnifiedWatchlistToken(TOKEN);
+    const perpItem = createUnifiedWatchlistPerp(PERP);
+    const items = [tokenItem, perpItem];
+
+    expect(reorderWatchlistItems(items, 0, 1)).toEqual([perpItem, tokenItem]);
+    expect(items).toEqual([tokenItem, perpItem]);
   });
 });

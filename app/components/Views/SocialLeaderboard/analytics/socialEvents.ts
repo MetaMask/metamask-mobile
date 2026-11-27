@@ -235,6 +235,29 @@ export type SocialPostFailureReason =
   | 'timeout'
   | 'min_balance'
   | 'unknown';
+/** Coarse reason when profile onboarding X sign-in fails (TSA-1860). */
+export const SOCIAL_X_SIGN_IN_FAILURE_REASONS = [
+  'network',
+  'state_mismatch',
+  'missing_code',
+  'backend_error',
+  'not_signed_in',
+  'no_evm_account',
+  'unknown',
+] as const;
+export type SocialXSignInFailureReason =
+  (typeof SOCIAL_X_SIGN_IN_FAILURE_REASONS)[number];
+/** Surface that produced a `Social Error Occurred` event (TSA-1860). */
+export type SocialErrorArea =
+  | 'screen_load'
+  | 'x_auth'
+  | 'profile_save'
+  | 'post'
+  | 'render';
+export type SocialFailureReason =
+  | SocialPostFailureReason
+  | SocialXSignInFailureReason
+  | SocialProfileSaveFailureReason;
 /** Coarse reason when profile create/update fails during onboarding. */
 export type SocialProfileSaveFailureReason =
   | 'username_taken'
@@ -301,7 +324,8 @@ export interface SocialUIInteractionProperties
   has_thesis?: boolean;
   has_attached_position?: boolean;
   is_held_position?: boolean;
-  failure_reason?: SocialPostFailureReason;
+  /** Post failures, and X sign-in failures on `x_sign_in` with `outcome: failed`. */
+  failure_reason?: SocialPostFailureReason | SocialXSignInFailureReason;
   blocked_submit_reason?: SocialBlockedSubmitReason;
   traders_followed_count?: number;
   share_id?: string;
