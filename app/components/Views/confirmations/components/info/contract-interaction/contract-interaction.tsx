@@ -35,7 +35,6 @@ const ContractInteraction = () => {
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
         enableMetrics
-        isTransactionsRedesign
       />
       {shouldShowValueRow && <ValueRow />}
       <NetworkAndOriginRow />

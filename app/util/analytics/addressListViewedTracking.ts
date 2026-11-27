@@ -8,10 +8,9 @@ export const AddressListViewedSource = {
   RECEIVE_BUTTON: 'receive_button',
   ACCOUNT_DETAILS: 'account_details',
   ACCOUNT_ACTIONS: 'account_actions',
+  /** Wallet home post-onboarding checklist, fund step Receive button. */
+  ONBOARDING_CHECKLIST: 'onboarding_checklist',
 } as const;
-
-export type AddressListViewedSourceValue =
-  (typeof AddressListViewedSource)[keyof typeof AddressListViewedSource];
 
 /**
  * Properties for Address List Viewed tracking.

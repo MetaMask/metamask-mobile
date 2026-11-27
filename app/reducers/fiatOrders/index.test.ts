@@ -24,6 +24,8 @@ import fiatOrderReducer, {
   getHasOrders,
   getOrders,
   getAllDepositOrders,
+  getCompletedLegacyBuyHistory,
+  LEGACY_NATIVE_DEPOSIT_PROVIDER_ID,
   getPendingOrders,
   getForceUpdateOrders,
   getProviderName,
@@ -1455,6 +1457,99 @@ describe('selectors', () => {
           (order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT,
         ),
       ).toBe(true);
+    });
+  });
+
+  describe('getCompletedLegacyBuyHistory', () => {
+    const createStateWithOrders = (orders: Record<string, unknown>[]) =>
+      merge({}, initialRootState, { fiatOrders: { orders } });
+
+    const createLegacyOrder = (overrides: Record<string, unknown> = {}) => ({
+      ...mockOrder1,
+      ...overrides,
+    });
+
+    it('returns completed buys from every account and leaves out sell and non-completed orders', () => {
+      const state = createStateWithOrders([
+        createLegacyOrder({ account: MOCK_ADDRESS_1, createdAt: 100 }),
+        createLegacyOrder({ account: MOCK_ADDRESS_2, createdAt: 200 }),
+        createLegacyOrder({
+          orderType: OrderOrderTypeEnum.Sell,
+          createdAt: 300,
+        }),
+        createLegacyOrder({ state: 'PENDING', createdAt: 400 }),
+        createLegacyOrder({ state: 'FAILED', createdAt: 500 }),
+      ]);
+
+      const result = getCompletedLegacyBuyHistory(state);
+
+      expect(result).toStrictEqual([
+        { providerId: 'test-provider', completedAt: 100 },
+        { providerId: 'test-provider', completedAt: 200 },
+      ]);
+    });
+
+    it.each([FIAT_ORDER_PROVIDERS.AGGREGATOR, FIAT_ORDER_PROVIDERS.RAMPS_V2])(
+      'maps %s orders to the provider id in the order data',
+      (provider) => {
+        const state = createStateWithOrders([
+          createLegacyOrder({
+            provider,
+            createdAt: 100,
+            data: { provider: { id: '/providers/moonpay' } },
+          }),
+        ]);
+
+        const result = getCompletedLegacyBuyHistory(state);
+
+        expect(result).toStrictEqual([
+          { providerId: '/providers/moonpay', completedAt: 100 },
+        ]);
+      },
+    );
+
+    it.each([
+      [FIAT_ORDER_PROVIDERS.DEPOSIT, 'DEPOSIT'],
+      [FIAT_ORDER_PROVIDERS.TRANSAK, OrderOrderTypeEnum.Buy],
+    ])('maps %s orders to the native deposit marker', (provider, orderType) => {
+      const state = createStateWithOrders([
+        createLegacyOrder({ provider, orderType, createdAt: 100 }),
+      ]);
+
+      const result = getCompletedLegacyBuyHistory(state);
+
+      expect(result).toStrictEqual([
+        {
+          providerId: LEGACY_NATIVE_DEPOSIT_PROVIDER_ID,
+          completedAt: 100,
+        },
+      ]);
+    });
+
+    it.each([FIAT_ORDER_PROVIDERS.MOONPAY, FIAT_ORDER_PROVIDERS.WYRE])(
+      'keeps the legacy provider name for %s orders',
+      (provider) => {
+        const state = createStateWithOrders([
+          createLegacyOrder({ provider, createdAt: 100 }),
+        ]);
+
+        const result = getCompletedLegacyBuyHistory(state);
+
+        expect(result).toStrictEqual([
+          { providerId: provider, completedAt: 100 },
+        ]);
+      },
+    );
+
+    it('drops aggregator orders without a provider id in the order data', () => {
+      const state = createStateWithOrders([
+        createLegacyOrder({ data: undefined }),
+        createLegacyOrder({ data: { provider: {} } }),
+      ]);
+
+      const result = getCompletedLegacyBuyHistory(state);
+
+      expect(result).toStrictEqual([]);
     });
   });
 

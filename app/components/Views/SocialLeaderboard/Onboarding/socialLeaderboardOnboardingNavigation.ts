@@ -5,21 +5,8 @@ import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/stora
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { SocialLeaderboardTabParams } from '../../../Nav/Main/types/navigation';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import {
-  selectFeatureFlagThresholdGroups,
-  selectRemoteFeatureFlags,
-} from '../../../../selectors/featureFlagController';
-import { resolveABTestAssignment } from '../../../../util/abTest';
-import {
-  SOCIAL_V1_AB_KEY,
-  SocialV1Variant,
-} from '../SocialV1View/abTestConfig';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import type { SocialShellTab } from '../shell/types';
-import {
-  ensureSocialTermsAccepted,
-  hasAcceptedSocialTerms,
-  recordSocialTermsAcceptanceForExistingProfile,
-} from '../terms/socialTermsAcceptance';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -62,16 +49,9 @@ export const shouldShowSocialLeaderboardOnboarding = (): boolean => {
   );
 };
 
-export const isSocialV1Treatment = (): boolean => {
-  const state = ReduxService.store.getState();
-  const { variantName } = resolveABTestAssignment(
-    selectRemoteFeatureFlags(state),
-    SOCIAL_V1_AB_KEY,
-    Object.values(SocialV1Variant),
-    selectFeatureFlagThresholdGroups(state),
-  );
-  return variantName === SocialV1Variant.Treatment;
-};
+/** Social V1 access: the TSA-1122 treatment bucket or early access. */
+export const isSocialV1Treatment = (): boolean =>
+  selectHasSocialV1Access(ReduxService.store.getState());
 
 export const getFollowTradingHomeRoute = ():
   | typeof Routes.SOCIAL.V1
@@ -79,53 +59,12 @@ export const getFollowTradingHomeRoute = ():
   isSocialV1Treatment() ? Routes.SOCIAL.V1 : Routes.SOCIAL.V0;
 
 /**
- * Whether ProfileController already has a created Social profile.
- *
- * Reads persisted state synchronously, the same way the terms gate does. An
- * empty `profileId` is the saved "not created" state, not a profile that is
- * still loading.
- */
-const hasCreatedSocialProfile = (): boolean => {
-  try {
-    const profileId =
-      ReduxService.store.getState().engine.backgroundState.ProfileController
-        ?.profile?.profileId;
-    return Boolean(profileId?.trim());
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Social V1 entry gate. Accepted terms do not open Social when no profile has
- * been created. Opens the normal profile onboarding route, without
- * `termsOnly`, so a user who already accepted the terms is not asked again.
- *
- * @param navigate - The caller's navigate function.
- * @returns `true` when the caller may continue into Social.
- */
-const ensureSocialProfileCreated = (
-  navigate: SocialLeaderboardNavigate,
-): boolean => {
-  if (!isSocialV1Treatment() || hasCreatedSocialProfile()) {
-    return true;
-  }
-  navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-  return false;
-};
-
-/**
  * Whether `navigateToSocialTab` would open the tab itself rather than
- * redirecting to terms, profile setup, or onboarding.
+ * redirecting to the first-time onboarding. Browsing Social needs no profile
+ * or terms; those are asked for when the user takes an action.
  */
-export const canOpenSocialTabDirectly = (): boolean => {
-  recordSocialTermsAcceptanceForExistingProfile();
-  return (
-    (!isSocialV1Treatment() ||
-      (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
-    !shouldShowSocialLeaderboardOnboarding()
-  );
-};
+export const canOpenSocialTabDirectly = (): boolean =>
+  !shouldShowSocialLeaderboardOnboarding();
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
@@ -155,17 +94,6 @@ export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(navigate, () =>
-      pushSocialLeaderboard(navigate, params),
-    )
-  ) {
-    return;
-  }
-  if (!ensureSocialProfileCreated(navigate)) {
-    return;
-  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL.ONBOARDING);
     return;
@@ -191,16 +119,6 @@ export const navigateToSocialLeaderboard = (
     pushSocialLeaderboard(navigate, params);
     return;
   }
-  if (
-    !ensureSocialTermsAccepted(navigate, () =>
-      navigateToSocialLeaderboard(navigate, params),
-    )
-  ) {
-    return;
-  }
-  if (!ensureSocialProfileCreated(navigate)) {
-    return;
-  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
     return;
@@ -222,17 +140,6 @@ export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(navigate, () =>
-      navigateToSocialTab(navigate, params),
-    )
-  ) {
-    return;
-  }
-  if (!ensureSocialProfileCreated(navigate)) {
-    return;
-  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(
       Routes.SOCIAL.ONBOARDING,
@@ -245,8 +152,8 @@ export const navigateToSocialTab = (
 
 /**
  * Pops the root stack and selects the Social tab under Home (Social V1 only).
- * Unlike `navigateToSocialTab`, it skips the terms, profile and onboarding
- * gates, so call it only after the user has passed them.
+ * Unlike `navigateToSocialTab`, it skips the first-time onboarding gate, so
+ * call it only after the user has passed it.
  *
  * @param navigation - The caller's navigation object.
  * @param params - Optional Social tab params, such as the V1 `initialTab`.

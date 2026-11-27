@@ -1,14 +1,19 @@
 import React from 'react';
 import { ListItem, TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import ProfileVerifiedBadge from '../../../SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedPost } from '../../../SocialFeed';
 import { formatPercent } from '../../../SocialFeed/utils/formatters';
 import { PERPS_LIVE_TRADES_CONFIG } from '../../constants/perpsConfig';
-import { getPerpsLiveTradeRowSelector } from '../../Perps.testIds';
+import {
+  getPerpsLiveTradeRowSelector,
+  getPerpsLiveTradeVerifiedBadgeSelector,
+} from '../../Perps.testIds';
 
 interface PerpsLiveTradeRowProps {
   post: SocialV1FeedPost;
+  onPress?: (post: SocialV1FeedPost) => void;
 }
 
 const getDirectionLabel = (item: SocialV1FeedPost['item']) => {
@@ -20,13 +25,20 @@ const getDirectionLabel = (item: SocialV1FeedPost['item']) => {
   );
 };
 
-const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({ post }) => {
+const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({
+  post,
+  onPress,
+}) => {
   const { item } = post;
   const winRatePercent = item.author.winRatePercent;
   const hasWinRate = winRatePercent !== null;
+  const pressProps = onPress
+    ? { isInteractive: true as const, onPress: () => onPress(post) }
+    : {};
 
   return (
     <ListItem
+      {...pressProps}
       twClassName="py-2"
       testID={getPerpsLiveTradeRowSelector(post.id)}
       avatar={
@@ -38,6 +50,13 @@ const PerpsLiveTradeRow: React.FC<PerpsLiveTradeRowProps> = ({ post }) => {
         />
       }
       title={post.authorHandle}
+      titleEndAccessory={
+        item.author.verified ? (
+          <ProfileVerifiedBadge
+            testID={getPerpsLiveTradeVerifiedBadgeSelector(post.id)}
+          />
+        ) : undefined
+      }
       description={[item.asset.symbol, getDirectionLabel(item), item.costLabel]
         .filter(Boolean)
         .join(' · ')}

@@ -14,6 +14,8 @@
  *     real fee resolver and provider pricing path
  *   - `buildPerpsDepositHarness` additionally runs PerpsController's real
  *     deposit preparation up to the TransactionController messenger call
+ *   - `buildPerpsPersistedStateHarness` additionally runs PerpsController's
+ *     real startup migration for a caller-supplied persisted state
  *
  * MOCKED (the I/O boundary — never makes real network/SDK calls):
  *   - HyperLiquidClientService     — SDK clients, network mode
@@ -117,18 +119,15 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
     chainId: 'eip155:42161',
     contractAddress: '0x1234567890123456789012345678901234567890',
   }),
-  createErrorResult: jest.fn(
-    (error: unknown, defaultResponse: Record<string, unknown>) => ({
-      ...defaultResponse,
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    }),
-  ),
+  createErrorResult: jest.requireActual(
+    '@metamask/perps-controller/utils/hyperLiquidValidation',
+  ).createErrorResult,
 }));
 
 import {
   HyperLiquidProvider,
   PerpsController,
+  type PerpsControllerState,
   type PerpsTradingFeeGrant,
   type PerpsPlatformDependencies,
 } from '@metamask/perps-controller';
@@ -437,6 +436,25 @@ export function buildPerpsIntegrationHarness(
     subscribeToOrderBook: jest.fn().mockReturnValue(jest.fn()),
     subscribeToTwapOrders: jest.fn().mockReturnValue(jest.fn()),
     subscribeToOICaps: jest.fn().mockReturnValue(jest.fn()),
+    // The order form waits on this stream before it enables place order.
+    // Both sides match the harness account's $10,000 spendable balance.
+    subscribeToActiveAssetData: jest.fn(
+      (
+        params: Parameters<
+          HyperLiquidSubscriptionService['subscribeToActiveAssetData']
+        >[0],
+      ) => {
+        params.callback({
+          user: DEFAULT_USER_ADDRESS,
+          coin: params.symbol,
+          leverage: { type: 'cross', value: 5 },
+          maxTradeSzs: ['0', '10000'] as [string, string],
+          availableToTrade: ['10000', '10000'] as [string, string],
+          markPx: '50000',
+        });
+        return jest.fn();
+      },
+    ),
     clearAll: jest.fn(),
     restoreSubscriptions: jest.fn().mockResolvedValue(undefined),
     updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
@@ -449,6 +467,11 @@ export function buildPerpsIntegrationHarness(
     getFreshPositionsForAllDexs: jest.fn(() => getCachedPositions()),
     isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
     getCachedOrders: jest.fn().mockReturnValue([]),
+    // `null` means no live stream for the wallet, so reads fall back to REST.
+    getCachedOpenOrdersForDex: jest.fn().mockReturnValue(null),
+    getCachedActiveTwapOrders: jest.fn().mockReturnValue(null),
+    getCachedActiveAssetLeverage: jest.fn().mockReturnValue(null),
+    getFreshCrossMarginContext: jest.fn().mockReturnValue(null),
     getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
     // `null` is the uninitialized-cache signal, not an empty result.
     getFillsCacheIfInitialized: jest.fn().mockReturnValue(null),
@@ -548,6 +571,56 @@ function buildHarnessController(
     infrastructure,
     deferEligibilityCheck: true,
   });
+}
+
+/**
+ * Builds a real PerpsController from persisted state so startup migrations
+ * run against the installed Core package. I/O stays on the Shape A mocks.
+ *
+ * @param state - Persisted controller state, including pre-upgrade shapes
+ * the current TypeScript state no longer describes.
+ * @param options - Optionally supply a loaded multi-provider flag; by default it is unknown.
+ * @returns The migrated controller.
+ */
+export function buildPerpsPersistedStateHarness(
+  state: Partial<PerpsControllerState>,
+  { multiProviderModeEnabled }: { multiProviderModeEnabled?: boolean } = {},
+): { controller: PerpsController } {
+  const { mocks } = buildPerpsIntegrationHarness({
+    isTestnet: state.isTestnet,
+  });
+  const messenger = createMockMessenger();
+  if (multiProviderModeEnabled !== undefined) {
+    const defaultCall = messenger.call.getMockImplementation();
+    messenger.call.mockImplementation(
+      (...args): ReturnType<typeof messenger.call> => {
+        if (args[0] === 'RemoteFeatureFlagController:getState') {
+          return {
+            cacheTimestamp: 0,
+            remoteFeatureFlags: {
+              perpsMultiProviderModeEnabled: {
+                enabled: multiProviderModeEnabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          };
+        }
+        return defaultCall?.(...args);
+      },
+    );
+    jest
+      .spyOn(mocks.infrastructure.featureFlags, 'validateVersionGated')
+      .mockImplementation((flag) => flag.enabled);
+  }
+
+  return {
+    controller: new PerpsController({
+      messenger,
+      state,
+      infrastructure: mocks.infrastructure,
+      deferEligibilityCheck: true,
+    }),
+  };
 }
 
 /**

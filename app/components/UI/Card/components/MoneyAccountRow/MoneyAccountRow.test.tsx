@@ -40,7 +40,7 @@ describe('MoneyAccountRow', () => {
   });
 
   it.each(['authentication', 'onboarding'] as const)(
-    'opens Money onboarding and returns to Card %s',
+    'opens the Money splash and returns to Card %s',
     (returnTo) => {
       const { getByTestId } = render(
         <MoneyAccountRequired returnTo={returnTo} />,
@@ -48,7 +48,7 @@ describe('MoneyAccountRow', () => {
 
       fireEvent.press(getByTestId('money-account-required-cta'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH, {
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.CARD,
           cardScreen: returnTo,

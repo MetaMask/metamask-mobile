@@ -39,6 +39,10 @@ interface MoneyEarningsProps {
    */
   onMonthlyInfoPress?: () => void;
   /**
+   * Opens the full earnings view.
+   */
+  onHeaderPress?: () => void;
+  /**
    * Opens the Lifetime earnings info bottom sheet.
    */
   onLifetimeInfoPress?: () => void;
@@ -110,12 +114,17 @@ const MoneyEarnings = ({
   last30DaysEarnings,
   sinceInceptionEarnings,
   isLoading = false,
+  onHeaderPress,
   onMonthlyInfoPress,
   onLifetimeInfoPress,
   privacyMode = false,
 }: MoneyEarningsProps) => (
   <Box twClassName="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
-    <MoneySectionHeader title={strings('money.earnings.title')} />
+    <MoneySectionHeader
+      testID={MoneyEarningsTestIds.HEADER}
+      title={strings('money.earnings.title')}
+      onPress={onHeaderPress}
+    />
 
     <Box twClassName="mt-5 gap-4">
       <Box

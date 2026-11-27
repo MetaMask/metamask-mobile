@@ -20,14 +20,22 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
+  type PerpsProviderType,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
+import {
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from '../../hooks/stream/usePerpsLiveAvailableToTrade';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
-import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import {
+  getIncrementalMarginInsufficientBalanceError,
+  getOpenOrderMarginBalance,
+} from '../../utils/openOrderMarginValidation';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -45,6 +53,7 @@ interface PerpsLimitPriceBottomSheetProps {
   onClose: () => void;
   onConfirm: (limitPrice: string) => void;
   asset: string;
+  providerId?: PerpsProviderType;
   limitPrice?: string;
   currentPrice?: number;
   direction?: 'long' | 'short';
@@ -74,6 +83,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   onClose,
   onConfirm,
   asset,
+  providerId,
   limitPrice: initialLimitPrice,
   currentPrice: passedCurrentPrice = 0,
   direction = 'long',
@@ -99,6 +109,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     resetInputMethod,
   } = usePerpsLimitPriceInput({
     asset,
+    providerId,
     currentPrice: passedCurrentPrice,
     direction,
     limitPrice,
@@ -109,11 +120,28 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   });
 
   const isOpenOrderPriceEdit = restingOrderSize !== undefined;
-  const { account, isInitialLoading: isAccountLoading } = usePerpsLiveAccount({
+  const {
+    availableToTrade,
+    isInitialLoading: isAvailableToTradeLoading,
+    isUnavailable: isAvailableToTradeStreamFailed,
+  } = usePerpsLiveAvailableToTrade({
+    symbol: asset,
     enabled: isVisible && isOpenOrderPriceEdit,
   });
-  const isAccountReady = !isAccountLoading && account !== null;
-  const spendableBalance = Number.parseFloat(account?.spendableBalance ?? '0');
+  // If the venue stream fails, fall back to the account spendable balance so
+  // an open order's limit price can still be edited.
+  const { account } = usePerpsLiveAccount({
+    enabled:
+      isVisible && isOpenOrderPriceEdit && isAvailableToTradeStreamFailed,
+  });
+  const marginBalance = getOpenOrderMarginBalance({
+    venueAvailableToTrade: readAvailableToTradeUsd(availableToTrade, direction),
+    isAvailableToTradeStreamFailed,
+    accountSpendableBalance: account?.spendableBalance,
+  });
+  const isAccountReady =
+    !isAvailableToTradeLoading && marginBalance !== undefined;
+  const spendableBalance = marginBalance ?? 0;
 
   useEffect(() => {
     if (isVisible) {
@@ -289,6 +317,7 @@ export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   return (
     prevProps.isVisible === nextProps.isVisible &&
     prevProps.asset === nextProps.asset &&
+    prevProps.providerId === nextProps.providerId &&
     prevProps.limitPrice === nextProps.limitPrice &&
     prevProps.direction === nextProps.direction &&
     prevProps.restingOrderSize === nextProps.restingOrderSize &&

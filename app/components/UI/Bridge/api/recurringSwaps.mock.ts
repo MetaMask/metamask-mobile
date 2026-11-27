@@ -9,7 +9,7 @@ import {
 import {
   type RecurringOrder,
   type RecurringSwap,
-  RecurringSwapState,
+  RecurringSwapStatus,
 } from './recurringOrders.types';
 
 const SOURCE_AMOUNT = '1500000000000000';
@@ -26,12 +26,12 @@ function createFilledSwap(
 ): RecurringSwap {
   return {
     id: `${order.id}-${index}`,
-    state: RecurringSwapState.Filled,
+    slotNumber: index,
+    status: RecurringSwapStatus.Filled,
     src: { asset: order.src.asset, amount: SOURCE_AMOUNT },
     dest: {
       asset: order.dest.asset,
       amount: DESTINATION_AMOUNT,
-      minAmount: '2985000',
     },
     txHash: createMockTxHash(index),
     quoteId: `quote-${order.id}-${index}`,
@@ -61,7 +61,8 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
   createFilledSwap(MOCK_RECURRING_OPEN_ORDER, 2, '2026-09-02T12:00:00.000Z'),
   {
     id: `${MOCK_RECURRING_OPEN_ORDER.id}-3`,
-    state: RecurringSwapState.Skipped,
+    slotNumber: 3,
+    status: RecurringSwapStatus.Skipped,
     skipReason: 'insufficient_balance',
     src: { asset: MOCK_RECURRING_OPEN_ORDER.src.asset, amount: '0' },
     dest: { asset: MOCK_RECURRING_OPEN_ORDER.dest.asset, amount: '0' },
@@ -72,7 +73,8 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
   },
   {
     id: `${MOCK_RECURRING_OPEN_ORDER.id}-4`,
-    state: RecurringSwapState.Skipped,
+    slotNumber: 4,
+    status: RecurringSwapStatus.Skipped,
     skipReason: 'out_of_price_range',
     src: { asset: MOCK_RECURRING_OPEN_ORDER.src.asset, amount: '0' },
     dest: { asset: MOCK_RECURRING_OPEN_ORDER.dest.asset, amount: '0' },
@@ -83,7 +85,8 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
   },
   {
     id: `${MOCK_RECURRING_OPEN_ORDER.id}-5`,
-    state: RecurringSwapState.Failed,
+    slotNumber: 5,
+    status: RecurringSwapStatus.Failed,
     failureReason: 'Transaction reverted',
     src: { asset: MOCK_RECURRING_OPEN_ORDER.src.asset, amount: '0' },
     dest: { asset: MOCK_RECURRING_OPEN_ORDER.dest.asset, amount: '0' },
@@ -96,7 +99,8 @@ export const MOCK_RECURRING_OPEN_ORDER_SWAPS: RecurringSwap[] = [
   },
   {
     id: `${MOCK_RECURRING_OPEN_ORDER.id}-6`,
-    state: RecurringSwapState.Skipped,
+    slotNumber: 6,
+    status: RecurringSwapStatus.Skipped,
     skipReason: 'needs_smart_account',
     src: { asset: MOCK_RECURRING_OPEN_ORDER.src.asset, amount: '0' },
     dest: { asset: MOCK_RECURRING_OPEN_ORDER.dest.asset, amount: '0' },

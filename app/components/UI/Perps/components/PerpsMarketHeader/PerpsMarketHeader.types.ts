@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
-import type { PerpsMarketData, PerpsMode } from '@metamask/perps-controller';
+import type {
+  PerpsProviderType,
+  PerpsMarketData,
+  PerpsMode,
+} from '@metamask/perps-controller';
+import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
 
 /** Fixed header height, in px. */
 export const PERPS_MARKET_HEADER_HEIGHT = 64;
@@ -33,6 +38,11 @@ export interface PerpsMarketHeaderProps {
   endAccessory?: ReactNode;
   /** Default action row — ignored when `endAccessory` is provided. */
   onWalletPress?: () => void;
+  /**
+   * Cross margin risk shown as a badge on the wallet button. Only `warning`
+   * and `danger` render a badge; `safe` and `undefined` leave the icon plain.
+   */
+  walletRiskTone?: CrossMarginRatioTone;
   onFavoritePress?: () => void;
   isFavorite?: boolean;
   mode?: PerpsMode;
@@ -48,6 +58,11 @@ export interface PerpsMarketHeaderProps {
    * navigation actions remain silent.
    */
   enableModeHaptics?: boolean;
+  /**
+   * Venue whose mark overlays the header's token logo. Callers
+   * gate this on the multi-provider flag.
+   */
+  providerId?: PerpsProviderType;
   /**
    * Scroll offset from the parent's `Animated.ScrollView`, shared via
    * `useHeaderStandardAnimated()`. Drives the subtitle/price crossfade.

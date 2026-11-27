@@ -76,6 +76,10 @@ const propTypes = {
    * Title color
    */
   titleColor: PropTypes.string,
+  /**
+   * Leading accessory (e.g. row icon)
+   */
+  startAccessory: PropTypes.node,
 };
 
 /**
@@ -87,6 +91,7 @@ const propTypes = {
  * @param {boolean} [props.renderArrowRight]
  * @param {string} [props.testID]
  * @param {any} [props.titleColor]
+ * @param {import('react').ReactNode} [props.startAccessory]
  */
 const SettingsDrawer = ({
   title,
@@ -96,12 +101,14 @@ const SettingsDrawer = ({
   renderArrowRight = true,
   testID,
   titleColor = TextColor.TextDefault,
+  startAccessory,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <Pressable onPress={onPress} testID={testID}>
       <ListItem style={styles.root} gap={16}>
+        {startAccessory}
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
           <Text
             variant={TextVariant.BodyMd}

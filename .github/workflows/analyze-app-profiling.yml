@@ -22,24 +22,23 @@
 #   Findings also get an optional proposal from the pinned
 #   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
 #   only sees Evidence JSON from this job; it does not classify.
-#   Each finding on `main` opens a GitHub issue (bug-report template,
-#   `team-*` label of the owning scenario) with that scenario's Hermes
-#   `.cpuprofile` attached. That label is the team tag: the existing issue
-#   sync copies the issue into the owning team's Jira project with the same
-#   labels. A finding whose issue is still open is added to it as a comment,
-#   with the new capture attached, and linked from Slack instead of being
-#   opened again. Several scenarios crossing in one run each open their own
-#   issue. The verdict, including the proposal when one was produced, is
-#   posted to #metamask-performance (C07KB8HRZ4J). A newly opened bug mentions
-#   the owning team's Slack group. An all-clear, a manual digest, and the
-#   Monday report are not sent.
-#   The Monday report can still list issues that were already opened; it
-#   does not open or comment on any.
+#   Each finding on `main` opens a Jira Bug in the owning team's project
+#   (bug-report body, `team-*` label, `hermes-profile-regression`) with that
+#   scenario's Hermes `.cpuprofile` attached. A finding whose ticket is still
+#   open is added to it as a comment, with the new capture attached, and
+#   linked from Slack instead of being opened again. Several scenarios
+#   crossing in one run each open their own ticket. The verdict, including
+#   the proposal when one was produced, is posted to #metamask-performance
+#   (C07KB8HRZ4J). A newly opened bug mentions the owning team's Slack group.
+#   An all-clear, a manual digest, and the Monday report are not sent.
+#   The Monday report can still list tickets that were already opened; it
+#   does not open or comment on any. Missing `JIRA_USER_EMAIL` or
+#   `JIRA_API_TOKEN` skips ticket creation and does not fail the job.
 # - After a *manually dispatched* performance run: full digest in the Actions
 #   summary and the analysis artifact.
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
 #   week vs the week before). The report lists only regressions / spikes / new
-#   hot frames, plus the GitHub issues opened during that week with a
+#   hot frames, plus the Jira tickets opened during that week with a
 #   one-line brief and link each. Stable scenarios are omitted. The report is
 #   the Actions summary and the analysis artifact.
 #
@@ -79,6 +78,10 @@ on:
       E2E_CLAUDE_API_KEY:
         required: false
       SLACK_BOT_TOKEN:
+        required: false
+      JIRA_USER_EMAIL:
+        required: false
+      JIRA_API_TOKEN:
         required: false
   workflow_dispatch:
     inputs:
@@ -164,8 +167,6 @@ jobs:
       contents: read
       actions: read
       pull-requests: read
-      # Scheduled findings on main open or comment on tracking issues.
-      issues: write
     if: >-
       inputs.performance_run_id == '' ||
       (inputs.performance_result == 'success' &&
@@ -210,6 +211,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          JIRA_BASE_URL: https://consensyssoftware.atlassian.net
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           # A chained run analyzes the performance run that called it.
           RUN_ID: ${{ inputs.performance_run_id || inputs.run_id }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
@@ -217,8 +221,8 @@ jobs:
           SKIP_AI: ${{ inputs.skip_ai }}
           WEEKLY: ${{ inputs.performance_run_id == '' && (github.event_name == 'schedule' || inputs.weekly == true) }}
           SCHEDULED_EXCEPTION: ${{ inputs.performance_event == 'schedule' }}
-          # Issues are opened only for scheduled runs of `main`. The Monday
-          # report only reads issues, so it always lists them.
+          # Tickets are opened only for scheduled runs of `main`. The Monday
+          # report only reads tickets, so it always lists them.
           SCHEDULED_EXCEPTION_BRANCH: ${{ github.ref_name }}
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
           MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
@@ -231,7 +235,7 @@ jobs:
             --repo "${GITHUB_REPOSITORY}"
           )
           if [ "${WEEKLY}" = "true" ]; then
-            ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)
+            ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --jira-issues)
             if [ -n "${MAX_RUNS_PER_WEEK}" ]; then
               ARGS+=(--max-runs-per-week "${MAX_RUNS_PER_WEEK}")
             fi
@@ -245,7 +249,7 @@ jobs:
             if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
               ARGS+=(--scheduled-exception)
               if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then
-                ARGS+=(--github-issues)
+                ARGS+=(--jira-issues)
               fi
             fi
           fi
@@ -304,7 +308,7 @@ jobs:
             /tmp/analyze-app-profiling/report.json
             /tmp/analyze-app-profiling/notification.json
             /tmp/analyze-app-profiling/ai-proposal-evidence.json
-            /tmp/analyze-app-profiling/github-issues.json
+            /tmp/analyze-app-profiling/jira-issues.json
             /tmp/analyze-app-profiling/slack-cards.json
             /tmp/analyze-app-profiling/scenario-artifacts.json
             /tmp/analyze-app-profiling/scenarios/

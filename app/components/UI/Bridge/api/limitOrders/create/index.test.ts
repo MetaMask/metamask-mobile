@@ -70,7 +70,7 @@ const ASSET = {
   chainId: 56,
   assetId: 'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
   name: 'Tether USD',
-  symbol: 'USDT',
+  symbol: 'BSC-USD',
   address: '0x55d398326f99059fF775485246999027B3197955',
   decimals: 18,
   iconUrl: 'https://static.cx.metamask.io/api/v1/tokenIcons/56/0x55d3.png',

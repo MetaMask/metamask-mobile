@@ -1,6 +1,2 @@
 export { default } from './PerpsProviderLogos';
-export { mapPerpsLogoPixelsToAvatarSize } from './PerpsProviderLogos';
-export type {
-  PerpsProviderLogoId,
-  PerpsProviderLogosProps,
-} from './PerpsProviderLogos.types';
+export type { PerpsProviderLogoId } from '../../hooks/usePerpsProviderLogoIds';

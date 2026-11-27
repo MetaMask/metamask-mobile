@@ -13,6 +13,14 @@
 interface FetchPathStub {
   body: unknown;
   status: number;
+  onRequest?: (request: { method: string; body: unknown; url: string }) => void;
+}
+
+export interface FetchPathStubOptions {
+  /** Scope the stub to one HTTP method; per-method stubs win over the method-agnostic entry for the same target. */
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  /** Observe the requests this stub answers (method + raw body). */
+  onRequest?: (request: { method: string; body: unknown; url: string }) => void;
 }
 
 const stubs = new Map<string, FetchPathStub>();
@@ -31,6 +39,9 @@ const requestUrl = (url: RequestInfo | URL): string => {
   return url.url;
 };
 
+const requestMethod = (url: RequestInfo | URL, init?: RequestInit): string =>
+  (init?.method ?? (url instanceof Request ? url.method : 'GET')).toUpperCase();
+
 /**
  * Origin + path, without query or hash. Matching the full target avoids
  * answering a different host that happens to use the same path.
@@ -44,6 +55,9 @@ const originAndPath = (href: string): string | null => {
   }
 };
 
+const stubKey = (origin: string, path: string, method?: string): string =>
+  method ? `${origin}${path}#${method}` : `${origin}${path}`;
+
 const ensureFetchSpy = (): void => {
   if (installedFetchSpy) {
     return;
@@ -54,8 +68,11 @@ const ensureFetchSpy = (): void => {
     .spyOn(globalThis, 'fetch')
     .mockImplementation((url, init) => {
       const key = originAndPath(requestUrl(url));
-      const stub = key ? stubs.get(key) : undefined;
+      const method = requestMethod(url, init);
+      const stub =
+        (key && (stubs.get(`${key}#${method}`) ?? stubs.get(key))) || undefined;
       if (stub) {
+        stub.onRequest?.({ method, body: init?.body, url: requestUrl(url) });
         return Promise.resolve({
           ok: stub.status >= 200 && stub.status < 300,
           status: stub.status,
@@ -71,22 +88,44 @@ const ensureFetchSpy = (): void => {
  * Answer `global fetch` for `origin + path` (query string ignored).
  * Pass the same body you give to the nock `.reply` for that route.
  * A later call for the same target replaces the body.
+ *
+ * Without `options.method` the stub answers every method; with it, the stub
+ * only answers that method and wins over the method-agnostic entry.
  */
 export function stubFetchPath(
   origin: string,
   path: string,
   body: unknown,
   status = 200,
+  options?: FetchPathStubOptions,
 ): void {
-  stubs.set(`${origin}${path}`, { body, status });
+  stubs.set(stubKey(origin, path, options?.method), {
+    body,
+    status,
+    onRequest: options?.onRequest,
+  });
   ensureFetchSpy();
 }
 
 /**
  * Drop one path. When no paths remain, restore only the spy installed here.
+ * With `options.method`, drop only that method's stub.
  */
-export function restoreFetchPath(origin: string, path: string): void {
-  stubs.delete(`${origin}${path}`);
+export function restoreFetchPath(
+  origin: string,
+  path: string,
+  options?: Pick<FetchPathStubOptions, 'method'>,
+): void {
+  if (options?.method) {
+    stubs.delete(stubKey(origin, path, options.method));
+  } else {
+    const prefix = `${origin}${path}`;
+    for (const key of Array.from(stubs.keys())) {
+      if (key === prefix || key.startsWith(`${prefix}#`)) {
+        stubs.delete(key);
+      }
+    }
+  }
   if (stubs.size > 0 || !installedFetchSpy) {
     return;
   }

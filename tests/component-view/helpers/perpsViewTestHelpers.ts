@@ -1,9 +1,11 @@
 import type { Store } from '@reduxjs/toolkit';
 import {
   DEFAULT_ORDER_BOOK_PREFERENCES,
+  type MarginMode,
   type OrderBookPreferences,
   type PerpsControllerState,
   type PerpsMode,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../../app/core/Engine';
@@ -15,6 +17,27 @@ import type { ReduxStore } from '../../../app/core/redux/types';
  * Shared helpers for Perps component/view tests.
  * Add only what view tests need; use i18n (strings()) for any user-facing labels to stay consistent with the app.
  */
+
+/**
+ * Sets the Lighter build flag for a describe block and restores the previous
+ * value after each test. The `perpsTwoExchangeState` presets also enable the
+ * remote flag. When no remote flag is configured, the selector falls back to
+ * the build flag.
+ */
+export const withLighterBuildEnabled = (): void => {
+  let previous: string | undefined;
+  beforeEach(() => {
+    previous = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+  });
+  afterEach(() => {
+    if (previous === undefined) {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+    } else {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = previous;
+    }
+  });
+};
 
 /** Labels from i18n (same keys as PerpsModifyActionSheet). Used by PerpsSelectModifyActionView.view.test. */
 export function getModifyActionLabels() {
@@ -96,8 +119,8 @@ export function createPerpsControllerStateHarness(store: Store) {
  *
  * Returns a cleanup that restores the previous `ReduxService.store` and the
  * original `setProLayoutPreferences` / `setPerpsMode` /
- * `setOrderBookPreferences` implementations so later suites on the same Jest
- * worker do not dispatch against a disposed store.
+ * `setOrderBookPreferences` / `saveMarginMode` implementations so later
+ * suites on the same Jest worker do not dispatch against a disposed store.
  */
 export function wirePerpsControllerForStore(
   store: Store,
@@ -118,6 +141,11 @@ export function wirePerpsControllerForStore(
     setPerpsMode: (mode: PerpsMode) => void;
     setVisibleCandleCount: (count: number) => void;
     setOrderBookPreferences: (patch: Partial<OrderBookPreferences>) => void;
+    saveMarginMode: (
+      symbol: string,
+      marginMode: MarginMode,
+      providerId?: PerpsProviderType,
+    ) => void;
   };
   const originalSetProLayoutPreferences =
     perpsController.setProLayoutPreferences;
@@ -125,6 +153,7 @@ export function wirePerpsControllerForStore(
   const originalSetVisibleCandleCount = perpsController.setVisibleCandleCount;
   const originalSetOrderBookPreferences =
     perpsController.setOrderBookPreferences;
+  const originalSaveMarginMode = perpsController.saveMarginMode;
   const stateHarness = createPerpsControllerStateHarness(store);
 
   perpsController.setProLayoutPreferences = jest.fn((prefs) => {
@@ -180,11 +209,54 @@ export function wirePerpsControllerForStore(
     });
   });
 
+  perpsController.saveMarginMode = jest.fn((symbol, marginMode, providerId) => {
+    if (marginMode !== 'isolated' && marginMode !== 'cross') {
+      return;
+    }
+    const backgroundState = store.getState().engine.backgroundState as Record<
+      string,
+      Partial<PerpsControllerState> | undefined
+    >;
+    const existing = backgroundState.PerpsController ?? {};
+    const networkKey = existing.isTestnet ? 'testnet' : 'mainnet';
+    const provider =
+      providerId ??
+      existing.effectiveProvider ??
+      (existing.activeProvider === 'aggregated'
+        ? existing.defaultProvider
+        : existing.activeProvider) ??
+      'hyperliquid';
+    const configurations = existing.tradeConfigurations ?? {
+      mainnet: {},
+      testnet: {},
+    };
+    const networkConfigurations = configurations[networkKey] ?? {};
+    const providerConfigurations = networkConfigurations[provider] ?? {};
+    const marketConfiguration = providerConfigurations[symbol] ?? {};
+
+    stateHarness.sync({
+      tradeConfigurations: {
+        ...configurations,
+        [networkKey]: {
+          ...networkConfigurations,
+          [provider]: {
+            ...providerConfigurations,
+            [symbol]: {
+              ...marketConfiguration,
+              marginMode,
+            },
+          },
+        },
+      },
+    });
+  });
+
   return () => {
     perpsController.setProLayoutPreferences = originalSetProLayoutPreferences;
     perpsController.setPerpsMode = originalSetPerpsMode;
     perpsController.setVisibleCandleCount = originalSetVisibleCandleCount;
     perpsController.setOrderBookPreferences = originalSetOrderBookPreferences;
+    perpsController.saveMarginMode = originalSaveMarginMode;
     stateHarness.cleanup();
     if (previousStore) {
       ReduxService.store = previousStore;

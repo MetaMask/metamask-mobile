@@ -178,6 +178,38 @@ describe('TimeSlotPicker', () => {
         screen.getByTestId('time-slot-countdown-live-1'),
       ).toBeOnTheScreen();
     });
+
+    it('renders clock time instead of Live countdown when hideLiveIndicator is true while keeping pills interactive', () => {
+      useCountdown.mockReturnValue('56:01');
+      const markets = createMarkets();
+      const onSelected = jest.fn();
+
+      render(
+        <TimeSlotPicker
+          markets={markets}
+          selectedMarketId="live-1"
+          onMarketSelected={onSelected}
+          hideLiveIndicator
+        />,
+      );
+
+      expect(
+        screen.queryByTestId('time-slot-live-label-live-1'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('time-slot-countdown-live-1'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('time-slot-time-label-live-1'),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('time-slot-pill-future-1'));
+
+      expect(onSelected).toHaveBeenCalledTimes(1);
+      expect(onSelected).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'future-1' }),
+      );
+    });
   });
 
   describe('selection', () => {

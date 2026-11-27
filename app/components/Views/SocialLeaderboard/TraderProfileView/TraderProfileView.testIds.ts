@@ -6,6 +6,7 @@ export const TraderProfileViewSelectorsIDs = {
   HEADER: 'trader-profile-header',
   HEADER_COMPACT_IDENTITY: 'trader-profile-header-compact-identity',
   PROFILE_HEADER: 'trader-profile-profile-header',
+  VERIFIED_BADGE: 'trader-profile-verified-badge',
   TITLE_SECTION_WRAPPER: 'trader-profile-title-section-wrapper',
   COMPACT_STATS: 'trader-profile-compact-stats',
   HEADER_COMPACT_WIN_RATE: 'trader-profile-header-compact-win-rate',

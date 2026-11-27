@@ -279,6 +279,37 @@ describe('SocialV1View copy trade', () => {
     ).toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      name: 'geolocation is the UK',
+      geolocation: { location: 'GB', status: 'complete' as const },
+    },
+    {
+      name: 'geolocation has not resolved',
+      geolocation: { location: 'UNKNOWN', status: 'loading' as const },
+    },
+  ])('hides Copy trade when $name', async ({ geolocation }) => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: {
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            GeolocationController: geolocation,
+          },
+        },
+      },
+    });
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    await trendingPage.findByTestId(
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
+    );
+
+    expect(trendingPage.queryByTestId(copyTradeButtonTestId)).toBeNull();
+  });
+
   it('shows the open perp copy-trade card after the feed loads', async () => {
     renderSocialV1ViewWithRoutes([perpsModalsRoute], {
       overrides: eligibleOverrides,
@@ -374,7 +405,11 @@ describe('SocialV1View initial tab', () => {
           Component: ReturnToSocialOnLeaderboard,
         },
       ],
-      { state: initialStateSocialLeaderboard().build() },
+      {
+        state: initialStateSocialLeaderboard({
+          linkedSocialProfile: true,
+        }).build(),
+      },
     );
     const trendingPage = within(
       screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
@@ -390,6 +425,33 @@ describe('SocialV1View initial tab', () => {
     expect(
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
+  });
+
+  it('opens profile onboarding from the avatar without a social profile', async () => {
+    renderScreenWithRoutes(
+      SocialV1ViewWithAccessRestricted,
+      { name: Routes.SOCIAL.V1 },
+      [
+        { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+        { name: Routes.SOCIAL.MY_PROFILE },
+      ],
+      { state: initialStateSocialLeaderboard().build() },
+    );
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(await trendingPage.findByTestId(feedPostTestId)).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
+    ).not.toBeOnTheScreen();
   });
 });
 

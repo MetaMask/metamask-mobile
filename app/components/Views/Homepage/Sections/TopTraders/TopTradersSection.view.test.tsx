@@ -19,6 +19,7 @@ import {
   stubHomepageSectionMeasurement,
 } from '../../../../../../tests/component-view/renderers/socialLeaderboard';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { resetFollowToggleSharedStateForTests } from '../../../../hooks/useFollowToggle';
 import { TopTradersSectionSelectorsIDs } from './TopTradersSection.testIds';
 import { getTopTraderCardTestId } from './components/TopTraderCard.testIds';
 import {
@@ -98,6 +99,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
   let measurementSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    resetFollowToggleSharedStateForTests();
     measurementSpy = stubHomepageSectionMeasurement();
     setupLeaderboardApiMock();
   });
@@ -106,6 +108,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     restoreHomeTopTradersSectionStore();
     clearLeaderboardApiMock();
     measurementSpy.mockRestore();
+    resetFollowToggleSharedStateForTests();
   });
 
   // -------------------------------------------------------------------------
@@ -261,10 +264,12 @@ describeForPlatforms('Homepage TopTradersSection', () => {
       presetOptions: { featureEnabled: false },
     });
 
-    // Give the visibility gate time to open (the enabled path fetches within
-    // this window); the flag must still win.
+    // The visibility gate opens on the enabled path (the test above waits for
+    // its fetch), so once the gate cycle has run, the flag must still have
+    // won. A zero-delay flush drains the gate's pending chains before the
+    // negative assertions.
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(screen.queryByTestId(SECTION_ROOT_ID)).not.toBeOnTheScreen();
@@ -395,10 +400,15 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens profile onboarding from the header when Social terms are accepted and no profile exists', async () => {
-    await acceptSocialTerms();
+  it('opens the Social tab from the header without Social terms or a profile', async () => {
     renderHomeTopTradersSection(
-      [{ name: Routes.SOCIAL.PROFILE_ONBOARDING }, { name: Routes.HOME_TABS }],
+      [
+        { name: Routes.SOCIAL.PROFILE_ONBOARDING },
+        {
+          name: Routes.HOME_TABS,
+          Component: createRouteParamsProbe(Routes.HOME_TABS),
+        },
+      ],
       {
         overrides: abTestOverrides({
           [SOCIAL_V1_AB_KEY]: 'treatment',
@@ -409,14 +419,41 @@ describeForPlatforms('Homepage TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId(SECTION_TITLE_ID));
 
+    expect(await readRouteParams(Routes.HOME_TABS)).toEqual({
+      screen: Routes.SOCIAL.TAB,
+      params: { source: 'home_carousel' },
+    });
+    expect(
+      screen.queryByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens profile onboarding instead of following without a profile when the Social V1 treatment is assigned', async () => {
+    await acceptSocialTerms();
+    renderHomeTopTradersSection([{ name: Routes.SOCIAL.PROFILE_ONBOARDING }], {
+      overrides: abTestOverrides({
+        [SOCIAL_V1_AB_KEY]: 'treatment',
+      }),
+    });
+    await findAlphaCard();
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getAllByText(strings('social_leaderboard.follow'))[0],
+      );
+    });
+
     expect(
       await screen.findByTestId(
         getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
       ),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
-    ).not.toBeOnTheScreen();
+    expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      expect.anything(),
+    );
   });
 
   // -------------------------------------------------------------------------

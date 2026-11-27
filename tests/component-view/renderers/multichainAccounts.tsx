@@ -206,7 +206,11 @@ export function renderDeleteAccountWithRoutes(
     ...renderScreenWithRoutes(
       DeleteAccount as unknown as React.ComponentType,
       { name: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT },
-      [{ name: Routes.WALLET_VIEW }],
+      [
+        // Both probes support the independently merged renderer and caller migrations.
+        { name: Routes.WALLET_VIEW },
+        { name: Routes.WALLET.HOME },
+      ],
       { state: fixture.state },
       { account },
     ),

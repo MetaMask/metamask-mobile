@@ -239,28 +239,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
-      secrets_json: ${{ steps.config.outputs.secrets_json }}
       build_name: ${{ steps.config.outputs.build_name }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.validate-pr.outputs.commit_sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-
-      - run: yarn install --immutable
-
-      - name: Map channel to build name and load config
+      - name: Map channel to build name
         id: config
         env:
           CHANNEL: ${{ inputs.channel }}
         run: |
-          # Environment is pinned per channel. builds.yml still supplies the secret mapping.
+          # Environment is pinned per channel.
           case "${CHANNEL}" in
             exp)
               BUILD_NAME="main-exp"
@@ -281,17 +267,7 @@ jobs:
           esac
           echo "build_name=$BUILD_NAME" >> "$GITHUB_OUTPUT"
           echo "github_environment=$ENVIRONMENT_NAME" >> "$GITHUB_OUTPUT"
-
-          node -e "
-          const yaml = require('js-yaml');
-          const fs = require('fs');
-          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
-          const build = config.builds['${BUILD_NAME}'];
-          if (!build) { console.error('Build not found: ${BUILD_NAME}'); process.exit(1); }
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
-          "
-
-          echo "✅ Loaded config for $BUILD_NAME"
+          echo "✅ Mapped ${CHANNEL} to $BUILD_NAME"
 
   fingerprint-comparison:
     name: Compare Expo Fingerprints
@@ -437,23 +413,20 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
-      id-token: write # token exchange for the team approval check
+      pull-requests: read # release PR merge state
     runs-on: ubuntu-latest
     steps:
-      - name: Get token
-        id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
+      - name: Checkout scripts
+        uses: actions/checkout@v6
         with:
-          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
-          permissions: |
-            members: read
+          sparse-checkout: .github/scripts
 
-      - name: Await approval from mobile release team
-        uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
-        with:
-          team: release-team
-          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
-          token: ${{ steps.get-token.outputs.token }}
+      - name: Require the release PR to meet the stable branch rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
+          EXPECTED_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+        run: .github/scripts/verify-release-pr-mergeable.sh
 
   push-update-ios:
     name: Push EAS Update (iOS)
@@ -478,7 +451,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'ios')
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
+      id-token: write # AWS OIDC role assumption and Sigstore signing in eas-update-platform.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: ios
@@ -489,7 +463,6 @@ jobs:
       build_name: ${{ needs.prepare.outputs.build_name }}
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
-      secrets_json: ${{ needs.prepare.outputs.secrets_json }}
     secrets: inherit
 
   push-update-android:
@@ -515,7 +488,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'android')
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
+      id-token: write # AWS OIDC role assumption and Sigstore signing in eas-update-platform.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: android
@@ -526,7 +500,6 @@ jobs:
       build_name: ${{ needs.prepare.outputs.build_name }}
       build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
-      secrets_json: ${{ needs.prepare.outputs.secrets_json }}
     secrets: inherit
 
   fingerprint-mismatch:

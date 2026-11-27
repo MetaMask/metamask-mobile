@@ -6,11 +6,13 @@ import React, {
   useCallback,
 } from 'react';
 import { Keyboard, Platform } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
 import {
+  getFocusedRouteNameFromRoute,
   NavigationRouteContext,
   type NavigationProp,
   type ParamListBase,
@@ -125,16 +127,13 @@ import TabBarFloating, {
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-} from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
-import { useABTest } from '../../../hooks';
+import { selectHasSocialV1Access } from '../../../selectors/featureFlagController/socialV1';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
+import NativeSocialTabBadge from './HomeTabs/NativeSocialTabBadge';
 import { useHomeTabFlatParamsBridge } from './homeTabFlatParamsBridge';
 import {
   TAB_BAR_VISIBLE_STYLE,
@@ -181,13 +180,16 @@ import {
   MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
-import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
+import MoneyEarningsView from '../../UI/Money/Views/MoneyEarningsView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -202,6 +204,10 @@ import {
   PredictPreviewSheetProvider,
 } from '../../UI/Predict';
 import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
+import { CollectiblesLayout } from '../../UI/Collectibles/routes/CollectiblesLayout';
+import { BuySheet as CollectiblesBuySheet } from '../../UI/Collectibles/routes/BuySheet';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -242,7 +248,6 @@ import { TransactionDetails } from '../../Views/confirmations/components/activit
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
-import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -250,7 +255,6 @@ import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/R
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
-import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
 import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
 import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
@@ -273,7 +277,6 @@ import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDe
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
-const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 const EMPTY_HOME_TAB_COMPAT_PARAMS = Object.freeze({});
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
@@ -910,6 +913,10 @@ const HomeTabs = () => {
 
   const tabComponentFor = (tab: HomeTabDefinition) =>
     tab.key === 'social' ? socialTabComponent : HOME_TAB_COMPONENTS[tab.key];
+  const nativeTabs = tabs.filter((tab) => !tab.isHidden);
+  const nativeSocialTabIndex = nativeTabs.findIndex(
+    (tab) => tab.key === 'social',
+  );
 
   const renderJsTabScreen = (tab: HomeTabDefinition) => (
     <JsTab.Screen
@@ -936,8 +943,8 @@ const HomeTabs = () => {
       options={
         tab.hidesTabBarFor
           ? ({ route }: { route: HomeTabRoute }) =>
-              toNativeTabOptions(tab, route, colors.success.default)
-          : toNativeTabOptions(tab, undefined, colors.success.default)
+              toNativeTabOptions(tab, route)
+          : toNativeTabOptions(tab)
       }
       listeners={getNativeTabListeners(tab)}
       initialParams={
@@ -954,28 +961,37 @@ const HomeTabs = () => {
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
         <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-          <NativeTab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            screenOptions={{
-              headerShown: false,
-              // Mount on first visit like the JS navigator; the native
-              // default renders every tab at launch and never freezes them.
-              lazy: true,
-              // UIKit picks the inactive colour.
-              tabBarActiveTintColor: colors.icon.default,
-              tabBarMinimizeBehavior: 'onScrollDown',
-              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-              overrideScrollViewContentInsetAdjustmentBehavior: false,
-            }}
-          >
-            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-            <NativeTab.Screen
-              name={systemSlotTab.name}
-              options={systemSlotTab.options}
-              listeners={systemSlotTab.listeners}
-              component={systemSlotTab.component}
-            />
-          </NativeTab.Navigator>
+          <Box twClassName="flex-1">
+            <NativeTab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              screenOptions={{
+                headerShown: false,
+                // Mount on first visit like the JS navigator; the native
+                // default renders every tab at launch and never freezes them.
+                lazy: true,
+                // UIKit picks the inactive colour.
+                tabBarActiveTintColor: colors.icon.default,
+                // UIKit only finds some tabs' scroll views, so collapsing was inconsistent.
+                tabBarMinimizeBehavior: 'none',
+                tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+                overrideScrollViewContentInsetAdjustmentBehavior: false,
+              }}
+            >
+              {nativeTabs.map(renderNativeTabScreen)}
+              <NativeTab.Screen
+                name={systemSlotTab.name}
+                options={systemSlotTab.options}
+                listeners={systemSlotTab.listeners}
+                component={systemSlotTab.component}
+              />
+            </NativeTab.Navigator>
+            {showSocialTabNewBadge && nativeSocialTabIndex >= 0 ? (
+              <NativeSocialTabBadge
+                tabIndex={nativeSocialTabIndex}
+                tabCount={nativeTabs.length}
+              />
+            ) : null}
+          </Box>
         </FloatingTabBarInsetContext.Provider>
       </HomeTabSheetHosts>
     );
@@ -1100,12 +1116,16 @@ const MainNavigator = () => {
 
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Predict routes are registered while Predict is available for the
   // Active Venue, the same gate its entry points use.
   const isPredictEnabled = useSelector(selectPredictAvailability);
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1117,12 +1137,7 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const { variant: socialV1Variant } = useABTest(
-    SOCIAL_V1_AB_KEY,
-    SOCIAL_V1_VARIANTS,
-    SOCIAL_V1_ASSIGNMENT_OPTIONS,
-  );
-  const isSocialV1Enabled = socialV1Variant.useSocialV1;
+  const isSocialV1Enabled = useSelector(selectHasSocialV1Access);
   const isSocialExperienceEnabled =
     isSocialV1Enabled || isSocialLeaderboardEnabled;
   return (
@@ -1161,10 +1176,6 @@ const MainNavigator = () => {
        */}
       <NativeStack.Group screenOptions={transparentModalStackOptions}>
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-          component={RewardsBottomSheetModal as ScreenComponent}
-        />
-        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal as ScreenComponent}
         />
@@ -1193,10 +1204,6 @@ const MainNavigator = () => {
           component={AcceptInviteSheet}
         />
         <NativeStack.Screen
-          name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
-          component={TermsSheet}
-        />
-        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
           component={TaxFormQuestionSheet}
         />
@@ -1217,7 +1224,7 @@ const MainNavigator = () => {
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
-       * invite sheet dismisses — same pattern as Money onboarding.
+       * invite sheet dismisses — same pattern as the Money splash.
        */}
       <NativeStack.Screen
         name={Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW}
@@ -1388,9 +1395,17 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={{
-          ...slideFromRightNativeOptions,
-          fullScreenGestureEnabled: true,
+        options={({ route }) => {
+          const focusedBridgeRouteName =
+            getFocusedRouteNameFromRoute(route) ?? Routes.BRIDGE.BRIDGE_VIEW;
+          return {
+            ...slideFromRightNativeOptions,
+            // On iOS a full screen gesture here also catches swipes on pushed
+            // Bridge screens and pops the whole Bridge stack instead of them.
+            ...(focusedBridgeRouteName === Routes.BRIDGE.BRIDGE_VIEW
+              ? { fullScreenGestureEnabled: true }
+              : null),
+          };
         }}
       />
       <NativeStack.Screen
@@ -1428,6 +1443,13 @@ const MainNavigator = () => {
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
             />
+            {isEarningsHistoryEnabled && (
+              <NativeStack.Screen
+                name={Routes.MONEY.EARNINGS}
+                component={MoneyEarningsView}
+                options={{ gestureEnabled: false }}
+              />
+            )}
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}
               component={MusdRescueSendScreen}
@@ -1449,11 +1471,6 @@ const MainNavigator = () => {
               component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
-          <NativeStack.Screen
-            name={Routes.MONEY.ONBOARDING}
-            component={MoneyOnboardingView}
-            options={fadeNativeOptions}
-          />
           <NativeStack.Screen
             name={Routes.MONEY.SPLASH}
             component={MoneySplashView}
@@ -1553,6 +1570,20 @@ const MainNavigator = () => {
             options={transparentModalStackOptions}
           />
         </>
+      )}
+      {isCollectiblesEnabled && (
+        <NativeStack.Screen
+          name={collectiblesRoutes.root}
+          component={CollectiblesLayout}
+          options={slideFromRightNativeOptions}
+        />
+      )}
+      {isCollectiblesEnabled && (
+        <NativeStack.Screen
+          name={collectiblesRoutes.buySheet}
+          component={CollectiblesBuySheet}
+          options={transparentModalStackOptions}
+        />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <NativeStack.Screen

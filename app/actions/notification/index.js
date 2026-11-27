@@ -16,42 +16,6 @@ export function hideNotificationById(id) {
   };
 }
 
-export function modifyOrShowTransactionNotificationById({
-  autodismiss,
-  transaction,
-  status,
-}) {
-  return {
-    type: ACTIONS.MODIFY_OR_SHOW_TRANSACTION_NOTIFICATION,
-    autodismiss,
-    transaction,
-    status,
-  };
-}
-
-export function modifyOrShowSimpleNotificationById({
-  autodismiss,
-  title,
-  description,
-  status,
-}) {
-  return {
-    type: ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION,
-    autodismiss,
-    title,
-    description,
-    status,
-  };
-}
-
-export function replaceNotificationById(notification) {
-  return {
-    type: ACTIONS.REPLACE_NOTIFICATION_BY_ID,
-    notification,
-    id: notification.id,
-  };
-}
-
 export function removeNotificationById(id) {
   return {
     type: ACTIONS.REMOVE_NOTIFICATION_BY_ID,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -270,6 +271,37 @@ describe('PredictEventCard', () => {
         expect(mockEventCardStandard).toHaveBeenCalledTimes(1);
         expect(mockEventCardStandard.mock.calls[0][0].variant).toBe(expected);
         expect(mockEventCardGame).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('shared card outline', () => {
+    it.each<[PredictEventCardVariant | undefined, 'game' | 'standard']>([
+      [undefined, 'game'],
+      ['compact', 'game'],
+      ['featured', 'game'],
+      ['small', 'game'],
+      ['trending', 'game'],
+      [undefined, 'standard'],
+      ['trending', 'standard'],
+    ])(
+      'applies the 20pt radius and muted border for %s %s cards',
+      (variant, kind) => {
+        render(
+          <PredictEventCard
+            event={kind === 'game' ? gameEvent('basketball') : standardEvent()}
+            variant={variant}
+            onPress={jest.fn()}
+          />,
+        );
+
+        expect(
+          screen.getByTestId('predict-next-event-kalshi-routed-event'),
+        ).toHaveStyle({
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: lightTheme.colors.border.muted,
+        });
       },
     );
   });

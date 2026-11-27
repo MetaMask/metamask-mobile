@@ -11,7 +11,6 @@ import {
 import {
   AvatarIcon,
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -56,6 +55,7 @@ import {
 } from '../labels';
 import { MfaMethodDetailsSelectorsIDs } from '../Mfa.testIds';
 import { getMfaUsedFor } from './mfaUsedFor';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
 
 export interface MfaMethodDetailsParams {
   method: MfaMethod;
@@ -304,7 +304,10 @@ const MfaMethodDetails = () => {
               : MfaMethodDetailsSelectorsIDs.LAST_METHOD_SHEET
           }
         >
-          <BottomSheetHeader onClose={() => closeSheet()} />
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
+            onClose={() => closeSheet()}
+          />
           <Box twClassName="px-4 pb-4 gap-4">
             <TitleAlert
               severity={IconAlertSeverity.Danger}

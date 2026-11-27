@@ -1,12 +1,19 @@
+import { PredictAmountEntryTestIds } from '../../../components/PredictAmountEntry/PredictAmountEntry.testIds';
+
+/** The figure and keypad are the shared amount-entry components, so their
+ * ids are theirs; these names keep the Order sheet's vocabulary. */
+const AMOUNT_ENTRY = PredictAmountEntryTestIds;
+
 export const PredictOrderFlowTestIds = {
   SHEET: 'predict-order-flow-sheet',
   VENUE_CHANGED: 'predict-order-flow-venue-changed',
   OUTCOME_LABEL: 'predict-order-flow-outcome-label',
   OUTCOME_SWAP_ICON: 'predict-order-flow-outcome-swap-icon',
   TO_WIN: 'predict-order-flow-to-win',
-  AMOUNT_INPUT: 'predict-order-flow-amount-input',
-  KEYPAD: 'predict-order-flow-keypad',
-  KEYPAD_KEY: (key: string) => `predict-order-flow-keypad-key-${key}`,
+  TO_WIN_INFO_ICON: 'predict-order-flow-to-win-info-icon',
+  AMOUNT_INPUT: AMOUNT_ENTRY.DISPLAY,
+  KEYPAD: AMOUNT_ENTRY.KEYPAD,
+  KEYPAD_KEY: AMOUNT_ENTRY.KEYPAD_KEY,
   QUICK_AMOUNT: (amount: string) => `predict-order-flow-quick-${amount}`,
   QUICK_CONTRACT: (key: string) => `predict-order-flow-quick-contract-${key}`,
   HELD_CONTRACTS: 'predict-order-flow-held-contracts',
@@ -25,16 +32,20 @@ export const PredictOrderFlowTestIds = {
   TOTAL_DEBIT: 'predict-order-flow-total-debit',
   PAY_WITH: 'predict-order-flow-pay-with',
   BREAKDOWN: 'predict-order-flow-breakdown',
+  BREAKDOWN_HEADER_BAR: 'predict-order-flow-breakdown-header-bar',
+  BREAKDOWN_HEADER: 'predict-order-flow-breakdown-header',
+  BREAKDOWN_CLOSE: 'predict-order-flow-breakdown-close',
   DETAILS: 'predict-order-flow-details',
-  DETAILS_ODDS: 'predict-order-flow-details-odds',
-  DETAILS_CONTRACTS: 'predict-order-flow-details-contracts',
+  DETAILS_ORDER_AMOUNT: 'predict-order-flow-details-order-amount',
+  DETAILS_METAMASK_FEE: 'predict-order-flow-details-metamask-fee',
+  DETAILS_EXCHANGE_FEE: 'predict-order-flow-details-exchange-fee',
   DETAILS_FEES: 'predict-order-flow-details-fees',
-  DETAILS_RECEIVE: 'predict-order-flow-details-receive',
   DETAILS_TOTAL: 'predict-order-flow-details-total',
-  DETAILS_PAYOUT: 'predict-order-flow-details-payout',
+  DETAILS_PARTIAL_FILL_NOTE: 'predict-order-flow-details-partial-fill-note',
   EXPIRED: 'predict-order-flow-expired',
   REFRESH: 'predict-order-flow-refresh',
   ERROR: 'predict-order-flow-error',
+  ADD_FUNDS: 'predict-order-flow-add-funds',
   REVIEW: 'predict-order-flow-review',
   APPROVAL: 'predict-order-flow-approval',
   EXPIRY: 'predict-order-flow-expiry',

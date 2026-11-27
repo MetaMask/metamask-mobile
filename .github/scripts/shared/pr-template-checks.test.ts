@@ -1,5 +1,35 @@
 import * as fs from 'fs';
 
+// pr-template-checks reads the template from disk at module load. Serve a
+// fixture copy for that one path so these tests do not depend on the live
+// .github/pull-request-template.md; every other read passes through.
+jest.mock('fs', () => {
+  const actualFs = jest.requireActual<typeof import('fs')>('fs');
+  const nodePath = jest.requireActual<typeof import('path')>('path');
+  const liveTemplatePath = nodePath.join(
+    __dirname,
+    '../../pull-request-template.md',
+  );
+  const fixturePath = nodePath.join(
+    __dirname,
+    '__fixtures__',
+    'pull-request-template.fixture.md',
+  );
+  return {
+    ...actualFs,
+    readFileSync: (file: unknown, ...args: unknown[]) =>
+      nodePath.resolve(String(file)) === liveTemplatePath
+        ? (actualFs.readFileSync as (...a: unknown[]) => unknown)(
+            fixturePath,
+            ...args,
+          )
+        : (actualFs.readFileSync as (...a: unknown[]) => unknown)(
+            file,
+            ...args,
+          ),
+  };
+});
+
 import {
   PR_TEMPLATE_SECTIONS,
   PR_TEMPLATE_SECTION_TITLES,
