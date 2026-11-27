@@ -1150,5 +1150,12 @@ describe('PerpsMarketRowItem', () => {
       expect(mockOnWatchlistPress.mock.calls[0][0].symbol).toBe('BTC');
       expect(mockOnPress).not.toHaveBeenCalled();
     });
+
+    it('renders the Perp type tag when showTypeTag is true', () => {
+      render(<PerpsMarketRowItem market={mockMarketData} showTypeTag />);
+
+      expect(screen.getByText('Perp')).toBeOnTheScreen();
+      expect(screen.getByText('50x')).toBeOnTheScreen();
+    });
   });
 });
