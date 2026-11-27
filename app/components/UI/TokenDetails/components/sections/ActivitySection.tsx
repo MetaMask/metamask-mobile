@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -6,29 +6,23 @@ import NonEvmActivityRows from './NonEvmActivityRows';
 import ActivityRows from './ActivityRows';
 import EvmActivityFooter from './EvmActivityFooter';
 import type { Hex } from '@metamask/utils';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { RootState } from '../../../../../reducers';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
-import {
-  groupActivityListItems,
-  type ActivityListItem,
-  type GroupedActivityListItem,
-} from '../../../../../util/activity-adapters';
 import AssetDetailsActivityListItem from '../../../Transactions/AssetDetailsActivityListItem';
-import {
-  mapTransactionToActivityItem,
-  type TransactionWithImportTime,
-} from '../../../Transactions/AssetDetailsActivityListItem.utils';
-import { filterDuplicateOutgoingTransactions } from '../../../Transactions/utils';
+import { ActivityListItemRow } from '../../../ActivityListItemRow/ActivityListItemRow';
+import { getActivityDetailsRoute } from '../../../../Views/ActivityList/getActivityDetailsRoute';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useTokenTransactions } from '../../hooks/useTokenTransactions';
+import { useTokenCaipAssetId } from '../../hooks/useTokenCaipAssetId';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 
 export {
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
   TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID,
+  TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID,
   DEFAULT_INITIAL_VISIBLE_ROWS,
   ACTIVITY_EXPAND_STEP_ROWS,
 } from './ActivityRows';
@@ -38,76 +32,6 @@ export interface ActivitySectionProps {
   showSectionRule?: boolean;
   includeNonEvm?: boolean;
   showEvmFooter?: boolean;
-}
-
-interface UseGroupedTokenActivityParams {
-  transactions: TransactionMeta[];
-  submittedTxs: TransactionMeta[];
-  confirmedTxs: TransactionMeta[];
-  isNonEvmAsset: boolean;
-  assetSymbol: string;
-  chainId?: Hex;
-}
-
-interface GroupedTokenActivityResult {
-  groupedItems: GroupedActivityListItem[];
-  transactionByActivityItem: Map<ActivityListItem, TransactionWithImportTime>;
-}
-
-/**
- * Normalizes and groups token transactions into pending/date sections for
- * the activity row list. Mirrors the adaptation pipeline in the legacy
- * `Transactions` component.
- */
-function useGroupedTokenActivity({
-  transactions,
-  submittedTxs,
-  confirmedTxs,
-  isNonEvmAsset,
-  assetSymbol,
-  chainId,
-}: UseGroupedTokenActivityParams): GroupedTokenActivityResult {
-  return useMemo(() => {
-    if (isNonEvmAsset) {
-      return {
-        groupedItems: [],
-        transactionByActivityItem: new Map(),
-      };
-    }
-
-    const listTransactions =
-      submittedTxs.length > 0
-        ? [...submittedTxs].sort((a, b) => b.time - a.time).concat(confirmedTxs)
-        : transactions;
-    const filteredTransactions =
-      filterDuplicateOutgoingTransactions(listTransactions);
-
-    const transactionByActivityItem = new Map<
-      ActivityListItem,
-      TransactionWithImportTime
-    >();
-    const groupedItems = groupActivityListItems(
-      filteredTransactions.map((transaction) => {
-        const activityItem = mapTransactionToActivityItem({
-          transaction,
-          assetSymbol: assetSymbol || 'ETH',
-          currentChainId: chainId ?? ('0x1' as Hex),
-          tokenChainId: chainId ?? ('0x1' as Hex),
-        });
-        transactionByActivityItem.set(activityItem, transaction);
-        return activityItem;
-      }),
-    );
-
-    return { groupedItems, transactionByActivityItem };
-  }, [
-    isNonEvmAsset,
-    submittedTxs,
-    confirmedTxs,
-    transactions,
-    assetSymbol,
-    chainId,
-  ]);
 }
 
 const ActivitySection: React.FC<ActivitySectionProps> = ({
@@ -139,17 +63,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
   );
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
-  const {
-    groupedItems: activityGroupedItems,
-    transactionByActivityItem: activityItemToTransaction,
-  } = useGroupedTokenActivity({
-    transactions,
-    submittedTxs,
-    confirmedTxs,
-    isNonEvmAsset,
-    assetSymbol,
-    chainId,
-  });
+  const caipAssetId = useTokenCaipAssetId(token);
 
   if (isNonEvmAsset) {
     return includeNonEvm ? (
@@ -165,16 +79,20 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     ) : null;
   }
 
-  if (!isActivityLoading && activityGroupedItems.length === 0) {
-    return null;
-  }
-
   return (
     <ActivityRows
       token={token}
-      groupedItems={activityGroupedItems}
+      transactions={transactions}
+      submittedTxs={submittedTxs}
+      confirmedTxs={confirmedTxs}
+      chainId={chainId}
+      caipAssetId={caipAssetId ?? undefined}
+      selectedAddress={selectedAddress}
+      assetSymbol={assetSymbol}
+      isActivityLoading={isActivityLoading}
+      showSectionRule={showSectionRule}
       footer={
-        showEvmFooter && activityGroupedItems.length > 0 ? (
+        showEvmFooter ? (
           <EvmActivityFooter
             chainId={chainId}
             address={selectedAddress}
@@ -183,12 +101,24 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
           />
         ) : null
       }
-      showSectionRule={showSectionRule}
-      renderItem={({ item, index }) => {
-        const transaction = activityItemToTransaction.get(item);
-        if (!transaction) {
-          return null;
+      renderItem={({ item, index, transaction, isApiItem }) => {
+        // Use API item rendering if explicitly marked as API or no transaction found
+        if (isApiItem || !transaction) {
+          return (
+            <ActivityListItemRow
+              item={item}
+              index={index}
+              onPress={(pressedItem) => {
+                const detailsRoute = getActivityDetailsRoute(pressedItem);
+                if (detailsRoute) {
+                  navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+                }
+              }}
+            />
+          );
         }
+
+        // Render local transaction
         return (
           <AssetDetailsActivityListItem
             transaction={transaction}

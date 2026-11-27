@@ -13578,12 +13578,7 @@
   },
   "app/components/UI/TokenDetails/components/sections/ActivitySection.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    }
-  },
-  "app/components/UI/TokenDetails/components/sections/ActivitySection.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/TokenDetails/components/sections/TokenDetailsActionsSection.test.tsx": {
@@ -13804,7 +13799,7 @@
       "count": 2
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 9
+      "count": 10
     },
     "typescript/prefer-optional-chain": {
       "count": 2

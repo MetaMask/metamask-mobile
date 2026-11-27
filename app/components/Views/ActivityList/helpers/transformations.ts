@@ -15,6 +15,7 @@ import {
 import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
+import type { CaipAssetType } from '@metamask/utils';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
   type ActivityListItem,
@@ -116,12 +117,27 @@ export function mapV5ActivityItem(transaction: V5TransactionRecord) {
   );
 }
 
+export function activityMatchesAssetId(
+  item: ActivityListItem,
+  assetId: CaipAssetType,
+): boolean {
+  const { data } = item;
+  const tokenAssetIds = [
+    'token' in data ? data.token?.assetId : undefined,
+    'sourceToken' in data ? data.sourceToken?.assetId : undefined,
+    'destinationToken' in data ? data.destinationToken?.assetId : undefined,
+  ];
+  return tokenAssetIds.some((id) => id && equalsIgnoreCase(id, assetId));
+}
+
 export function selectApiEvmTransactions({
   address,
   excludedTxHashes,
+  assetId,
 }: {
   address: string;
   excludedTxHashes?: Set<string>;
+  assetId?: CaipAssetType;
 }) {
   return (data: InfiniteData<V5MultiAccountTransactionsResponse>) => ({
     ...data,
@@ -133,7 +149,10 @@ export function selectApiEvmTransactions({
             !isZeroValueSelfSend(transaction, address) &&
             !isExcludedTransactionHash(transaction, excludedTxHashes),
         )
-        .map(mapV5ActivityItem),
+        .map(mapV5ActivityItem)
+        .filter(
+          (activity) => !assetId || activityMatchesAssetId(activity, assetId),
+        ),
     })),
   });
 }
