@@ -64,7 +64,7 @@ export function BridgeDetails({
   );
 
   return (
-    <Box twClassName="flex-1 gap-2">
+    <Box className="flex-1 gap-2">
       <ActivityDetailsDualAmountHeader
         sentToken={item.data.sourceToken}
         receivedToken={item.data.destinationToken}
@@ -77,7 +77,7 @@ export function BridgeDetails({
       />
       <SectionDivider marginVertical={0} />
       <ActivityDetailsFeesAndTotal item={item} token={item.data.sourceToken} />
-      <Box twClassName="mt-auto pt-4">
+      <Box className="mt-auto pt-4">
         <ActivityDetailsFooter>
           <ActivityDetailsBridgeExplorerButtons
             sourceChainId={item.chainId}

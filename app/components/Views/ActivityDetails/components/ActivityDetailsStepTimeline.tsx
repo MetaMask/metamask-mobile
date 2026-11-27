@@ -109,7 +109,7 @@ export function ActivityDetailsStepTimeline({
       >
         {title}
       </Text>
-      <Box twClassName="gap-0">
+      <Box className="gap-0">
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
 
@@ -120,14 +120,14 @@ export function ActivityDetailsStepTimeline({
               onPress={openExplorer}
               testID={getActivityDetailsStepTestId(index)}
             >
-              <Box twClassName="flex-row items-start gap-3">
-                <Box twClassName="items-center">
-                  <Box twClassName="h-6 items-center justify-center">
+              <Box className="flex-row items-start gap-3">
+                <Box className="items-center">
+                  <Box className="h-6 items-center justify-center">
                     <StepDot status={DOT_STATUS[step.status]} />
                   </Box>
                   {!isLast ? <StepConnector /> : null}
                 </Box>
-                <Box twClassName="flex-1 pb-2">
+                <Box className="flex-1 pb-2">
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}

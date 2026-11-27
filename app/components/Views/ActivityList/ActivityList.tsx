@@ -25,7 +25,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   runOnJS,
@@ -33,7 +33,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { View } from '../../UI/primitives/View';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
@@ -211,7 +211,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const navigation = useNavigation<AppNavigationProp>();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
-    const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
     const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
@@ -719,7 +718,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       if (isFetchingMoreActivity) {
         return (
           <View
-            style={tw.style('items-center justify-center py-4')}
+            className="items-center justify-center py-4"
             testID={ActivityListSelectorsIDs.LOAD_MORE_INDICATOR}
           >
             <ActivityIndicator />
@@ -766,7 +765,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       showNonEvmExplorerLink,
       showNonEvmFooter,
       configBlockExplorerUrl,
-      tw,
     ]);
 
     const [refreshing, setRefreshing] = useState(false);
@@ -1159,7 +1157,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               ListFooterComponent={
                 filledLimitOrders.isFetchingNextPage ? (
                   <View
-                    style={tw.style('items-center justify-center py-4')}
+                    className="items-center justify-center py-4"
                     testID={ActivityListSelectorsIDs.LOAD_MORE_INDICATOR}
                   >
                     <ActivityIndicator />
