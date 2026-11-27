@@ -7,10 +7,6 @@ import {
   generateEIP7702BatchTransaction,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
-import {
-  PaymentOverride,
-  type TransactionConfig,
-} from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
@@ -48,15 +44,14 @@ export interface PerpsTransactionOptions {
 export interface PerpsTransactionRequest {
   params: TransactionParams;
   options: PerpsTransactionOptions;
-  /** Set on the new confirmation's pay config once it is added. */
-  paymentOverride?: PaymentOverride.PerpsLighter;
 }
 
 /**
  * CAIP-19 asset type of the Lighter perps USDC balance. Declaring it on the
- * required asset of a Lighter withdraw makes Pay quote from that balance.
+ * required asset makes Pay treat the Lighter balance as the target of a
+ * deposit, or the source of a withdraw.
  */
-export const LIGHTER_USDC_ASSET_ID = 'lighter:mainnet/perps:usdc';
+export const LIGHTER_USDC_ASSET_ID = 'lighter:mainnet/perps:usdc' as const;
 
 /** The Hyperliquid confirmation to recreate when the user switches back. */
 export interface HyperliquidConfirmationSnapshot {
@@ -134,7 +129,11 @@ export function buildLighterDepositRequest({
 /**
  * Mainnet USDC deposit into an existing Lighter account, as a new
  * confirmation. It has no calldata. Pay quotes the required mainnet USDC into
- * Lighter because `paymentOverride` is set once the confirmation is added.
+ * Lighter because the required asset declares the Lighter `assetId`. That
+ * leaves `paymentOverride` free for the Money Account.
+ *
+ * TODO: Pay only honors it on a deposit target once this app depends on a
+ * `@metamask/transaction-pay-controller` release with MetaMask/core#11779.
  *
  * @param request - Deposit to build.
  * @param request.amount - USDC amount in base units.
@@ -157,7 +156,12 @@ export function buildLighterExistingAccountDepositRequest({
   origin: string | undefined;
   type: TransactionType;
 }): PerpsTransactionRequest {
-  const { requiredAsset } = buildLighterUsdcDepositTransaction(from, amount);
+  const { requiredAsset: usdcRequiredAsset } =
+    buildLighterUsdcDepositTransaction(from, amount);
+  const requiredAsset = {
+    ...usdcRequiredAsset,
+    assetId: LIGHTER_USDC_ASSET_ID,
+  };
 
   return {
     params: { from, to: from, value: '0x0' },
@@ -169,7 +173,6 @@ export function buildLighterExistingAccountDepositRequest({
       skipInitialGasEstimate: true,
       type,
     },
-    paymentOverride: PaymentOverride.PerpsLighter,
   };
 }
 
@@ -391,33 +394,11 @@ export async function replacePerpsTransaction(
   request: PerpsTransactionRequest,
   previousTransactionId: string,
 ): Promise<void> {
-  const { transactionMeta } = await addTransaction(
-    request.params,
-    request.options,
-  );
-
-  if (request.paymentOverride) {
-    setPaymentOverride(transactionMeta.id, request.paymentOverride);
-  }
+  await addTransaction(request.params, request.options);
 
   Engine.context.ApprovalController.rejectRequest(
     previousTransactionId,
     providerErrors.userRejectedRequest(),
-  );
-}
-
-function setPaymentOverride(
-  transactionId: string,
-  paymentOverride: PaymentOverride.PerpsLighter,
-): void {
-  Engine.context.TransactionPayController.setTransactionConfig(
-    transactionId,
-    (config: TransactionConfig) => {
-      config.paymentOverride = paymentOverride;
-      // The pay token can be the required mainnet USDC itself, which Pay would
-      // otherwise skip as a same-token no-op.
-      config.isQuoteRequired = true;
-    },
   );
 }
 

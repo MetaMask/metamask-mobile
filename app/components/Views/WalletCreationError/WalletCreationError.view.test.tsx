@@ -20,6 +20,13 @@ describeForPlatforms('WalletCreationError — social login error sheet', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    // The Try-again test spies deleteWallet on the real Authentication
+    // module; restore it so the iOS and Android suites in this file do not
+    // inherit each other's spy.
+    jest.restoreAllMocks();
+  });
+
   it('shows the social login error sheet and navigates to onboarding root on Try again', async () => {
     jest.spyOn(Authentication, 'deleteWallet').mockResolvedValue(undefined);
 

@@ -87,7 +87,7 @@ const Price = ({
     variant={ButtonVariant.Secondary}
     size={ButtonSize.Lg}
     onPress={onPress}
-    twClassName={twClassName}
+    className={twClassName}
   >
     <Text
       variant={TextVariant.BodyMd}

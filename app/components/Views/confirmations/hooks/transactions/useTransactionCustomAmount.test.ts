@@ -30,6 +30,7 @@ import {
 } from '../pay/useTransactionPayData';
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
+import { useLighterWithdrawableBalance } from '../../temp-lighter/useLighterWithdrawableBalance';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
@@ -86,6 +87,7 @@ jest.mock('../pay/useUpdateTransactionPayAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
+jest.mock('../../temp-lighter/useLighterWithdrawableBalance');
 jest.mock('../pay/useMMPayFiatConfig');
 jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
 jest.mock('../useTokenAmount');
@@ -1415,6 +1417,25 @@ describe('useTransactionCustomAmount', () => {
       const config = { isMaxAmount: false };
       setTransactionConfigMock.mock.calls[0][1](config);
       expect(config.isMaxAmount).toBe(true);
+    });
+
+    it('does not set isMaxAmount for Lighter withdraw when Max is pressed', async () => {
+      // Pay does not resolve the Lighter balance for Max, so the amount is
+      // committed net of the Lighter fee instead.
+      jest.mocked(useLighterWithdrawableBalance).mockReturnValue('500');
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsLighterWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
     it('returns 0 for perps withdraw when no available balance', async () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import {
   fireEvent,
   render,
@@ -82,7 +83,7 @@ const threeMarkets = () => [
 
 describe('EventCardStandard', () => {
   describe('container', () => {
-    it('uses the elevated1 background in light mode', () => {
+    it('uses the elevated1 surface, 20pt radius, muted border, and default padding', () => {
       render(
         <EventCardStandard
           event={event([market('market-1')])}
@@ -94,10 +95,17 @@ describe('EventCardStandard', () => {
         screen.getByTestId('predict-next-event-kalshi-event-1'),
       ).toHaveStyle({
         backgroundColor: lightTheme.colors.background.elevated1,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: lightTheme.colors.border.muted,
+        paddingTop: 12,
+        paddingRight: 16,
+        paddingBottom: 16,
+        paddingLeft: 16,
       });
     });
 
-    it('uses dark theme elevated1 surface in dark mode', () => {
+    it('uses dark theme elevated1 surface and muted border in dark mode', () => {
       render(
         <ThemeProvider theme={Theme.Dark}>
           <EventCardStandard
@@ -111,6 +119,7 @@ describe('EventCardStandard', () => {
         screen.getByTestId('predict-next-event-kalshi-event-1'),
       ).toHaveStyle({
         backgroundColor: darkTheme.colors.background.elevated1,
+        borderColor: darkTheme.colors.border.muted,
       });
     });
   });
@@ -477,17 +486,24 @@ describe('EventCardStandard trending', () => {
   });
 
   describe('container', () => {
-    it('uses the elevated1 background in light mode', () => {
+    it('uses the elevated1 surface, 20pt radius, muted border, and 16pt vertical padding with no horizontal padding', () => {
       renderCard();
 
-      expect(
-        screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`),
-      ).toHaveStyle({
+      const card = screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`);
+      const style = StyleSheet.flatten(card.props.style);
+      expect(style).toMatchObject({
         backgroundColor: lightTheme.colors.background.elevated1,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: lightTheme.colors.border.muted,
+        paddingTop: 16,
+        paddingBottom: 16,
       });
+      expect(style.paddingLeft).toBeUndefined();
+      expect(style.paddingRight).toBeUndefined();
     });
 
-    it('uses dark theme elevated1 surface in dark mode', () => {
+    it('uses dark theme elevated1 surface and muted border in dark mode', () => {
       render(
         <ThemeProvider theme={Theme.Dark}>
           <EventCardStandard
@@ -502,6 +518,7 @@ describe('EventCardStandard trending', () => {
         screen.getByTestId(`predict-next-event-kalshi-${EVENT_ID}`),
       ).toHaveStyle({
         backgroundColor: darkTheme.colors.background.elevated1,
+        borderColor: darkTheme.colors.border.muted,
       });
     });
   });

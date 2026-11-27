@@ -32,7 +32,6 @@ import TokenDetailsMarketInsightsSection from './sections/TokenDetailsMarketInsi
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import {
   TokenDetailsAction,
   type TokenDetailsRouteParams,
@@ -99,11 +98,6 @@ const styleSheet = (params: { theme: Theme }) => {
     marketClosedActionButtonContainer: {
       marginBottom: 8,
     },
-    securityTrustWrapper: {
-      marginTop: 20,
-      marginBottom: 20,
-      paddingHorizontal: 16,
-    } as ViewStyle,
   });
 };
 
@@ -153,20 +147,12 @@ export interface AssetOverviewContentProps {
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  // Security & Trust
-  /** Resolved security data owned by the parent (TokenDetails). */
   securityData?: TokenSecurityData | null;
-  /** Whether security data is still being fetched. */
-  isSecurityDataLoading?: boolean;
-  /** Whether the security data fetch failed. Hides the card when true. */
-  hasSecurityDataError?: boolean;
-
-  onPriceDirectionChange?: (isPositive: boolean) => void;
+  headerSpacer?: React.ReactNode;
+  renderTabs?: (overview: React.ReactNode) => React.ReactNode;
 
   // Exit action tracking
   onExitAction?: () => void;
-  /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
-  isPricePositive?: boolean | null;
   /** Called whenever the perps market loading state settles. Lets the parent avoid a duplicate hook call. */
   onPerpsMarketResolved?: (result: {
     hasPerpsMarket: boolean;
@@ -212,11 +198,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
   securityData,
-  isSecurityDataLoading = false,
-  hasSecurityDataError = false,
-  onPriceDirectionChange,
+  headerSpacer,
+  renderTabs,
   onExitAction,
-  isPricePositive,
   onPerpsMarketResolved,
   mostRecentOrder,
 }) => {
@@ -361,8 +345,92 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       : strings('security_trust.suspicious_token_description_no_symbol');
   })();
 
+  const overview = !token.hasBalanceError && (
+    <>
+      <MoneyEarnBanner asset={token} />
+      <TokenDetailsMarketInsightsSection
+        token={token}
+        securityData={securityData ?? null}
+        onDisplayResolved={onMarketInsightsDisplayResolved}
+        pricePercentChange={
+          comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
+        }
+        containerStyle={styles.marketInsightsWrapper}
+        isGlass={isGlass}
+      />
+      {tronNativeToken && <TronEnergyBandwidthDetail />}
+      {balance != null && spendableBalanceData.hasSpendableBalance && (
+        <SpendableBalanceSection
+          minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
+          spendableBalance={spendableBalanceData.spendableBalance}
+          totalBalance={String(balance)}
+          symbol={token.symbol}
+          fiatValue={mainBalance}
+        />
+      )}
+      {balance != null && !spendableBalanceData.hasSpendableBalance && (
+        <>
+          <Balance
+            asset={token}
+            balanceCta={balanceCta}
+            balanceDescription={balanceDescription}
+            mainBalance={mainBalance}
+            priceChangeOverride={balancePriceChangeOverride}
+            priceChangeOverrideColor={balancePriceChangeOverrideColor}
+            secondaryBalance={secondaryBalance}
+          />
+          <EarnBalance asset={token} isGlass={isGlass} />
+        </>
+      )}
+      {tronNativeToken && (
+        <TronAssetOverviewSection
+          token={tronNativeToken}
+          stakedTrxAsset={stakedTrxAsset}
+          inLockPeriodBalance={inLockPeriodBalance}
+          readyForWithdrawalBalance={readyForWithdrawalBalance}
+        />
+      )}
+      {showPerpsSection && perpsPosition && (
+        <View style={styles.perpsPositionCardContainer}>
+          <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
+            {strings('asset_overview.perps_position')}
+          </Text>
+          <PerpsCard
+            position={perpsPosition}
+            onPress={handlePerpsDiscoveryPress}
+            testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+          />
+        </View>
+      )}
+      {showPerpsSection && !perpsPosition && marketData && (
+        <PerpsDiscoveryBanner
+          symbol={marketData.symbol}
+          maxLeverage={marketData.maxLeverage}
+          onPress={handlePerpsDiscoveryPress}
+          testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+        />
+      )}
+      {mostRecentOrder ? (
+        <TokenDetailsOrdersSection
+          mostRecentOrder={mostRecentOrder}
+          onOrdersHeaderPress={handleOrdersHeaderPress}
+          onRecurringOrderPress={handleRecurringOrderPress}
+        />
+      ) : null}
+      <View style={styles.tokenDetailsWrapper}>
+        <TokenDetails
+          asset={token}
+          onCopyAddress={() =>
+            trackActionTapped(TokenDetailsAction.CopyTokenAddress)
+          }
+        />
+      </View>
+    </>
+  );
+
   return (
     <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
+      {headerSpacer}
       {token.hasBalanceError ? (
         renderWarning()
       ) : (
@@ -415,7 +483,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             hasInsufficientCoverage={hasInsufficientCoverage}
-            onPriceDirectionChange={onPriceDirectionChange}
             isGlass={isGlass}
           />
           {!isTokenTradable(token as BridgeToken) && (
@@ -445,96 +512,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onExitAction={onExitAction}
             isGlass={isGlass}
           />
-          <MoneyEarnBanner asset={token} />
-          <TokenDetailsMarketInsightsSection
-            token={token}
-            securityData={securityData ?? null}
-            onDisplayResolved={onMarketInsightsDisplayResolved}
-            pricePercentChange={
-              comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
-            }
-            containerStyle={styles.marketInsightsWrapper}
-            isGlass={isGlass}
-          />
-          {tronNativeToken && <TronEnergyBandwidthDetail />}
-          {balance != null && spendableBalanceData.hasSpendableBalance && (
-            <SpendableBalanceSection
-              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
-              spendableBalance={spendableBalanceData.spendableBalance}
-              totalBalance={String(balance)}
-              symbol={token.symbol}
-              fiatValue={mainBalance}
-            />
-          )}
-          {balance != null && !spendableBalanceData.hasSpendableBalance && (
-            <>
-              <Balance
-                asset={token}
-                balanceCta={balanceCta}
-                balanceDescription={balanceDescription}
-                mainBalance={mainBalance}
-                priceChangeOverride={balancePriceChangeOverride}
-                priceChangeOverrideColor={balancePriceChangeOverrideColor}
-                secondaryBalance={secondaryBalance}
-              />
-              <EarnBalance asset={token} isGlass={isGlass} />
-            </>
-          )}
-          {tronNativeToken && (
-            <TronAssetOverviewSection
-              token={tronNativeToken}
-              stakedTrxAsset={stakedTrxAsset}
-              inLockPeriodBalance={inLockPeriodBalance}
-              readyForWithdrawalBalance={readyForWithdrawalBalance}
-            />
-          )}
-          {showPerpsSection && perpsPosition && (
-            <View style={styles.perpsPositionCardContainer}>
-              <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
-                {strings('asset_overview.perps_position')}
-              </Text>
-              <PerpsCard
-                position={perpsPosition}
-                onPress={handlePerpsDiscoveryPress}
-                testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
-              />
-            </View>
-          )}
-          {showPerpsSection && !perpsPosition && marketData && (
-            <PerpsDiscoveryBanner
-              symbol={marketData.symbol}
-              maxLeverage={marketData.maxLeverage}
-              onPress={handlePerpsDiscoveryPress}
-              testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
-            />
-          )}
-          {mostRecentOrder ? (
-            <TokenDetailsOrdersSection
-              mostRecentOrder={mostRecentOrder}
-              onOrdersHeaderPress={handleOrdersHeaderPress}
-              onRecurringOrderPress={handleRecurringOrderPress}
-            />
-          ) : null}
-          <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails
-              asset={token}
-              onCopyAddress={() =>
-                trackActionTapped(TokenDetailsAction.CopyTokenAddress)
-              }
-            />
-          </View>
-          {!hasSecurityDataError &&
-            (isSecurityDataLoading || securityData?.resultType) && (
-              <View style={styles.securityTrustWrapper}>
-                <SecurityTrustEntryCard
-                  securityData={securityData ?? null}
-                  isLoading={isSecurityDataLoading}
-                  token={token as TokenDetailsRouteParams}
-                />
-              </View>
-            )}
         </View>
       )}
+      {renderTabs ? renderTabs(overview) : overview}
     </Box>
   );
 };

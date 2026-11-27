@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Theme, ThemeProvider } from '@metamask/design-system-twrnc-preset';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
@@ -33,20 +34,28 @@ const event = (): PredictEvent => ({
   markets: [market()],
 });
 
-describe('EventCard primitives', () => {
-  it('uses the elevated1 background on Root by default', () => {
+describe('EventCard.Root', () => {
+  it('uses the elevated1 surface, 20pt radius, muted border, and default padding', () => {
     render(
       <EventCard.Root testID="card-root">
         <EventCard.Title>Election winner</EventCard.Title>
       </EventCard.Root>,
     );
 
-    expect(screen.getByTestId('card-root')).toHaveStyle({
+    const card = screen.getByTestId('card-root');
+    expect(card).toHaveStyle({
       backgroundColor: lightTheme.colors.background.elevated1,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: lightTheme.colors.border.muted,
+      paddingTop: 12,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingLeft: 16,
     });
   });
 
-  it('uses dark theme elevated1 surface on Root in dark mode', () => {
+  it('uses dark theme elevated1 surface and muted border in dark mode', () => {
     render(
       <ThemeProvider theme={Theme.Dark}>
         <EventCard.Root testID="card-root">
@@ -57,9 +66,56 @@ describe('EventCard primitives', () => {
 
     expect(screen.getByTestId('card-root')).toHaveStyle({
       backgroundColor: darkTheme.colors.background.elevated1,
+      borderColor: darkTheme.colors.border.muted,
     });
   });
 
+  it('keeps the shared outline and default surface when twClassName overrides layout', () => {
+    render(
+      <EventCard.Root testID="card-root" twClassName="gap-3 py-4">
+        <EventCard.Title>Election winner</EventCard.Title>
+      </EventCard.Root>,
+    );
+
+    const style = StyleSheet.flatten(
+      screen.getByTestId('card-root').props.style,
+    );
+    expect(style).toMatchObject({
+      backgroundColor: lightTheme.colors.background.elevated1,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: lightTheme.colors.border.muted,
+      paddingTop: 16,
+      paddingBottom: 16,
+    });
+    expect(style.paddingLeft).toBeUndefined();
+    expect(style.paddingRight).toBeUndefined();
+  });
+
+  it('keeps the shared outline when twClassName sets another surface or radius', () => {
+    render(
+      <EventCard.Root
+        testID="card-root"
+        twClassName="rounded-2xl border-0 bg-section p-4"
+      >
+        <EventCard.Title>Election winner</EventCard.Title>
+      </EventCard.Root>,
+    );
+
+    expect(screen.getByTestId('card-root')).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.section,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: lightTheme.colors.border.muted,
+      paddingTop: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingLeft: 16,
+    });
+  });
+});
+
+describe('EventCard primitives', () => {
   it('composes header content with BodySm title and BodyXs subtitle', () => {
     render(
       <EventCard.Header>

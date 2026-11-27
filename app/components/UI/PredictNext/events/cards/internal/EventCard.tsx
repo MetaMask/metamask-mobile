@@ -43,9 +43,17 @@ interface RootProps {
   twClassName?: string;
 }
 
-const Root = ({ children, testID, twClassName }: RootProps) => (
+const CARD_OUTLINE_CLASS_NAME = 'rounded-[20px] border border-muted';
+const DEFAULT_CARD_SURFACE_CLASS_NAME = 'bg-elevated1';
+const DEFAULT_CARD_LAYOUT_CLASS_NAME = 'gap-3 p-4 pt-3';
+
+const Root = ({
+  children,
+  testID,
+  twClassName = DEFAULT_CARD_LAYOUT_CLASS_NAME,
+}: RootProps) => (
   <Box
-    twClassName={twClassName ?? 'gap-3 rounded-2xl bg-elevated1 p-4 pt-3'}
+    className={`${DEFAULT_CARD_SURFACE_CLASS_NAME} ${twClassName} ${CARD_OUTLINE_CLASS_NAME}`}
     testID={testID}
   >
     {children}
@@ -78,7 +86,7 @@ const Title = ({
     fontWeight={FontWeight.Regular}
     color={TextColor.TextDefault}
     numberOfLines={numberOfLines}
-    twClassName={twClassName}
+    className={twClassName}
   >
     {children}
   </Text>
@@ -241,7 +249,7 @@ const HeaderRowTitle = ({
     variant={TextVariant.BodySm}
     fontWeight={FontWeight.Bold}
     numberOfLines={1}
-    twClassName="min-w-[60%] flex-1"
+    className="min-w-[60%] flex-1"
     testID={testID}
   >
     {children}
@@ -264,7 +272,7 @@ const HeaderRowMeta = ({
     fontWeight={FontWeight.Medium}
     color={TextColor.TextAlternative}
     numberOfLines={1}
-    twClassName="shrink"
+    className="shrink"
     testID={testID}
   >
     {children}
