@@ -109,6 +109,10 @@ import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSel
 import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
 import { buildPaymentTokenMock } from '../../../../Views/confirmations/__mocks__/pay-token.mock';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { AlertKeys } from '../../../../Views/confirmations/constants/alerts';
+import { Severity } from '../../../../Views/confirmations/types/alerts';
+import { RowAlertKey } from '../../../../Views/confirmations/components/UI/info-row/alert-row/constants';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -2983,6 +2987,34 @@ describe('PerpsOrderView', () => {
       getMockTradeScreenProps().errorMessages.map(({ key }) => key),
     ).not.toContain('execution-Order execution failed');
     expect(getMockTradeScreenProps().errorMessages).toHaveLength(5);
+  });
+
+  it('shows insufficient funds once in the Trade sheet when the pay-token alert repeats the banner', () => {
+    jest.mocked(useInsufficientPayTokenBalanceAlert).mockReturnValue([
+      {
+        key: AlertKeys.InsufficientPayTokenBalance,
+        field: RowAlertKey.Amount,
+        severity: Severity.Danger,
+        message: 'Insufficient funds',
+        isBlocking: true,
+      },
+    ]);
+    jest.mocked(usePerpsOrderValidation).mockReturnValue({
+      isValid: false,
+      errors: ['Insufficient margin'],
+      warnings: [],
+      fieldIssues: [],
+      isValidating: false,
+      insufficientBalanceErrors: ['Insufficient margin'],
+      validateNow: jest.fn(),
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const keys = getMockTradeScreenProps().errorMessages.map(({ key }) => key);
+    expect(keys).toContain('insufficient-funds');
+    expect(keys).not.toContain('insufficient_pay_token_balance');
   });
 
   it('does not turn the submit button into Add funds while an order is being placed', () => {

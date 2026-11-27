@@ -402,8 +402,17 @@ export function usePerpsOrderForm(
       return 0;
     }
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
+    // Pay-with-token market orders also deposit margin plus the max slippage
+    // (see `getPayWithTokenDepositAmount`), so that reserve must fit the
+    // balance too or 100% always reads as insufficient funds.
+    const isMarketOrder =
+      !isLimitExecutionOrderType(orderForm.type) &&
+      !isTriggerOrderType(orderForm.type);
+    const slippageReserveRate =
+      hasPaymentBalance && isMarketOrder ? effectiveMaxSlippageBps / 10_000 : 0;
     const feeAdjustedBalance =
-      balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
+      balanceForMax /
+      (1 + estimatedFeeRate * orderForm.leverage + slippageReserveRate);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
@@ -451,6 +460,7 @@ export function usePerpsOrderForm(
     });
   }, [
     balanceForMax,
+    hasPaymentBalance,
     estimatedFeeRate,
     currentPrice?.price,
     orderForm.type,

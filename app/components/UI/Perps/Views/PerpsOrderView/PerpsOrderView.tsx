@@ -231,6 +231,7 @@ import {
   resetPerpsPaymentTokenSelection,
 } from '../../utils/perpsPaymentTokenSelection';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import { AlertKeys } from '../../../../Views/confirmations/constants/alerts';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -1657,6 +1658,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasInsufficientFundsError =
     hasInsufficientPayTokenBalance || insufficientBalanceErrors.length > 0;
 
+  // The "Insufficient funds to cover the trade" banner already states this
+  // condition, so the matching pay-token alert must not repeat it. The alert
+  // still blocks submission through `hasBlockingPayAlerts`.
+  const displayedPayAlertMessage =
+    hasInsufficientFundsError &&
+    blockingPayAlerts[0]?.key === AlertKeys.InsufficientPayTokenBalance
+      ? undefined
+      : blockingPayAlertMessage;
+
   // The banner above already states the insufficient-funds condition, so drop
   // only those messages here — any other blocking error stays visible.
   const footerErrors = useMemo(() => {
@@ -3004,13 +3014,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             message: error,
           }))
         : []),
-      ...(hasBlockingPayAlerts && blockingPayAlertMessage
+      ...(hasBlockingPayAlerts && displayedPayAlertMessage
         ? [
             {
               key:
                 blockingPayAlerts[0]?.key ??
-                `pay-alert-${String(blockingPayAlertMessage)}`,
-              message: blockingPayAlertMessage,
+                `pay-alert-${String(displayedPayAlertMessage)}`,
+              message: displayedPayAlertMessage,
             },
           ]
         : []),
@@ -3640,10 +3650,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
-          {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
+          {hasBlockingPayAlerts && !!displayedPayAlertMessage && (
             <View style={styles.validationContainer}>
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {blockingPayAlertMessage}
+                {displayedPayAlertMessage}
               </Text>
             </View>
           )}

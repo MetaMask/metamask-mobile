@@ -17,6 +17,7 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../constants/slippageConfig';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
@@ -1705,6 +1706,62 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.maxPossibleAmount).toBe(unreservedMax);
+    });
+  });
+
+  describe('pay-with-token max amount', () => {
+    const paymentBalance = 1000;
+    // Market orders deposit margin plus the max slippage, so the default
+    // slippage must fit the balance on top of margin and fees.
+    const defaultSlippageRate = PERPS_SLIPPAGE_DEFAULT_BPS / 10_000;
+
+    it('reserves slippage so the buffered deposit fits the payment balance at 100%', () => {
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ effectiveAvailableBalance: paymentBalance }),
+        { wrapper: createWrapper() },
+      );
+      const feeRate = 0.0045;
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      const margin = notional / leverage;
+      const deposit = margin * (1 + defaultSlippageRate) + notional * feeRate;
+      expect(notional).toBe(result.current.maxPossibleAmount);
+      expect(deposit).toBeLessThanOrEqual(paymentBalance);
+    });
+
+    it('does not reserve slippage when paying from the Perps balance', () => {
+      const { result: perpsBalance } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const { result: paymentToken } = renderHook(
+        () => usePerpsOrderForm({ effectiveAvailableBalance: 1000 }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(paymentToken.current.maxPossibleAmount).toBeLessThan(
+        perpsBalance.current.maxPossibleAmount,
+      );
+    });
+
+    it('does not reserve slippage for limit orders', () => {
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ effectiveAvailableBalance: paymentBalance }),
+        { wrapper: createWrapper() },
+      );
+      const marketMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+
+      expect(result.current.maxPossibleAmount).toBeGreaterThan(marketMax);
     });
   });
 
