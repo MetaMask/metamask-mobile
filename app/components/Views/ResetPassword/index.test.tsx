@@ -1393,7 +1393,7 @@ describe('ResetPassword', () => {
       expect(spyLockApp).toHaveBeenCalled();
     });
 
-    it('shows change password error and navigates to security settings on confirm', async () => {
+    it('shows change password error modal without navigating back to security settings', async () => {
       await setupSeedlessErrorTest(
         SeedlessOnboardingControllerErrorMessage.InvalidAccessToken,
       );
@@ -1410,19 +1410,34 @@ describe('ResetPassword', () => {
             description: strings(
               'reset_password.seedless_change_password_error_modal_content',
             ),
+            closeOnPrimaryButtonPress: true,
           }),
         }),
       );
 
       const errorSheetCall = mockNavigation.navigate.mock.calls[1];
-      const onErrorSheetPrimaryButtonPress =
-        errorSheetCall[1].params.onPrimaryButtonPress;
-      await act(async () => {
-        await onErrorSheetPrimaryButtonPress();
-      });
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
-        Routes.SETTINGS.SECURITY_SETTINGS,
+      expect(errorSheetCall[1].params.onPrimaryButtonPress).toBeUndefined();
+      expect(mockNavigation.replace).not.toHaveBeenCalled();
+    });
+
+    it('shows change password error modal when keyring or key-sync fails during seedless password change', async () => {
+      await setupSeedlessErrorTest(
+        'Keyring encryption key synchronization failed',
       );
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings(
+              'reset_password.seedless_change_password_error_modal_title',
+            ),
+            closeOnPrimaryButtonPress: true,
+          }),
+        }),
+      );
+      expect(mockNavigation.replace).not.toHaveBeenCalled();
     });
 
     it('navigates to change password error modal when lockApp rejects after outdated password', async () => {

@@ -10,7 +10,12 @@ import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../se
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { RecurringPriceToleranceModalParams } from './types';
 
-export function useRecurringPriceToleranceModal() {
+export function useRecurringPriceToleranceModal(): {
+  initialValue: string;
+  sourceModal: RecurringPriceToleranceModalParams['sourceModal'];
+  handleSubmit: (value: string) => void;
+  handleGoBack: () => void;
+} {
   const navigation = useNavigation<AppStackNavigationProp>();
   const dispatch = useDispatch();
   const { sourceModal } = useParams<RecurringPriceToleranceModalParams>();

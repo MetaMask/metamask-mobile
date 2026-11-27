@@ -3,6 +3,7 @@ import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -177,6 +178,9 @@ describe('initializeWallet', () => {
       messenger,
       state: expectedState,
     });
+    expect(getSeedlessOnboardingControllerInstanceOptions).toHaveBeenCalledWith(
+      { messenger },
+    );
   });
 
   it('normalizes the persisted AnalyticsController state and options with the MMKV analytics ID', () => {

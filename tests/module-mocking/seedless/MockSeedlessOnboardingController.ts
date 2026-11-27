@@ -1,6 +1,7 @@
 import { BaseController } from '@metamask/base-controller';
 import {
   getDefaultSeedlessOnboardingControllerState,
+  PasswordSyncInstruction,
   type SeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
@@ -20,6 +21,7 @@ interface MockState {
   accessToken: string | null;
   migrationVersion: number;
   socialLoginEmail: string | null;
+  keyringEncryptionKey: string | null;
 }
 
 const mockState: MockState = {
@@ -31,6 +33,7 @@ const mockState: MockState = {
   accessToken: null,
   migrationVersion: 0,
   socialLoginEmail: null,
+  keyringEncryptionKey: null,
 };
 
 /**
@@ -45,6 +48,7 @@ export const resetMockState = () => {
   mockState.accessToken = null;
   mockState.migrationVersion = 0;
   mockState.socialLoginEmail = null;
+  mockState.keyringEncryptionKey = null;
 };
 
 /**
@@ -210,7 +214,7 @@ export class MockSeedlessOnboardingController extends BaseController<
   /**
    * Mock clearState
    */
-  clearState(): void {
+  async clearState(): Promise<void> {
     console.log('[E2E Mock] clearState called');
     resetMockState();
     const defaultState = getDefaultSeedlessOnboardingControllerState();
@@ -244,11 +248,18 @@ export class MockSeedlessOnboardingController extends BaseController<
   }
 
   /**
+   * Mock restoreVaultWithPassword - returns the stored seed phrase
+   */
+  async restoreVaultWithPassword(_params: {
+    password: string;
+  }): Promise<{ data: Uint8Array; type: string }[]> {
+    return this.fetchAllSecretData();
+  }
+
+  /**
    * Mock fetchAllSecretData - returns the stored seed phrase
    */
-  async fetchAllSecretData(
-    _password?: string,
-  ): Promise<{ data: Uint8Array; type: string }[]> {
+  async fetchAllSecretData(): Promise<{ data: Uint8Array; type: string }[]> {
     console.log('[E2E Mock] fetchAllSecretData called');
 
     if (mockState.seedPhrase) {
@@ -315,33 +326,38 @@ export class MockSeedlessOnboardingController extends BaseController<
   }
 
   /**
-   * Mock checkIsPasswordOutdated
+   * Mock resolvePasswordSyncState
    */
-  async checkIsPasswordOutdated(_options?: {
+  async resolvePasswordSyncState(_options?: {
     skipCache?: boolean;
-  }): Promise<boolean> {
-    console.log('[E2E Mock] checkIsPasswordOutdated called');
-    return false;
+  }): Promise<PasswordSyncInstruction> {
+    console.log('[E2E Mock] resolvePasswordSyncState called');
+    return PasswordSyncInstruction.InSync;
   }
 
   /**
-   * Mock submitGlobalPassword
+   * Mock reconcilePassword
    */
-  async submitGlobalPassword(_params: {
+  async reconcilePassword(_params: {
     globalPassword: string;
     maxKeyChainLength?: number;
-  }): Promise<{ success: boolean; error?: Error }> {
-    console.log('[E2E Mock] submitGlobalPassword called');
-    return { success: true };
+  }): Promise<PasswordSyncInstruction> {
+    console.log('[E2E Mock] reconcilePassword called');
+    return PasswordSyncInstruction.InSync;
   }
 
   /**
-   * Mock syncLatestGlobalPassword
+   * Mock markPasswordChangeKeySyncPending
    */
-  async syncLatestGlobalPassword(_params: {
-    globalPassword: string;
-  }): Promise<void> {
-    console.log('[E2E Mock] syncLatestGlobalPassword called');
+  async markPasswordChangeKeySyncPending(): Promise<void> {
+    console.log('[E2E Mock] markPasswordChangeKeySyncPending called');
+  }
+
+  /**
+   * Mock completePasswordChange
+   */
+  async completePasswordChange(): Promise<void> {
+    console.log('[E2E Mock] completePasswordChange called');
   }
 
   /**
@@ -349,14 +365,15 @@ export class MockSeedlessOnboardingController extends BaseController<
    */
   async loadKeyringEncryptionKey(): Promise<string> {
     console.log('[E2E Mock] loadKeyringEncryptionKey called');
-    return 'mock-encryption-key';
+    return mockState.keyringEncryptionKey ?? 'mock-encryption-key';
   }
 
   /**
    * Mock storeKeyringEncryptionKey
    */
-  async storeKeyringEncryptionKey(_key: string): Promise<void> {
+  async storeKeyringEncryptionKey(key: string): Promise<void> {
     console.log('[E2E Mock] storeKeyringEncryptionKey called');
+    mockState.keyringEncryptionKey = key;
   }
 
   /**
@@ -364,6 +381,46 @@ export class MockSeedlessOnboardingController extends BaseController<
    */
   async refreshAuthTokens(): Promise<void> {
     console.log('[E2E Mock] refreshAuthTokens called');
+  }
+
+  /**
+   * Mock authenticateForRecovery
+   */
+  async authenticateForRecovery(_params: {
+    aal2Token: string;
+    authConnectionId: string;
+    groupedAuthConnectionId: string;
+  }): Promise<void> {
+    console.log('[E2E Mock] authenticateForRecovery called');
+  }
+
+  /**
+   * Mock migrateToEnvelope
+   */
+  async migrateToEnvelope(_params: {
+    recoverySecret: Uint8Array;
+  }): Promise<void> {
+    console.log('[E2E Mock] migrateToEnvelope called');
+  }
+
+  /**
+   * Mock recoverWithRecoverySecret
+   */
+  async recoverWithRecoverySecret(_params: {
+    recoverySecret: Uint8Array;
+    password: string;
+  }): Promise<{ data: Uint8Array; type: string }[]> {
+    console.log('[E2E Mock] recoverWithRecoverySecret called');
+    return this.fetchAllSecretData();
+  }
+
+  /**
+   * Mock resetPasswordWithVaultKeys
+   */
+  async resetPasswordWithVaultKeys(_params: {
+    newPassword: string;
+  }): Promise<void> {
+    console.log('[E2E Mock] resetPasswordWithVaultKeys called');
   }
 }
 

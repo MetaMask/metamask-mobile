@@ -193,6 +193,8 @@
     ]
   },
   "resolutions": {
+    "@metamask/auth-network-utils": "0.5.0",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-abcfadf",
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -349,6 +351,7 @@
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",
     "@craftzdog/react-native-buffer": "^6.1.2",
+    "@cubist-labs/cubesigner-sdk": "^0.4.284",
     "@ethersproject/abi": "^5.7.0",
     "@expensify/react-native-wallet": "patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch",
     "@expo/fingerprint": "~0.20.13",
@@ -431,6 +434,7 @@
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/messenger": "^3.0.0",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-b17282bb1",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
     "@metamask/money-account-api-data-service": "^2.5.0",
@@ -471,7 +475,7 @@
     "@metamask/sample-controllers": "^6.1.0",
     "@metamask/scure-bip39": "^2.1.1",
     "@metamask/sdk-communication-layer": "0.33.1",
-    "@metamask/seedless-onboarding-controller": "^12.0.0",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.1.0-preview-abcfadf",
     "@metamask/selected-network-controller": "^27.1.0",
     "@metamask/sentinel-api-service": "^2.3.0",
     "@metamask/shield-controller": "^7.1.2",

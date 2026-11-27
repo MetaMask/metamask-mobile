@@ -37,6 +37,7 @@ import {
   isSocialLoginAuthSessionDismissed,
 } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
+import { createLoginHandler } from './OAuthLoginHandlers';
 import { Platform } from 'react-native';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
 import {
@@ -188,6 +189,12 @@ export class OAuthService {
       }
 
       await whenEngineReady();
+
+      // The controller rejects authenticating a different user or verifier
+      // while a previous identity is still in state (e.g. after "Use different
+      // login method"). Social login only starts from onboarding, so any
+      // leftover state is stale and must be cleared first.
+      await Engine.context.SeedlessOnboardingController.clearState();
 
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
@@ -596,6 +603,60 @@ export class OAuthService {
       oauthLoginSuccess: false,
       oauthLoginError: null,
     });
+  };
+
+  /**
+   * Signs in with the wallet's social provider again to get a provider ID
+   * token whose `nonce` claim is `nonce`. The token is not exchanged with the
+   * auth server, and no OAuth or seedless state changes.
+   *
+   * @param nonce - The nonce the ID token must carry.
+   * @returns The provider ID token. Never log it.
+   */
+  getSocialIdTokenForNonce = async (nonce: string): Promise<string> => {
+    await whenEngineReady();
+    const { authConnection } =
+      Engine.context.SeedlessOnboardingController.state;
+    if (
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Apple
+    ) {
+      throw new OAuthError(
+        'Social sign-in for recovery supports Google and Apple only',
+        OAuthErrorType.InvalidProvider,
+      );
+    }
+
+    const loginHandler = createLoginHandler(
+      Platform.OS,
+      authConnection,
+      false,
+      { nonce },
+    );
+    const idToken = await loginHandler.getProviderIdToken();
+
+    let payload: unknown;
+    try {
+      payload = JSON.parse(loginHandler.decodeIdToken(idToken));
+    } catch (error) {
+      throw new OAuthError(
+        error instanceof Error
+          ? error
+          : 'Failed to decode provider ID token payload',
+        OAuthErrorType.InvalidOauthStateError,
+      );
+    }
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      (payload as { nonce?: unknown }).nonce !== nonce
+    ) {
+      throw new OAuthError(
+        'Provider ID token nonce does not match the requested nonce',
+        OAuthErrorType.InvalidOauthStateError,
+      );
+    }
+    return idToken;
   };
 
   private async getValidAccessToken(): Promise<string> {

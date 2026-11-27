@@ -49,8 +49,33 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
       authServerUrl: params.authServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
+      nonce: params.nonce,
     });
     this.clientId = params.clientId;
+  }
+
+  /**
+   * Returns the Apple identity token whose nonce claim is this handler's nonce.
+   * Uses its own sign-in call so the normal login() request is unchanged.
+   *
+   * @returns The Apple identity token.
+   */
+  async getProviderIdToken(): Promise<string> {
+    try {
+      const credential = await signInAsync({
+        requestedScopes: this.#scope,
+        nonce: this.nonce,
+      });
+      if (!credential.identityToken) {
+        throw new OAuthError(
+          'handleIosAppleLogin: Missing identity token',
+          OAuthErrorType.AppleLoginError,
+        );
+      }
+      return credential.identityToken;
+    } catch (error) {
+      this.#throwSignInError(error);
+    }
   }
 
   /**
@@ -76,30 +101,33 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
         OAuthErrorType.AppleLoginError,
       );
     } catch (error) {
-      Logger.log('handleIosAppleLogin: Error', error);
+      this.#throwSignInError(error);
+    }
+  }
 
-      if (error instanceof OAuthError) {
-        throw error;
-      } else if (error instanceof Error) {
-        const errorWithCode = error as Error & { code?: string };
-        if (
-          errorWithCode.code === 'ERR_REQUEST_CANCELED' ||
-          isOAuthUserCancellationMessage(error.message)
-        ) {
-          throw new OAuthError(
-            'handleIosAppleLogin: User canceled the authorization attempt',
-            OAuthErrorType.UserCancelled,
-          );
-        } else {
-          throw new OAuthError(error, OAuthErrorType.AppleLoginError);
-        }
-      } else {
+  #throwSignInError(error: unknown): never {
+    Logger.log('handleIosAppleLogin: Error', error);
+
+    if (error instanceof OAuthError) {
+      throw error;
+    }
+    if (error instanceof Error) {
+      const errorWithCode = error as Error & { code?: string };
+      if (
+        errorWithCode.code === 'ERR_REQUEST_CANCELED' ||
+        isOAuthUserCancellationMessage(error.message)
+      ) {
         throw new OAuthError(
-          'handleIosAppleLogin: Unknown error',
-          OAuthErrorType.AppleLoginError,
+          'handleIosAppleLogin: User canceled the authorization attempt',
+          OAuthErrorType.UserCancelled,
         );
       }
+      throw new OAuthError(error, OAuthErrorType.AppleLoginError);
     }
+    throw new OAuthError(
+      'handleIosAppleLogin: Unknown error',
+      OAuthErrorType.AppleLoginError,
+    );
   }
 
   getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {

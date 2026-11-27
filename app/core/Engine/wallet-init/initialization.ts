@@ -106,7 +106,7 @@ export function initializeWallet({
           state,
         }),
       seedlessOnboardingController:
-        getSeedlessOnboardingControllerInstanceOptions(),
+        getSeedlessOnboardingControllerInstanceOptions({ messenger }),
       selectedNetworkController: {
         domainProxyMap: new DomainProxyMap(),
       },

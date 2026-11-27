@@ -1,8 +1,10 @@
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
+import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import type { EncryptionKey } from '../../../Encryptor/types';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
+import type { RootMessenger } from '../../types';
 import {
   getSeedlessOnboardingControllerInstanceOptions,
   seedlessOnboardingEncryptorAdapter,
@@ -60,6 +62,10 @@ jest.mock('../../../OAuthService/OAuthLoginHandlers/constants', () => ({
   web3AuthNetwork: 'sapphire_mainnet',
 }));
 
+jest.mock('../../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: { resultFunc: jest.fn() },
+}));
+
 const getEncryptorMocks = () => {
   const mocks = jest.requireMock('../../../Encryptor') as {
     __mockEncryptWithKey: jest.Mock;
@@ -76,7 +82,20 @@ const getEncryptorMocks = () => {
 };
 
 describe('getSeedlessOnboardingControllerInstanceOptions', () => {
+  const createMockMessenger = (
+    remoteFeatureFlags: Record<string, unknown> = {},
+  ) =>
+    ({
+      call: jest.fn((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return { remoteFeatureFlags };
+        }
+        return undefined;
+      }),
+    }) as unknown as RootMessenger;
+
   beforeEach(() => {
+    jest.clearAllMocks();
     const {
       mockEncryptWithKey,
       mockDecryptWithKey,
@@ -92,8 +111,11 @@ describe('getSeedlessOnboardingControllerInstanceOptions', () => {
     });
   });
 
-  it('returns mobile seedless options with JWT handlers and encryptor adapter', () => {
-    const options = getSeedlessOnboardingControllerInstanceOptions();
+  it('returns mobile seedless options with JWT handlers, encryptor adapter, and mfaFlag', () => {
+    const messenger = createMockMessenger();
+    const options = getSeedlessOnboardingControllerInstanceOptions({
+      messenger,
+    });
 
     expect(options).toEqual({
       encryptor: seedlessOnboardingEncryptorAdapter,
@@ -102,7 +124,26 @@ describe('getSeedlessOnboardingControllerInstanceOptions', () => {
       refreshJWTToken: AuthTokenHandler.refreshJWTToken,
       renewRefreshToken: AuthTokenHandler.renewRefreshToken,
       revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
+      mfaFlag: expect.any(Function),
     });
+  });
+
+  it('evaluates mfaFlag lazily from RemoteFeatureFlagController state', () => {
+    const flags = { mfaRecovery: { enabled: true, minimumVersion: '7.0.0' } };
+    const messenger = createMockMessenger(flags);
+    jest.mocked(selectMfaRecoveryEnabled.resultFunc).mockReturnValueOnce(true);
+    jest.mocked(selectMfaRecoveryEnabled.resultFunc).mockReturnValueOnce(false);
+
+    const options = getSeedlessOnboardingControllerInstanceOptions({
+      messenger,
+    });
+
+    expect(options.mfaFlag?.()).toBe(true);
+    expect(options.mfaFlag?.()).toBe(false);
+    expect(messenger.call).toHaveBeenCalledWith(
+      'RemoteFeatureFlagController:getState',
+    );
+    expect(selectMfaRecoveryEnabled.resultFunc).toHaveBeenCalledWith(flags);
   });
 
   it('throws when WEB3AUTH_NETWORK is missing', () => {
@@ -113,7 +154,11 @@ describe('getSeedlessOnboardingControllerInstanceOptions', () => {
     constants.web3AuthNetwork = '';
 
     try {
-      expect(() => getSeedlessOnboardingControllerInstanceOptions()).toThrow(
+      expect(() =>
+        getSeedlessOnboardingControllerInstanceOptions({
+          messenger: createMockMessenger(),
+        }),
+      ).toThrow(
         /Missing environment variables for SeedlessOnboardingController/,
       );
     } finally {

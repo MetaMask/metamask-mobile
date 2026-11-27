@@ -181,6 +181,7 @@ import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { moneyAccountLifecycleControllerInit } from './controllers/money-account-lifecycle-controller-init';
+import { mfaRecoveryControllerInit } from './controllers/mfa-recovery-controller';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
@@ -396,6 +397,7 @@ export class Engine {
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
         MoneyAccountLifecycleController: moneyAccountLifecycleControllerInit,
+        MfaRecoveryController: mfaRecoveryControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -701,6 +703,7 @@ export class Engine {
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
       MoneyAccountLifecycleController:
         messengerClientsByName.MoneyAccountLifecycleController,
+      MfaRecoveryController: messengerClientsByName.MfaRecoveryController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1642,6 +1645,7 @@ export default {
       MoneyAccountController,
       MoneyAccountUpgradeController,
       MoneyAccountLifecycleController,
+      MfaRecoveryController,
       QrSyncController,
     } = instance.context;
 
@@ -1724,6 +1728,7 @@ export default {
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
       MoneyAccountLifecycleController: MoneyAccountLifecycleController.state,
+      MfaRecoveryController: MfaRecoveryController.state,
       QrSyncController: QrSyncController.state,
     };
   },

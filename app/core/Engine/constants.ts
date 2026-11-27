@@ -98,6 +98,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'MoneyAccountController:stateChange',
   'MoneyAccountUpgradeController:stateChanged',
   'MoneyAccountLifecycleController:stateChanged',
+  'MfaRecoveryController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'RewardsMoneyController:stateChange',

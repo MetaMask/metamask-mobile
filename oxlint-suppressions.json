@@ -9752,7 +9752,7 @@
   },
   "app/components/UI/PredictNext/views/PredictDeposit/PredictDepositScreen.view.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 10
+      "count": 8
     }
   },
   "app/components/UI/PredictNext/views/PredictDeposit/internal/useDepositFlow.ts": {
@@ -9760,7 +9760,7 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 12
+      "count": 7
     }
   },
   "app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen.tsx": {
@@ -12257,9 +12257,6 @@
   "app/components/UI/Rewards/hooks/useClaimEarnings.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
-    },
-    "typescript/promise-function-async": {
-      "count": 1
     },
     "typescript/unbound-method": {
       "count": 2
@@ -15306,11 +15303,6 @@
     },
     "typescript/promise-function-async": {
       "count": 3
-    }
-  },
-  "app/components/Views/Homepage/Sections/TopTraders/hooks/useTopTraders.ts": {
-    "typescript/promise-function-async": {
-      "count": 2
     }
   },
   "app/components/Views/Homepage/Sections/Watchlist/WatchlistSection.test.tsx": {
@@ -20537,19 +20529,16 @@
       "count": 3
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 31
+      "count": 16
     },
     "typescript/only-throw-error": {
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 8
+      "count": 6
     }
   },
   "app/core/Authentication/Authentication.ts": {
-    "typescript/await-thenable": {
-      "count": 1
-    },
     "typescript/no-floating-promises": {
       "count": 6
     },
@@ -21623,13 +21612,7 @@
     "typescript/no-floating-promises": {
       "count": 7
     },
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
-    "typescript/promise-function-async": {
       "count": 4
     },
     "typescript/unbound-method": {
@@ -24056,7 +24039,7 @@
   },
   "app/util/identity/mfa/bindings.ts": {
     "typescript/promise-function-async": {
-      "count": 9
+      "count": 8
     }
   },
   "app/util/identity/mfa/engine/activeFlow.test.ts": {
@@ -24631,7 +24614,7 @@
       "count": 3
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 1
     }
   },
   "app/util/transactions/index.test.ts": {
