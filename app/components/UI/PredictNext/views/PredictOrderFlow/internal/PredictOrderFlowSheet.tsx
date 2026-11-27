@@ -775,6 +775,32 @@ export const PredictOrderFlowSheet = ({
     quoteError,
   ]);
 
+  let outcomeLabelTrailing: React.ReactNode = null;
+  if (intent.action === 'buy') {
+    // Decorative until product decides what switching the outcome does;
+    // not a control. A Cash Out sells one held Position, so it has no
+    // outcome to switch to.
+    outcomeLabelTrailing = (
+      <Icon
+        name={IconName.SwapHorizontal}
+        size={IconSize.Sm}
+        color={IconColor.SuccessDefault}
+        testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
+      />
+    );
+  } else if (displayedPrice) {
+    outcomeLabelTrailing = (
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.SuccessDefault}
+        numberOfLines={1}
+      >
+        {`· ${formatCents(displayedPrice)}`}
+      </Text>
+    );
+  }
+
   const renderCta = () => {
     if (phase === 'submitting') {
       return (
@@ -860,26 +886,7 @@ export const PredictOrderFlowSheet = ({
               >
                 {intent.outcomeLabel}
               </Text>
-              {intent.action === 'buy' ? (
-                // Decorative until product decides what switching the
-                // outcome does; not a control. A Cash Out sells one held
-                // Position, so it has no outcome to switch to.
-                <Icon
-                  name={IconName.SwapHorizontal}
-                  size={IconSize.Sm}
-                  color={IconColor.SuccessDefault}
-                  testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
-                />
-              ) : displayedPrice ? (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
-                  numberOfLines={1}
-                >
-                  {`· ${formatCents(displayedPrice)}`}
-                </Text>
-              ) : null}
+              {outcomeLabelTrailing}
             </Box>
           </Box>
           <ButtonIcon
