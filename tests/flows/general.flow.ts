@@ -2,10 +2,11 @@ import { createLogger } from '../framework/logger';
 import Assertions from '../framework/Assertions';
 import Gestures from '../framework/Gestures';
 import Matchers from '../framework/Matchers';
+import { getDriver } from '../framework';
 import { sleep } from '../framework/Utilities';
-import LoginView from '../page-objects/wallet/LoginView';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import {
+  APP_PACKAGE_IDS,
   isUiAutomator2SessionDeadError,
   resolveE2EWaitTimeoutMs,
 } from '../framework/Constants';
@@ -13,6 +14,7 @@ import {
   isDeviceHealthError,
   requestSharedSessionRecreate,
 } from '../framework/services/appium/sessionRecovery';
+import { ensureIosAppInForeground } from '../framework/services/appium/iosForeground';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -245,23 +247,55 @@ export type AppReadyScreen = 'login' | 'wallet';
  * @returns {Promise<AppReadyScreen>} Which screen the app stabilized on
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
+/** How often to re-check iOS foreground during waitForAppReady (ms). */
+const IOS_FOREGROUND_RECHECK_MS = 5_000;
+
 export const waitForAppReady = async (
   timeout: number = resolveE2EWaitTimeoutMs(60_000),
 ): Promise<AppReadyScreen> => {
   const startTime = Date.now();
   const deadline = startTime + timeout;
   const pollIntervalMs = 500;
+  let nextIosForegroundCheckAt = startTime;
 
   logger.debug('Waiting for app to reach login or wallet home...');
 
   try {
     while (Date.now() < deadline) {
       if (PlatformDetector.isIOS()) {
+        // Soft-reload already activates a backgrounded app at launch/bootstrap
+        // boundaries (#40239). Re-check on a cadence here: issue 6 failures
+        // show SpringBoard for the full login_app_ready budget after soft-reload
+        // returned, so element probes alone burn 60s as a false rehydration hang.
+        const now = Date.now();
+        if (now >= nextIosForegroundCheckAt) {
+          await ensureIosAppInForeground(
+            getDriver(),
+            APP_PACKAGE_IDS.IOS,
+            'waitForAppReady',
+          );
+          nextIosForegroundCheckAt = now + IOS_FOREGROUND_RECHECK_MS;
+        }
+
         if (await isWalletHomeReadyOnIOS()) {
           logger.debug(
             `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
           );
           return 'wallet';
+        }
+        // Prefer login child indicators over strict LoginView.container
+        // isDisplayed — parent can exist with displayed=false while Unlock
+        // / password are already visible (same flake class as wallet-home).
+        if (await isLoginScreenDisplayed()) {
+          await sleep(500);
+          if (await isLoginScreenDisplayed()) {
+            logger.debug(
+              `App ready on login after ${Date.now() - startTime}ms`,
+            );
+            return 'login';
+          }
+          await sleep(pollIntervalMs);
+          continue;
         }
       } else if (PlatformDetector.isAndroid()) {
         // Android Appium: probe login before wallet-screen. The wallet container
@@ -283,29 +317,6 @@ export const waitForAppReady = async (
             `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
           );
           return 'wallet';
-        }
-      }
-
-      if (!PlatformDetector.isAndroid()) {
-        try {
-          await Assertions.expectElementToBeVisible(LoginView.container, {
-            description: 'Login view should be stable',
-            timeout: 3000,
-          });
-          await sleep(500);
-          await Assertions.expectElementToBeVisible(LoginView.container, {
-            description: 'Login view should remain visible',
-            timeout: 1500,
-          });
-          logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-          return 'login';
-        } catch (error) {
-          // A dead iOS accessibility server is not "still booting". Surfacing
-          // it here lets the outer catch drop the shared session instead of
-          // burning the login timeout and reporting a rehydration hang.
-          if (isDeviceHealthError(error)) {
-            throw error;
-          }
         }
       }
 
