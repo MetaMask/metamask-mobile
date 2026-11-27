@@ -49,7 +49,10 @@ import {
   MIN_FIAT_AMOUNT,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
-import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+import {
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
+  NO_PAY_MAX_BALANCE_TYPES,
+} from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 import { useFirstDepositAmountClamp } from './useFirstDepositAmountClamp';
 import { useKeepAmountAfterReplacement } from './useKeepAmountAfterReplacement';
@@ -138,9 +141,10 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const isLighterWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.perpsLighterWithdraw,
-  ]);
+  const isPayMaxBalanceUnavailable = hasTransactionType(
+    transactionMeta,
+    NO_PAY_MAX_BALANCE_TYPES,
+  );
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   // Deposit/withdraw amounts are human mUSD and the input is already USD, so
@@ -458,11 +462,12 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Pay does not resolve the Lighter balance for Max, and the Lighter
-      // transfer fee is charged on top of the amount sent. So Max is requested
-      // as the entered balance net of the fee (see
-      // `useUpdateTransactionPayAmount`) rather than as `isMaxAmount`.
-      if (percentage === 100 && !isLighterWithdraw) {
+      // For types in `NO_PAY_MAX_BALANCE_TYPES` (e.g. Lighter withdraw) Pay
+      // does not resolve the source balance for Max, and fees are charged on
+      // top of the amount sent. So Max is requested as the entered balance net
+      // of the fee (see `useUpdateTransactionPayAmount`) rather than as
+      // `isMaxAmount`.
+      if (percentage === 100 && !isPayMaxBalanceUnavailable) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -473,7 +478,7 @@ export function useTransactionCustomAmount({
     },
     [
       balanceUsd,
-      isLighterWithdraw,
+      isPayMaxBalanceUnavailable,
       isMaxAmount,
       isMembershipSubscription,
       setIsMax,
