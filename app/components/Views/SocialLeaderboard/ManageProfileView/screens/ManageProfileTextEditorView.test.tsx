@@ -1,4 +1,11 @@
 import React from 'react';
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -26,19 +33,87 @@ const controllerBackedProfile = (
   ...overrides,
 });
 
-const mockGoBack = jest.fn();
+interface BeforeRemoveEvent {
+  data: { action: { type: string } };
+  preventDefault: () => void;
+}
+
+const beforeRemoveListeners = new Set<(event: BeforeRemoveEvent) => void>();
+
+const emitBeforeRemove = (action: { type: string }): boolean => {
+  let prevented = false;
+  beforeRemoveListeners.forEach((listener) => {
+    listener({
+      data: { action },
+      preventDefault: () => {
+        prevented = true;
+      },
+    });
+  });
+  return prevented;
+};
+
+const mockDispatch = jest.fn((action: { type: string }) => {
+  emitBeforeRemove(action);
+});
+const mockGoBack = jest.fn(() => {
+  emitBeforeRemove({ type: 'GO_BACK' });
+});
+const mockAddListener = jest.fn(
+  (event: string, listener: (event: BeforeRemoveEvent) => void) => {
+    if (event === 'beforeRemove') {
+      beforeRemoveListeners.add(listener);
+    }
+    return () => {
+      beforeRemoveListeners.delete(listener);
+    };
+  },
+);
+const mockNavigation = {
+  goBack: mockGoBack,
+  dispatch: mockDispatch,
+  addListener: mockAddListener,
+};
+
 const mockUseRoute = jest.fn<
-  { params: { field: ManageProfileTextEditorField } },
+  { key?: string; params: { field: ManageProfileTextEditorField } },
   []
 >();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
-  useRoute: () => mockUseRoute(),
-}));
+jest.mock('@react-navigation/native', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  return {
+    ...jest.requireActual('@react-navigation/native'),
+    useNavigation: () => mockNavigation,
+    useRoute: () => ({
+      key: 'manage-profile-text-editor-route',
+      ...mockUseRoute(),
+    }),
+    usePreventRemove: (
+      preventRemove: boolean,
+      callback: (payload: { data: { action: { type: string } } }) => void,
+    ) => {
+      const preventRef = ReactActual.useRef(preventRemove);
+      const callbackRef = ReactActual.useRef(callback);
+      preventRef.current = preventRemove;
+      callbackRef.current = callback;
+
+      ReactActual.useEffect(
+        () =>
+          mockNavigation.addListener('beforeRemove', (e: BeforeRemoveEvent) => {
+            if (!preventRef.current) {
+              return;
+            }
+            e.preventDefault();
+            callbackRef.current({ data: e.data });
+          }),
+        [],
+      );
+    },
+  };
+});
 
 jest.mock('../../MyProfileView/hooks/useMyProfile', () => ({
   useMyProfile: () => mockUseMyProfile(),
@@ -51,6 +126,7 @@ jest.mock('../hooks/useProfileController', () => ({
 describe('ManageProfileTextEditorView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    beforeRemoveListeners.clear();
     mockUseMyProfile.mockReturnValue({
       profile: {
         profileId: 'current-user',
@@ -665,5 +741,361 @@ describe('ManageProfileTextEditorView', () => {
         strings('social_leaderboard.manage_profile.bio_prohibited'),
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('Android keyboard and bottom inset clearance', () => {
+    const safeArea = jest.requireMock('react-native-safe-area-context') as {
+      useSafeAreaInsets: () => {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+      };
+    };
+
+    const getSaveFooterPaddingBottom = (
+      saveTestID: string,
+    ): number | undefined => {
+      let node = screen.getByTestId(saveTestID).parent;
+      while (node) {
+        const flat = StyleSheet.flatten(node.props?.style);
+        if (flat && typeof flat.paddingBottom === 'number') {
+          return flat.paddingBottom;
+        }
+        node = node.parent;
+      }
+      return undefined;
+    };
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('lifts Save above the keyboard on Android and clears the navigation bar when hidden', () => {
+      const platformDescriptor = Object.getOwnPropertyDescriptor(
+        Platform,
+        'OS',
+      );
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        get: () => 'android',
+      });
+      jest
+        .spyOn(safeArea, 'useSafeAreaInsets')
+        .mockReturnValue({ top: 30, right: 0, bottom: 48, left: 0 });
+      const listeners = new Map<string, ((event?: unknown) => void)[]>();
+      const addListenerMock = Keyboard.addListener as jest.Mock;
+      const originalAddListener = addListenerMock.getMockImplementation();
+      addListenerMock.mockImplementation((eventName, callback) => {
+        const callbacks = listeners.get(eventName) ?? [];
+        callbacks.push(callback as (event?: unknown) => void);
+        listeners.set(eventName, callbacks);
+        return { remove: jest.fn() } as unknown as ReturnType<
+          typeof Keyboard.addListener
+        >;
+      });
+
+      try {
+        mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+        renderWithProvider(<ManageProfileTextEditorView />);
+
+        // Keyboard hidden: clears the 48dp Android 3-button navigation bar + 16dp gap.
+        expect(
+          getSaveFooterPaddingBottom(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+        ).toBe(64);
+
+        act(() => {
+          listeners.get('keyboardDidShow')?.forEach((callback) => {
+            callback({ endCoordinates: { height: 320 } });
+          });
+        });
+
+        // Keyboard visible: clears the 320dp keyboard + 16dp gap.
+        expect(
+          getSaveFooterPaddingBottom(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+        ).toBe(336);
+
+        act(() => {
+          listeners.get('keyboardDidHide')?.forEach((callback) => {
+            callback();
+          });
+        });
+
+        expect(
+          getSaveFooterPaddingBottom(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+        ).toBe(64);
+      } finally {
+        if (originalAddListener) {
+          addListenerMock.mockImplementation(originalAddListener);
+        } else {
+          addListenerMock.mockRestore();
+        }
+        if (platformDescriptor) {
+          Object.defineProperty(Platform, 'OS', platformDescriptor);
+        }
+      }
+    });
+
+    it('offsets iOS KeyboardAvoidingView by the bottom inset so Save stays tight above the keyboard', () => {
+      const platformDescriptor = Object.getOwnPropertyDescriptor(
+        Platform,
+        'OS',
+      );
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        get: () => 'ios',
+      });
+      jest
+        .spyOn(safeArea, 'useSafeAreaInsets')
+        .mockReturnValue({ top: 59, right: 0, bottom: 34, left: 0 });
+
+      try {
+        mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+        renderWithProvider(<ManageProfileTextEditorView />);
+
+        const kav = screen.UNSAFE_getByType(KeyboardAvoidingView);
+        expect(kav.props.behavior).toBe('padding');
+        expect(kav.props.keyboardVerticalOffset).toBe(-34);
+        expect(
+          getSaveFooterPaddingBottom(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+        ).toBe(50);
+      } finally {
+        if (platformDescriptor) {
+          Object.defineProperty(Platform, 'OS', platformDescriptor);
+        }
+      }
+    });
+  });
+
+  describe('unsaved changes confirmation', () => {
+    let alertSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+      mockUseProfileController.mockReturnValue(controllerBackedProfile());
+      mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+    });
+
+    afterEach(() => {
+      alertSpy.mockRestore();
+    });
+
+    it('leaves immediately when back is pressed with no edits', () => {
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_BACK),
+      );
+
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves immediately after an edit is reverted to the initial value', () => {
+      mockUseMyProfile.mockReturnValue({
+        profile: {
+          profileId: 'current-user',
+          displayName: 'Giga Whale',
+          handle: 'giga-whale.metamask',
+          bio: 'Original bio',
+        },
+        isLoading: false,
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Edited bio',
+      );
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Original bio',
+      );
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_BACK),
+      );
+
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('prompts before discarding unsaved edits and keeps the draft on Cancel', () => {
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Unsaved bio draft',
+      );
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_BACK),
+      );
+
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+      expect(alertSpy).toHaveBeenCalledWith(
+        strings('social_leaderboard.manage_profile.discard_changes_title'),
+        strings('social_leaderboard.manage_profile.discard_changes_message'),
+        expect.arrayContaining([
+          expect.objectContaining({
+            text: strings('navigation.cancel'),
+            style: 'cancel',
+          }),
+          expect.objectContaining({
+            text: strings('social_leaderboard.manage_profile.discard'),
+            style: 'destructive',
+          }),
+        ]),
+        expect.objectContaining({ cancelable: true }),
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      // A second back press while the alert is already open does not stack another alert.
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_BACK),
+      );
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+
+      const buttons = alertSpy.mock.calls[0][2] as {
+        style?: string;
+        onPress?: () => void;
+      }[];
+      act(() => {
+        buttons.find((button) => button.style === 'cancel')?.onPress?.();
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT).props
+          .value,
+      ).toBe('Unsaved bio draft');
+    });
+
+    it('dispatches the blocked navigation action once when Discard is confirmed', () => {
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Draft to discard',
+      );
+
+      // Simulate Android system back / swipe back emitting beforeRemove.
+      const systemBackAction = { type: 'GO_BACK' };
+      const prevented = emitBeforeRemove(systemBackAction);
+      expect(prevented).toBe(true);
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+
+      const buttons = alertSpy.mock.calls[0][2] as {
+        style?: string;
+        onPress?: () => void;
+      }[];
+      act(() => {
+        buttons.find((button) => button.style === 'destructive')?.onPress?.();
+      });
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(systemBackAction);
+      // Confirming Discard disarms usePreventRemove before dispatching, so the alert does not reopen.
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves without a discard prompt after a successful save', async () => {
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerBackedProfile({ updateProfile }),
+      );
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Saved bio',
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+        );
+      });
+
+      expect(updateProfile).toHaveBeenCalledWith({ bio: 'Saved bio' });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(alertSpy).not.toHaveBeenCalled();
+    });
+
+    it('still prompts before discarding if saving failed', async () => {
+      const updateProfile = jest.fn().mockRejectedValue(new Error('offline'));
+      mockUseProfileController.mockReturnValue(
+        controllerBackedProfile({ updateProfile }),
+      );
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Unsaved bio after error',
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+        );
+      });
+
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_BACK),
+      );
+
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks leaving without opening a discard alert while a save is in flight', async () => {
+      let resolveSave: () => void = () => undefined;
+      const updateProfile = jest.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveSave = resolve;
+          }),
+      );
+      mockUseProfileController.mockReturnValue(
+        controllerBackedProfile({ updateProfile }),
+      );
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Saving bio',
+      );
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_SAVE),
+      );
+
+      const prevented = emitBeforeRemove({ type: 'GO_BACK' });
+      expect(prevented).toBe(true);
+      expect(alertSpy).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveSave();
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(alertSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not prompt when Save is disabled', () => {
+      mockUseProfileController.mockReturnValue(
+        controllerBackedProfile({ isControllerBacked: false }),
+      );
+      renderWithProvider(<ManageProfileTextEditorView />);
+
+      fireEvent.changeText(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT),
+        'Cannot save this',
+      );
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_BACK),
+      );
+
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 });
