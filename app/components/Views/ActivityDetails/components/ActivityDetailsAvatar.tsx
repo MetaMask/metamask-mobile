@@ -54,7 +54,7 @@ export function ActivityDetailsAvatar({
     return networkImage ? (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
-        badge={<BadgeNetwork className="rounded-md" src={networkImage} />}
+        badge={<BadgeNetwork twClassName="rounded-md" src={networkImage} />}
       >
         {imageOnlyAvatar}
       </BadgeWrapper>
@@ -96,7 +96,7 @@ export function ActivityDetailsAvatar({
     return (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
-        badge={<BadgeNetwork className="rounded-md" src={networkImage} />}
+        badge={<BadgeNetwork twClassName="rounded-md" src={networkImage} />}
       >
         {avatar}
       </BadgeWrapper>
