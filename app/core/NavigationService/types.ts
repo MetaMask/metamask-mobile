@@ -6,6 +6,8 @@ import type {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialPostAppealViewParams } from '../../components/Views/SocialLeaderboard/SocialPostAppealView/SocialPostAppealView.types';
+import type { SocialPostDecisionViewParams } from '../../components/Views/SocialLeaderboard/SocialPostDecisionView/SocialPostDecisionView.types';
 import type { SocialShellTab } from '../../components/Views/SocialLeaderboard/shell/types';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
@@ -1068,6 +1070,8 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: SocialPostComposerViewParams | undefined;
+  SocialPostDecisionView: SocialPostDecisionViewParams;
+  SocialPostAppealView: SocialPostAppealViewParams;
   SocialProfileOnboardingView:
     | {
         /** Opens only the terms sheet for users with an existing profile. */

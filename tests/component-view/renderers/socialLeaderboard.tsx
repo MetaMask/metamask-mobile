@@ -40,6 +40,10 @@ import MyProfileView from '../../../app/components/Views/SocialLeaderboard/MyPro
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
 import TraderProfileView from '../../../app/components/Views/SocialLeaderboard/TraderProfileView';
 import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
+import SocialPostDecisionView from '../../../app/components/Views/SocialLeaderboard/SocialPostDecisionView';
+import type { SocialPostDecisionViewParams } from '../../../app/components/Views/SocialLeaderboard/SocialPostDecisionView/SocialPostDecisionView.types';
+import SocialPostAppealView from '../../../app/components/Views/SocialLeaderboard/SocialPostAppealView';
+import type { SocialPostAppealViewParams } from '../../../app/components/Views/SocialLeaderboard/SocialPostAppealView/SocialPostAppealView.types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NotificationSettingsSection from '../../../app/components/Views/Settings/NotificationsSettings/NotificationSettingsSection';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
@@ -116,6 +120,50 @@ export function renderSocialAINotificationSettingsSection(
     { name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION },
     { state: builder.build() },
     { type: 'socialAI' },
+  );
+}
+
+/**
+ * Renders the "We removed your post" decision screen with the decision its
+ * deeplink would carry, plus extra routes for navigation assertions.
+ */
+export function renderSocialPostDecisionView(
+  params: SocialPostDecisionViewParams,
+  extraRoutes: ExtraRoute[] = [],
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+
+  return renderScreenWithRoutes(
+    SocialPostDecisionView,
+    { name: Routes.SOCIAL.POST_DECISION },
+    extraRoutes,
+    { state: builder.build() },
+    { ...params },
+  );
+}
+
+/**
+ * Renders the appeal form as the initial route, with the params the decision
+ * screen's Appeal button passes.
+ */
+export function renderSocialPostAppealView(
+  params: SocialPostAppealViewParams,
+  extraRoutes: ExtraRoute[] = [],
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+
+  return renderScreenWithRoutes(
+    SocialPostAppealView,
+    { name: Routes.SOCIAL.POST_APPEAL },
+    extraRoutes,
+    { state: builder.build() },
+    { ...params },
   );
 }
 

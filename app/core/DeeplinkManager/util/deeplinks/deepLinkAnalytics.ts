@@ -466,6 +466,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.SOCIAL_TRADER]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_POST]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_POST_DECISION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -655,6 +656,8 @@ const mapSocialSegmentsToRoute = (pathSegments: string[]): DeepLinkRoute => {
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case 'trader':
       return DeepLinkRoute.SOCIAL_TRADER;
+    case 'post-decision':
+      return DeepLinkRoute.SOCIAL_POST_DECISION;
     case 'post':
       return DeepLinkRoute.SOCIAL_POST;
     default:

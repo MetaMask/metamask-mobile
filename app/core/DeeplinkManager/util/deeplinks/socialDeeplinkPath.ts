@@ -3,8 +3,14 @@ import { ACTIONS } from '../../../../constants/deeplinks';
 export const SOCIAL_PROFILE_SUBPATH = 'profile';
 export const SOCIAL_PROFILE_POSITION_SUBPATH = 'profile/position';
 export const SOCIAL_POST_SUBPATH = 'post';
+export const SOCIAL_POST_DECISION_SUBPATH = 'post/decision';
 
-export type SocialDeeplinkTarget = 'home' | 'trader' | 'position' | 'post';
+export type SocialDeeplinkTarget =
+  | 'home'
+  | 'trader'
+  | 'position'
+  | 'post'
+  | 'post-decision';
 
 /**
  * Classifies a Social universal-link path.
@@ -29,6 +35,9 @@ export const resolveSocialDeeplinkTarget = (
   }
   if (normalized === SOCIAL_PROFILE_SUBPATH) {
     return 'trader';
+  }
+  if (normalized === SOCIAL_POST_DECISION_SUBPATH) {
+    return 'post-decision';
   }
   if (normalized === SOCIAL_POST_SUBPATH) {
     return 'post';

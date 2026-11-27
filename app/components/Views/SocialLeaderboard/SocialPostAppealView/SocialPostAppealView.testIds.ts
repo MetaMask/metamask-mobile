@@ -1,0 +1,15 @@
+export const SocialPostAppealViewSelectorsIDs = {
+  CONTAINER: 'social-post-appeal-view',
+  BACK_BUTTON: 'social-post-appeal-view-back-button',
+  TITLE: 'social-post-appeal-view-title',
+  EMAIL_INPUT: 'social-post-appeal-view-email-input',
+  EMAIL_HELPER: 'social-post-appeal-view-email-helper',
+  EMAIL_ERROR: 'social-post-appeal-view-email-error',
+  MESSAGE_INPUT: 'social-post-appeal-view-message-input',
+  SUBMIT_BUTTON: 'social-post-appeal-view-submit-button',
+  ERROR_BANNER: 'social-post-appeal-view-error-banner',
+  SUCCESS_CONTAINER: 'social-post-appeal-view-success',
+  SUCCESS_TITLE: 'social-post-appeal-view-success-title',
+  SUCCESS_DESCRIPTION: 'social-post-appeal-view-success-description',
+  DONE_BUTTON: 'social-post-appeal-view-done-button',
+} as const;

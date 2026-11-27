@@ -1,6 +1,7 @@
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { resolveSocialDeeplinkTarget } from '../../util/deeplinks/socialDeeplinkPath';
 import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
+import { handleSocialPostDecisionUrl } from './handleSocialPostDecisionUrl';
 import { handleSocialPostUrl } from './handleSocialPostUrl';
 import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleSocialTraderUrl } from './handleSocialTraderUrl';
@@ -18,6 +19,7 @@ interface HandleSocialUrlParams {
  * - https://link.metamask.io/social/profile?traderId=<traderId>
  * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>
  * - https://link.metamask.io/social/post?positionId=<positionId>&traderId=<traderId>
+ * - https://link.metamask.io/social/post/decision?kind=<kind>&handle=<handle>&reason=<reason>[&text=<text>]
  *
  * Legacy Social v0 links stay on their own actions: `top-traders` and
  * `social-trader-position`. `social-trader` remains accepted as an alias.
@@ -32,6 +34,9 @@ export const handleSocialUrl = ({ actionPath }: HandleSocialUrlParams) => {
   switch (target) {
     case 'position':
       handleSocialTraderPositionUrl({ actionPath });
+      return;
+    case 'post-decision':
+      handleSocialPostDecisionUrl({ actionPath });
       return;
     case 'post':
       handleSocialPostUrl({ actionPath });
