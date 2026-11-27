@@ -154,14 +154,6 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
-jest.mock(
-  '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard',
-  () => ({
-    __esModule: true,
-    default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
-  }),
-);
-
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   const actualReact = jest.requireActual('react');

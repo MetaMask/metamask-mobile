@@ -227,8 +227,7 @@ export function updateTransaction(
   const { TransactionController } = Engine.context;
   const { txParams, id } = args[0];
 
-  // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
-  // Once redesign is complete, this can be removed
+  // Keep gas params consistent with the transaction envelope type
   sanitizeTransactionParamsGasValues(id, txParams);
 
   return TransactionController.updateTransaction(...args);
@@ -248,8 +247,7 @@ export function updateEditableParams(
   const id = args[0];
   const txParams = args[1];
 
-  // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
-  // Once redesign is complete, this can be removed
+  // Keep gas params consistent with the transaction envelope type
   sanitizeTransactionParamsGasValues(id, txParams);
 
   return TransactionController.updateEditableParams(...args);

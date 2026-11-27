@@ -33,7 +33,7 @@ import {
 import { generateTransferData } from '../../../../../../util/transactions';
 import { GasFeeEstimateLevel } from '@metamask/transaction-controller';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
-import { getTronMaxSendableAmount } from '../../../../../../core/Multichain/tron';
+import { getMaxSendableAmountMultichain } from '../../../../../Views/confirmations/utils/multichain-snaps';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
@@ -57,9 +57,9 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../../core/Multichain/tron', () => ({
-  ...jest.requireActual('../../../../../../core/Multichain/tron'),
-  getTronMaxSendableAmount: jest.fn(),
+jest.mock('../../../../../Views/confirmations/utils/multichain-snaps', () => ({
+  validateAmountMultichain: jest.fn(),
+  getMaxSendableAmountMultichain: jest.fn(),
 }));
 
 const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
@@ -290,6 +290,19 @@ const mockTronAsset = {
   },
   symbol: 'TRX',
   assetId: 'slip44:195',
+};
+
+const mockStellarAsset = {
+  ...mockCryptoCurrenciesData[0],
+  network: {
+    ...mockCryptoCurrenciesData[0].network,
+    chainId: 'stellar:pubnet',
+    chainName: 'Stellar',
+    shortName: 'XLM',
+  },
+  symbol: 'XLM',
+  assetId: 'slip44:148',
+  decimals: 7,
 };
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
@@ -2023,6 +2036,50 @@ describe('BuildQuote View', () => {
     });
   });
 
+  describe('Stellar Max quick amount', () => {
+    let savedBalanceBN: bigint | null | undefined;
+    let savedOffRampNonEvmEnabled: boolean;
+
+    beforeEach(() => {
+      savedBalanceBN = mockUseBalanceValues.balanceBN;
+      savedOffRampNonEvmEnabled = mockUseOffRampNonEvmEnabled();
+
+      mockUseRampSDKValues.rampType = RampType.SELL;
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseRampSDKValues.selectedAsset = mockStellarAsset;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(true);
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '10',
+        mockStellarAsset.decimals,
+      );
+    });
+
+    afterEach(() => {
+      mockUseBalanceValues.balanceBN = savedBalanceBN;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(savedOffRampNonEvmEnabled);
+    });
+
+    it('uses the Stellar Snap max (balance minus reserve and fee) for Max', async () => {
+      (getMaxSendableAmountMultichain as jest.Mock).mockResolvedValue({
+        amount: '7.5',
+      });
+
+      render(BuildQuote);
+
+      const symbol = mockStellarAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      fireEvent.press(getByRoleButton('Max'));
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`7\\.5.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
+      expect(getMaxSendableAmountMultichain).toHaveBeenCalled();
+    });
+  });
+
   describe('Tron Max quick amount race condition', () => {
     let savedBalanceBN: bigint | null | undefined;
     let savedOffRampNonEvmEnabled: boolean;
@@ -2056,7 +2113,7 @@ describe('BuildQuote View', () => {
         maxResolve = resolve;
       });
 
-      (getTronMaxSendableAmount as jest.Mock).mockReturnValue(maxPromise);
+      (getMaxSendableAmountMultichain as jest.Mock).mockReturnValue(maxPromise);
 
       render(BuildQuote);
 
@@ -2097,7 +2154,7 @@ describe('BuildQuote View', () => {
         maxResolve = resolve;
       });
 
-      (getTronMaxSendableAmount as jest.Mock).mockReturnValue(maxPromise);
+      (getMaxSendableAmountMultichain as jest.Mock).mockReturnValue(maxPromise);
 
       render(BuildQuote);
 
@@ -2125,7 +2182,9 @@ describe('BuildQuote View', () => {
     });
 
     it('falls back to balance-based calculation when Snap returns undefined', async () => {
-      (getTronMaxSendableAmount as jest.Mock).mockResolvedValue(undefined);
+      (getMaxSendableAmountMultichain as jest.Mock).mockResolvedValue(
+        undefined,
+      );
 
       render(BuildQuote);
 
@@ -2151,7 +2210,7 @@ describe('BuildQuote View', () => {
     });
 
     it('falls back to balance-based calculation when Snap returns empty result', async () => {
-      (getTronMaxSendableAmount as jest.Mock).mockResolvedValue({});
+      (getMaxSendableAmountMultichain as jest.Mock).mockResolvedValue({});
 
       render(BuildQuote);
 

@@ -59,7 +59,7 @@ describeForPlatforms('WatchlistSection', () => {
     });
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
-      await findByTestId(getRowTestId(assetId), {}, { timeout: 5000 });
+      await findByTestId(getRowTestId(assetId));
     }
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
@@ -464,18 +464,14 @@ describeForPlatforms('WatchlistSection', () => {
       fireEvent.press(addButton);
     });
 
-    await waitFor(() => expect(putScope.isDone()).toBe(true), {
-      timeout: 5000,
-    });
+    await waitFor(() => expect(putScope.isDone()).toBe(true));
 
     // The add flips the section from the empty state to watchlist mode: the
     // suggested star button disappears and the added token renders as a row.
-    await waitFor(
-      () =>
-        expect(
-          queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
-        ).toBeNull(),
-      { timeout: 5000 },
+    await waitFor(() =>
+      expect(
+        queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
+      ).toBeNull(),
     );
     expect(
       await findByTestId(getRowTestId('eip155:1/slip44:60')),

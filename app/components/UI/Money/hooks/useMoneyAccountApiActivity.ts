@@ -1,6 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
@@ -35,6 +39,7 @@ import { useMoneyActivityValuations } from './useMoneyActivityValuations';
 
 interface UseMoneyAccountApiActivityOptions {
   enabled?: boolean;
+  refetchIntervalMs?: number | false;
 }
 
 export interface UseMoneyAccountApiActivityResult {
@@ -87,6 +92,7 @@ const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
  */
 export function useMoneyAccountApiActivity({
   enabled: callerEnabled = true,
+  refetchIntervalMs = false,
 }: UseMoneyAccountApiActivityOptions = {}): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const cashbackMultisendContracts = useSelector(
@@ -127,6 +133,11 @@ export function useMoneyAccountApiActivity({
     moneyAddress,
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
+  const queryClient = useQueryClient();
+  const queryKeyRef = useRef(queryOptions.queryKey);
+  queryKeyRef.current = queryOptions.queryKey;
+  const moneyAddressRef = useRef(moneyAddress);
+  moneyAddressRef.current = moneyAddress;
 
   // `initialDataUpdatedAt` carries the write time, so the `staleTime` below
   // still decides whether a background refetch runs — the freshness policy is
@@ -186,6 +197,57 @@ export function useMoneyAccountApiActivity({
       : undefined,
     initialDataUpdatedAt: cachedFirstPage?.cachedAt,
   });
+
+  useEffect(() => {
+    if (!enabled || !refetchIntervalMs) {
+      return undefined;
+    }
+    const pollFirstPage = async () => {
+      const polledAddress = moneyAddress;
+      try {
+        const page = await apiClient.accounts.fetchV1AccountTransactions(
+          polledAddress,
+          ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+        );
+        if (moneyAddressRef.current !== polledAddress) {
+          return;
+        }
+        writeCachedFirstPage(polledAddress, page);
+        queryClient.setQueryData<InfiniteData<V1AccountTransactionsResponse>>(
+          queryKeyRef.current,
+          (oldData) => {
+            if (!oldData || oldData.pages.length === 0) {
+              return oldData;
+            }
+            const oldFirstPage = oldData.pages[0];
+            const existingHashes = new Set(
+              (oldFirstPage.data ?? []).map((row) => row.hash?.toLowerCase()),
+            );
+            const newRows = (page.data ?? []).filter(
+              (row) => row.hash && !existingHashes.has(row.hash.toLowerCase()),
+            );
+            const mergedFirstPage =
+              newRows.length > 0
+                ? {
+                    ...oldFirstPage,
+                    data: [...newRows, ...(oldFirstPage.data ?? [])],
+                  }
+                : oldFirstPage;
+            return {
+              ...oldData,
+              pages: [mergedFirstPage, ...oldData.pages.slice(1)],
+            };
+          },
+        );
+      } catch {
+        // The main query owns the error surface; keep the last page on a miss.
+      }
+    };
+    const intervalId = setInterval(() => {
+      void pollFirstPage();
+    }, refetchIntervalMs);
+    return () => clearInterval(intervalId);
+  }, [enabled, moneyAddress, queryClient, refetchIntervalMs]);
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
@@ -256,7 +318,7 @@ export function useMoneyAccountApiActivity({
   // the failed request in a loop. Recovery is via the explicit `refetch`.
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 

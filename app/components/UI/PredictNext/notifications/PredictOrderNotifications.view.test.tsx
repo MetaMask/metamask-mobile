@@ -172,7 +172,6 @@ const approveOrder = async () => {
       screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)),
     );
   }
-  await act(() => new Promise((resolve) => setTimeout(resolve, 600)));
   await waitFor(() =>
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
   );
@@ -226,8 +225,9 @@ describe('Predict order notifications across Active Venue changes', () => {
     await waitFor(() => expect(view.showToast).toHaveBeenCalledTimes(1));
     expect(view.toastTitles()).toEqual(['Order filled']);
 
-    // Nothing is observed or notified again.
-    await act(() => new Promise((resolve) => setTimeout(resolve, 700)));
+    // Nothing is observed or notified again: flush the pending one-shot
+    // chains (zero-delay) and assert the toast and commit counts stay put.
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
     expect(view.showToast).toHaveBeenCalledTimes(1);
     expect(routes.commitCount()).toBe(1);
   });
