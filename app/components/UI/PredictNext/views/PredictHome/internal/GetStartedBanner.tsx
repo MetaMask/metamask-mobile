@@ -18,12 +18,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
+import verifiedCheckAnimation from '../../../../../../animations/card_verified_check.riv';
 import {
   type KalshiBannerState,
   useKalshiBannerState,
 } from '../../../../KYC/Kalshi/kalshiBannerState';
 import MoneyVbaHomeCardHeroAnimation from '../../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
 import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
+import { KycIllustrationSource } from '../../../../KYC/components/Illustration';
 import { PredictNextRoutes } from '../../../navigation/routes';
 import type { PredictNextStackParamList } from '../../../navigation/types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
@@ -62,10 +64,31 @@ const CANT_VERIFY_ART = (
 );
 
 /**
+ * The tick Rive's artboard carries its own empty margin, so the view is drawn
+ * larger than the 72pt slot and the slot clips the margin away.
+ */
+const VERIFIED_RIVE_WIDTH = 126;
+
+/** The green verified tick: `Intro` plays once, then holds. */
+const VERIFIED_ART = (
+  <MoneyVbaHomeCardHeroAnimation
+    animation={{
+      source: verifiedCheckAnimation,
+      artboardName: 'Check',
+      stateMachineName: 'State Machine 1',
+    }}
+    fallback={{
+      source: KycIllustrationSource.checkmark,
+      width: VERIFIED_RIVE_WIDTH,
+      height: Math.round((107 / 140) * VERIFIED_RIVE_WIDTH),
+    }}
+  />
+);
+
+/**
  * Per state: the art, the copy key (no action key means no button) and what
  * the banner allows. Only the states the flow continues from are pressable.
- * Only the can't-verify banner can be dismissed; the others go away once the
- * user is verified.
+ * Only the final states (can't verify, verified) can be dismissed.
  */
 const BANNER_STATE_CONFIG: Record<
   KalshiBannerState,
@@ -111,6 +134,14 @@ const BANNER_STATE_CONFIG: Record<
     hasAction: true,
     // Learn more opens the support site; onboarding can't be restarted.
     isPressable: true,
+    isDismissible: true,
+  },
+  verified: {
+    art: VERIFIED_ART,
+    copyKey: 'verified',
+    hasAction: false,
+    // A confirmation: nothing to continue.
+    isPressable: false,
     isDismissible: true,
   },
 };
@@ -218,11 +249,16 @@ const BannerRow = ({
   );
 };
 
+/** Opens MetaMask support, where the can't-verify card sends the user. */
+const openSupport = async (): Promise<void> => {
+  await Linking.openURL(METAMASK_SUPPORT_URL);
+};
+
 /**
  * Home's banner for the user's Kalshi account. It follows the vendor step and
  * status kyc-api reports: it invites the user in, resumes the flow, shows the
- * review is pending or that Kalshi can't verify them, and renders nothing once
- * identity is approved.
+ * review is pending, that Kalshi can't verify them, or that their identity is
+ * verified. The last two can be closed.
  *
  * Asks kyc-api each time the screen gains focus, so a user who finished on
  * another device, before a reinstall, or in the onboarding flow sees where
@@ -232,13 +268,12 @@ export const GetStartedBanner = () => {
   const bannerState = useKalshiBannerState();
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
-  // Hides the can't-verify banner for this visit once the user closes it.
-  const [isCantVerifyDismissed, setIsCantVerifyDismissed] = useState(false);
+  // The banner the user closed on this visit. It stays hidden while kyc-api
+  // reports the same state, and comes back if the state changes.
+  const [dismissedState, setDismissedState] =
+    useState<KalshiBannerState | null>(null);
 
-  if (
-    bannerState === null ||
-    (bannerState === 'cantVerify' && isCantVerifyDismissed)
-  ) {
+  if (bannerState === dismissedState) {
     return null;
   }
 
@@ -246,7 +281,7 @@ export const GetStartedBanner = () => {
   const copyPath = `predict_next.get_started_banner.${config.copyKey}`;
   const handlePress =
     bannerState === 'cantVerify'
-      ? () => Linking.openURL(METAMASK_SUPPORT_URL)
+      ? openSupport
       : () => navigation.navigate(PredictNextRoutes.KALSHI_ONBOARDING);
 
   return (
@@ -257,7 +292,7 @@ export const GetStartedBanner = () => {
       actionLabel={config.hasAction ? strings(`${copyPath}.action`) : undefined}
       onPress={config.isPressable ? handlePress : undefined}
       onDismiss={
-        config.isDismissible ? () => setIsCantVerifyDismissed(true) : undefined
+        config.isDismissible ? () => setDismissedState(bannerState) : undefined
       }
     />
   );

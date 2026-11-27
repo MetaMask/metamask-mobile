@@ -8,15 +8,15 @@ import type { RootState } from '../../../../reducers';
 import { KALSHI_KYC_VENDOR } from '../vendors/kalshi';
 
 /**
- * What the Kalshi banner shows, one entry per status it can be in. A verified
- * user has no banner.
+ * What the Kalshi banner shows, one entry per status it can be in.
  */
 export type KalshiBannerState =
   | 'getStarted'
   | 'needMoreInfo'
   | 'stepUp'
   | 'verifying'
-  | 'cantVerify';
+  | 'cantVerify'
+  | 'verified';
 
 /**
  * Maps where kyc-api says the user is to the banner to show.
@@ -25,17 +25,17 @@ export type KalshiBannerState =
  * any identity details yet.
  * - Email or phone link, or SumSub for the first time: resume the flow.
  * - SumSub with status `retry`: Kalshi asks for another identity check.
- * - `decision`: approved shows no banner, rejected can't verify, anything
- * else is still under review.
+ * - `decision`: approved is verified, rejected can't verify, anything else is
+ * still under review.
  *
  * @param step - The vendor step from the onboarding controller.
  * @param status - The step's status from the onboarding controller.
- * @returns The banner state, or `null` when the user is verified.
+ * @returns The banner state.
  */
 export const getKalshiBannerState = (
   step: KycStep | null | undefined,
   status: KycStepStatus | null | undefined,
-): KalshiBannerState | null => {
+): KalshiBannerState => {
   switch (step) {
     case 'kalshi_email_link':
     case 'kalshi_phone_link':
@@ -49,7 +49,7 @@ export const getKalshiBannerState = (
       return 'needMoreInfo';
     case 'decision':
       if (status === 'approved') {
-        return null;
+        return 'verified';
       }
       return status === 'rejected' ? 'cantVerify' : 'verifying';
     case 'mfa':
@@ -59,9 +59,7 @@ export const getKalshiBannerState = (
   }
 };
 
-const selectKalshiBannerState = (
-  state: RootState,
-): KalshiBannerState | null => {
+const selectKalshiBannerState = (state: RootState): KalshiBannerState => {
   const vendor =
     state.engine.backgroundState.VendorOnboardingController?.vendors?.[
       KALSHI_KYC_VENDOR.id
@@ -74,9 +72,9 @@ const selectKalshiBannerState = (
  * each time the screen gains focus, so a user who finished on another device,
  * before a reinstall, or in the onboarding flow sees where they really are.
  *
- * @returns The banner state, or `null` when the user is verified.
+ * @returns The banner state.
  */
-export const useKalshiBannerState = (): KalshiBannerState | null => {
+export const useKalshiBannerState = (): KalshiBannerState => {
   const bannerState = useSelector(selectKalshiBannerState);
 
   useFocusEffect(

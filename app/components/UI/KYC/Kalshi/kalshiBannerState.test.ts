@@ -19,7 +19,7 @@ describe('getKalshiBannerState', () => {
     ['decision', 'pending', 'verifying'],
     ['decision', 'none', 'verifying'],
     ['decision', 'rejected', 'cantVerify'],
-    ['decision', 'approved', null],
+    ['decision', 'approved', 'verified'],
   ] as const)('maps step %s with status %s to %s', (step, status, expected) => {
     expect(getKalshiBannerState(step, status)).toBe(expected);
   });
