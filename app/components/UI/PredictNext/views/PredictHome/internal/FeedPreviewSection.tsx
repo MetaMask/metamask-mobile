@@ -23,6 +23,8 @@ interface FeedPreviewSectionProps {
   /** The catalog's section ID; the section's test IDs use it. */
   sectionId: string;
   title: string;
+  /** How many cards the section shows; it loads with one skeleton each. */
+  limit: number;
   events: readonly PredictEvent[];
   isLoading: boolean;
   isError: boolean;
@@ -47,6 +49,7 @@ interface FeedPreviewSectionProps {
 export const FeedPreviewSection = ({
   sectionId,
   title,
+  limit,
   events,
   isLoading,
   isError,
@@ -104,8 +107,13 @@ export const FeedPreviewSection = ({
           testID={PredictHomeTestIds.sectionLoading(sectionId)}
           twClassName="gap-3"
         >
-          <Box twClassName="h-32 rounded-xl bg-muted" />
-          <Box twClassName="h-32 rounded-xl bg-muted" />
+          {Array.from({ length: limit }, (_, index) => (
+            <Box
+              key={index}
+              testID={PredictHomeTestIds.sectionSkeleton(sectionId)}
+              twClassName="h-32 rounded-xl bg-muted"
+            />
+          ))}
         </Box>
       ) : isError && events.length === 0 ? (
         <Box
