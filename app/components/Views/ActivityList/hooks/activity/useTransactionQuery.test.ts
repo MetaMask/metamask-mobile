@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V5TransactionRecord } from '@metamask/core-backend';
+import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
 import { selectEvmAddress } from '#app/selectors/accountsController';
 import { apiClient } from '../../../../../core/apiClient';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -32,23 +33,15 @@ const getV5TransactionByIdQueryOptionsMock = jest.mocked(
   apiClient.accounts.getV5TransactionByIdQueryOptions,
 );
 
-const mockTransaction: V5TransactionRecord = {
+const mockTransaction: V5TransactionRecord = buildV5TransactionRecord({
   accountId: 'eip155:8453:0x1234567890abcdef',
-  tx: {
-    id: '0xabc',
-    chainId: 'eip155:8453',
-    status: 'confirmed',
-    timestamp: 1000000,
-    date: '2026-01-01T00:00:00.000Z',
-    from: '0x1234',
-    to: '0x5678',
-    blockNumber: '1',
-    blockHash: '0xblock',
-    value: '0',
-  },
-  valueTransfers: [],
-  fee: null,
-};
+  id: '0xabc',
+  chainId: 'eip155:8453',
+  timestamp: 1000000,
+  date: '2026-01-01T00:00:00.000Z',
+  from: '0x1234',
+  to: '0x5678',
+});
 
 describe('useTransactionQuery', () => {
   let queryFnMock: jest.Mock;
@@ -78,73 +71,54 @@ describe('useTransactionQuery', () => {
     };
   }
 
-  it('disables the query when inputs are missing', () => {
-    useSelectorMock.mockReturnValue(undefined);
+  it.each([
+    {
+      name: 'inputs are missing',
+      selectorValue: undefined,
+      chainId: undefined,
+      enabled: true,
+      txHash: undefined,
+    },
+    {
+      name: 'txHash is missing',
+      selectorValue: { address: '0x1234' },
+      chainId: 'eip155:1',
+      enabled: true,
+      txHash: undefined,
+    },
+    {
+      name: 'chain is not eip155',
+      selectorValue: { address: '0x1234' },
+      chainId: 'solana:mainnet',
+      enabled: true,
+      txHash: '0xabc',
+    },
+    {
+      name: 'explicitly disabled',
+      selectorValue: { address: '0x1234' },
+      chainId: 'eip155:1',
+      enabled: false,
+      txHash: '0xabc',
+    },
+  ])(
+    'disables the query when $name',
+    ({ selectorValue, chainId, enabled, txHash }) => {
+      useSelectorMock.mockReturnValue(selectorValue);
 
-    const { result } = renderHook(
-      () =>
-        useTransactionQuery({
-          chainId: undefined,
-          enabled: true,
-          txHash: undefined,
-        }),
-      { wrapper: createWrapper() },
-    );
+      const { result } = renderHook(
+        () =>
+          useTransactionQuery({
+            chainId,
+            enabled,
+            txHash,
+          }),
+        { wrapper: createWrapper() },
+      );
 
-    expect(queryFnMock).not.toHaveBeenCalled();
-    expect(result.current.data).toBeUndefined();
-  });
-
-  it('disables the query when txHash is missing', () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234' });
-
-    const { result } = renderHook(
-      () =>
-        useTransactionQuery({
-          chainId: 'eip155:1',
-          enabled: true,
-          txHash: undefined,
-        }),
-      { wrapper: createWrapper() },
-    );
-
-    expect(queryFnMock).not.toHaveBeenCalled();
-    expect(result.current.data).toBeUndefined();
-  });
-
-  it('disables the query when chain is not eip155', () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234' });
-
-    const { result } = renderHook(
-      () =>
-        useTransactionQuery({
-          chainId: 'solana:mainnet',
-          enabled: true,
-          txHash: '0xabc',
-        }),
-      { wrapper: createWrapper() },
-    );
-
-    expect(queryFnMock).not.toHaveBeenCalled();
-    expect(result.current.data).toBeUndefined();
-  });
-
-  it('disables the query when explicitly disabled', () => {
-    useSelectorMock.mockReturnValue({ address: '0x1234' });
-
-    const { result } = renderHook(
-      () =>
-        useTransactionQuery({
-          chainId: 'eip155:1',
-          enabled: false,
-          txHash: '0xabc',
-        }),
-      { wrapper: createWrapper() },
-    );
-
-    expect(queryFnMock).not.toHaveBeenCalled();
-    expect(result.current.data).toBeUndefined();
-  });
+      expect(queryFnMock).not.toHaveBeenCalled();
+      expect(result.current.data).toBeUndefined();
+    },
+  );
 
   it('enables the query and returns data for valid EVM inputs', async () => {
     useSelectorMock.mockReturnValue({

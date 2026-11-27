@@ -7,6 +7,7 @@ import {
   TransactionType as KeyringTransactionType,
 } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
+import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
 import {
   isBridgeHistoryForEvmTransaction,
   mapNonEvmTransactions,
@@ -26,25 +27,16 @@ const buildV5Transaction = (
     methodId?: string;
     valueTransfers?: V5TransactionRecord['valueTransfers'];
   } = {},
-): V5TransactionRecord => ({
-  accountId: `eip155:59144:${address}`,
-  tx: {
-    id: overrides.id ?? '0xhash',
+): V5TransactionRecord =>
+  buildV5TransactionRecord({
+    accountId: `eip155:59144:${address}`,
     chainId: 'eip155:59144',
-    status: 'confirmed',
-    timestamp: 1778593067000,
     date: '2026-05-12T13:37:47.000Z',
-    from: overrides.from ?? address,
-    to: overrides.to ?? otherAddress,
-    blockNumber: '1',
-    blockHash: '0xblock',
-    value: overrides.value ?? '0',
-    methodId: overrides.methodId,
+    from: address,
+    to: otherAddress,
     transactionCategory: 'TRANSFER',
-  },
-  valueTransfers: overrides.valueTransfers ?? [],
-  fee: null,
-});
+    ...overrides,
+  });
 
 const buildV5Data = (
   transactions: V5TransactionRecord[],

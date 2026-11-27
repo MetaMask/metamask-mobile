@@ -7,6 +7,7 @@ import {
   toCaipAccountId,
   toCaipChainId,
 } from '@metamask/utils';
+import { buildV5TransactionRecord } from '#app/util/test-helpers/v5TransactionFixtures';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -69,29 +70,21 @@ const buildV5Transaction = (
     value?: string;
     valueTransfers?: V5TransactionRecord['valueTransfers'];
   } = {},
-): V5TransactionRecord => ({
-  accountId:
-    overrides.accountId ??
-    toCaipAccountId(
-      KnownCaipNamespace.Eip155,
-      '1',
-      '0x1234567890abcdef1234567890abcdef12345678',
-    ),
-  tx: {
-    id: overrides.id ?? '0xhash',
+): V5TransactionRecord =>
+  buildV5TransactionRecord({
+    accountId:
+      overrides.accountId ??
+      toCaipAccountId(
+        KnownCaipNamespace.Eip155,
+        '1',
+        '0x1234567890abcdef1234567890abcdef12345678',
+      ),
     chainId: toCaipChainId(KnownCaipNamespace.Eip155, '1'),
-    status: 'confirmed',
-    timestamp: 1778593067000,
-    date: overrides.date ?? '2026-05-13T14:34:23.000Z',
-    from: overrides.from ?? '0x1234567890abcdef1234567890abcdef12345678',
-    to: overrides.to ?? '0x0000000000000000000000000000000000000001',
-    blockNumber: '1',
-    blockHash: '0xblock',
-    value: overrides.value ?? '0',
-  },
-  valueTransfers: overrides.valueTransfers ?? [],
-  fee: null,
-});
+    from: '0x1234567890abcdef1234567890abcdef12345678',
+    to: '0x0000000000000000000000000000000000000001',
+    date: '2026-05-13T14:34:23.000Z',
+    ...overrides,
+  });
 
 const rampOrder: FiatOrder = {
   id: 'ramp-order-id',
