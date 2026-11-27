@@ -236,13 +236,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: token.symbol,
+    token,
     fromTokenDetails: true,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
 
   // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
-    usePerpsPositionForAsset(hasPerpsMarket ? token.symbol : null);
+    usePerpsPositionForAsset(marketData?.symbol ?? null);
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 

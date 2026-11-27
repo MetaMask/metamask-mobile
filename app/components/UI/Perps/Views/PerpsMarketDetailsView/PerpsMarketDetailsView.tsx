@@ -405,11 +405,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
-  // Skip fetching if routeMarket already has a formatted maxLeverage.
+  // Skip fetching if routeMarket has a formatted maxLeverage, unless it is HIP-3 without marketType.
   const hasFormattedMaxLeverage =
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
-  const needsEnrichment = !hasFormattedMaxLeverage;
+  const needsEnrichment =
+    !hasFormattedMaxLeverage ||
+    (Boolean(routeMarket?.marketSource) && !routeMarket?.marketType);
   const needsMarketsForRelated =
     isRelatedMarketsEnabled && hasRelatedMarketsCategory(routeMarket);
   // The Trade-on selector resolves which venues list the market from the

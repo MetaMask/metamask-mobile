@@ -25,6 +25,6 @@ export interface TokenI {
   ticker?: string;
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
-  rwaData?: TokenRwaData;
+  rwaData?: TokenRwaData | null;
   securityData?: TokenSecurityData;
 }

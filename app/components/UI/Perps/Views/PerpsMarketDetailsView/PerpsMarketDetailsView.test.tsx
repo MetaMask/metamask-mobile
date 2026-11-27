@@ -1711,6 +1711,73 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('enriches a HIP-3 route market without marketType and shows the market hours banner', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
+    mockRouteParams.market = {
+      symbol: 'xyz:MSFT',
+      name: 'xyz:MSFT',
+      maxLeverage: '10x',
+      marketSource: 'xyz',
+      price: '',
+      change24h: '',
+      change24hPercent: '',
+      volume: '',
+    };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [
+        {
+          symbol: 'xyz:MSFT',
+          name: 'MSFT',
+          price: '$0.50',
+          change24h: '+$0.01',
+          change24hPercent: '+2.00%',
+          volume: '$2M',
+          maxLeverage: '10x',
+          marketSource: 'xyz',
+          marketType: 'stock',
+          isHip3: true,
+          volumeNumber: 2000000,
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith({
+      fullCatalog: true,
+      skipInitialFetch: false,
+    });
+    expect(
+      getByTestId(PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER),
+    ).toBeOnTheScreen();
+  });
+
   it('hides related markets section when market has no category peers', () => {
     const { useSelector } = jest.requireMock('react-redux');
     const mockSelectPerpsEligibility = jest.requireMock(

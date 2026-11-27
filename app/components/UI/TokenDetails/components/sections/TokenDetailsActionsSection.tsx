@@ -169,6 +169,7 @@ const TokenDetailsActionsSection = ({
 }: TokenDetailsActionsSectionProps) => {
   const selfPerpsMarket = usePerpsActions({
     symbol: perpsMarket ? null : token.symbol,
+    token,
     fromTokenDetails: true,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -59,6 +59,7 @@ describe('usePerpsMarketForAsset', () => {
       symbol: 'ETH',
       name: 'ETH',
       maxLeverage: '40x',
+      marketSource: null,
       price: '',
       change24h: '',
       change24hPercent: '',
@@ -105,6 +106,41 @@ describe('usePerpsMarketForAsset', () => {
         standalone: true,
       });
     });
+  });
+
+  it('matches an RWA ticker against HIP-3 markets only', async () => {
+    mockGetMarkets.mockResolvedValue([
+      { name: 'MSFT', maxLeverage: 3 },
+      { name: 'xyz:MSFT', maxLeverage: 10 },
+    ]);
+
+    const { result } = renderHook(() => usePerpsMarketForAsset('msft', true));
+
+    await waitFor(() => {
+      expect(result.current.hasPerpsMarket).toBe(true);
+    });
+    expect(mockGetMarkets).toHaveBeenCalledWith({ standalone: true });
+    expect(result.current.marketData).toEqual({
+      symbol: 'xyz:MSFT',
+      name: 'xyz:MSFT',
+      maxLeverage: '10x',
+      marketSource: 'xyz',
+      price: '',
+      change24h: '',
+      change24hPercent: '',
+      volume: '',
+    });
+  });
+
+  it('does not match HIP-3 markets for a token without rwaData', async () => {
+    mockGetMarkets.mockResolvedValue([{ name: 'xyz:TSLA', maxLeverage: 10 }]);
+
+    const { result } = renderHook(() => usePerpsMarketForAsset('TSLA'));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.hasPerpsMarket).toBe(false);
   });
 
   it('handles errors gracefully', async () => {
@@ -155,7 +191,7 @@ describe('usePerpsMarketForAsset', () => {
     const firstPromise = new Promise((resolve) => {
       resolveFirst = resolve;
     });
-    mockGetMarkets.mockImplementationOnce(() => firstPromise);
+    mockGetMarkets.mockImplementationOnce(async () => firstPromise);
 
     // Fast response for second symbol (BTC)
     mockGetMarkets.mockResolvedValueOnce([{ name: 'BTC', maxLeverage: 50 }]);
@@ -183,5 +219,39 @@ describe('usePerpsMarketForAsset', () => {
       expect(result.current.marketData?.symbol).toBe('BTC');
     });
     expect(result.current.hasPerpsMarket).toBe(true);
+  });
+
+  it('keeps a cached RWA match when a pending exact lookup resolves later', async () => {
+    mockGetMarkets.mockResolvedValueOnce([
+      { name: 'xyz:MSFT', maxLeverage: 10 },
+    ]);
+    const seeded = renderHook(() => usePerpsMarketForAsset('MSFT', true));
+    await waitFor(() => {
+      expect(seeded.result.current.hasPerpsMarket).toBe(true);
+    });
+    seeded.unmount();
+
+    let resolveExact: ((value: unknown) => void) | undefined;
+    mockGetMarkets.mockImplementationOnce(
+      async () =>
+        new Promise((resolve) => {
+          resolveExact = resolve;
+        }),
+    );
+    const { result, rerender } = renderHook(
+      ({ isRwaAsset }) => usePerpsMarketForAsset('MSFT', isRwaAsset),
+      { initialProps: { isRwaAsset: false } },
+    );
+    await waitFor(() => {
+      expect(resolveExact).toBeDefined();
+    });
+
+    rerender({ isRwaAsset: true });
+    await act(async () => {
+      resolveExact?.([]);
+    });
+
+    expect(result.current.hasPerpsMarket).toBe(true);
+    expect(result.current.marketData?.symbol).toBe('xyz:MSFT');
   });
 });
