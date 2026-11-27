@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -184,7 +190,7 @@ const WatchlistFullScreenShell = ({
           }}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
           accessibilityLabel={strings('token_watchlist.done')}
-          className={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
+          twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
         >
           {strings('token_watchlist.done')}
         </ButtonBase>
@@ -401,6 +407,24 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const tw = useTailwind();
   const reduceMotion = useReducedMotion();
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
+  const prevAccountGroupIdRef = useRef(accountGroupId);
+  const latestAccountGroupIdRef = useRef(accountGroupId);
+  latestAccountGroupIdRef.current = accountGroupId;
+  const accountGroupGenRef = useRef(0);
+  const pendingTokenAddContextRef = useRef<
+    WeakMap<
+      WatchlistTokenWithBalance,
+      { accountGroupId: typeof accountGroupId; generation: number }
+    >
+  >(new WeakMap());
+
+  useEffect(() => {
+    if (prevAccountGroupIdRef.current === accountGroupId) {
+      return;
+    }
+    prevAccountGroupIdRef.current = accountGroupId;
+    accountGroupGenRef.current += 1;
+  }, [accountGroupId]);
   const {
     items: orderedItems,
     tokens,
@@ -438,7 +462,12 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
             })
             .build(),
         );
-        if (isOrderReady) {
+        const addContext = pendingTokenAddContextRef.current.get(token);
+        const isCurrentAccountGroup =
+          addContext !== undefined &&
+          addContext.generation === accountGroupGenRef.current &&
+          addContext.accountGroupId === latestAccountGroupIdRef.current;
+        if (isCurrentAccountGroup && isOrderReady) {
           appendOrderKey(getTokenWatchlistKey(assetId)).catch(() => undefined);
         }
       },
@@ -578,7 +607,12 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
 
   const handleAddToken = useCallback(
     (token: WatchlistTokenWithBalance) => {
-      addTokenMutation.mutate(token);
+      const mutationInput: WatchlistTokenWithBalance = { ...token };
+      pendingTokenAddContextRef.current.set(mutationInput, {
+        accountGroupId: latestAccountGroupIdRef.current,
+        generation: accountGroupGenRef.current,
+      });
+      addTokenMutation.mutate(mutationInput);
     },
     [addTokenMutation],
   );
@@ -801,7 +835,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
           <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
             {strings(emptyTitleKey)}
           </Text>
-          <Text className="mt-2 text-center">
+          <Text twClassName="mt-2 text-center">
             {strings(emptyDescriptionKey)}
           </Text>
         </Box>

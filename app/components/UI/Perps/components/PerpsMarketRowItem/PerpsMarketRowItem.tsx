@@ -290,7 +290,7 @@ const PerpsMarketRowItem = ({
         ) : undefined
       }
       accessoryGap={watchlistPressHandler ? 3 : undefined}
-      className={
+      twClassName={
         [compact ? 'py-2 min-h-0' : undefined, twClassName]
           .filter(Boolean)
           .join(' ') || undefined

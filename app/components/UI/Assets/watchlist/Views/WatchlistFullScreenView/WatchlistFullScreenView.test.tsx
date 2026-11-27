@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import WatchlistFullScreenView from './WatchlistFullScreenView';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { selectSelectedAccountGroupId } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectIsUnifiedWatchlistActive } from '../../../selectors/featureFlags';
 import { WatchlistErrorRowTestIds } from '../../../../Watchlist/WatchlistErrorRow.testIds';
 import type { UnifiedWatchlistItem } from '../../../../Watchlist/types';
@@ -27,8 +28,8 @@ const mockRemovePerpFromWatchlist = jest.fn();
 const mockNavigateToMarketDetails = jest.fn();
 const mockAddTokenMutate = jest.fn();
 const mockRemoveTokenMutate = jest.fn();
+const mockUseSuggestedWatchlistItemsQuery = jest.fn();
 let capturedAddTokenOnSuccess: ((token: unknown) => void) | undefined;
-let capturedRemoveTokenOnSuccess: ((assetId: unknown) => void) | undefined;
 let capturedOnReorder:
   | ((event: { from: number; to: number }) => void)
   | undefined;
@@ -99,25 +100,47 @@ jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
       mutate: mockAddTokenMutate,
     };
   },
-  useTokenWatchlistRemoveItemMutation: (options?: {
-    onSuccess?: (assetId: unknown) => void;
-  }) => {
-    capturedRemoveTokenOnSuccess = options?.onSuccess;
-    return {
-      mutate: mockRemoveTokenMutate,
-    };
-  },
+  useTokenWatchlistRemoveItemMutation: () => ({
+    mutate: mockRemoveTokenMutate,
+  }),
   useTokenWatchlistUpdateListMutation: () => ({
     mutate: mockUpdateListMutate,
   }),
 }));
 
 jest.mock('../../hooks/useSuggestedWatchlistItemsQuery', () => ({
-  useSuggestedWatchlistItemsQuery: () => ({
-    data: [],
-    isLoading: false,
-  }),
+  useSuggestedWatchlistItemsQuery: () => mockUseSuggestedWatchlistItemsQuery(),
 }));
+
+jest.mock(
+  '../../../../../Views/Homepage/Sections/Watchlist/components/WatchlistSuggestedSection',
+  () => {
+    const { Pressable, View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const Mock = ({
+      rows,
+      onAddPress,
+    }: {
+      rows: { kind: string; token?: { assetId: string } }[];
+      onAddPress: (token: { assetId: string }) => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'mock-watchlist-suggested-section' },
+        rows
+          .filter((row) => row.kind === 'token' && row.token)
+          .map((row) =>
+            ReactActual.createElement(Pressable, {
+              key: row.token?.assetId,
+              testID: `mock-add-suggested-token-${row.token?.assetId}`,
+              onPress: () => row.token && onAddPress(row.token),
+            }),
+          ),
+      );
+    Mock.displayName = 'WatchlistSuggestedSection';
+    return { __esModule: true, default: Mock };
+  },
+);
 
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
@@ -136,6 +159,7 @@ jest.mock('react-native-reorderable-list', () => {
     keyExtractor,
     testID,
     onReorder,
+    ListFooterComponent,
   }: {
     data: { assetId?: string; key?: string }[];
     renderItem: (info: {
@@ -145,6 +169,7 @@ jest.mock('react-native-reorderable-list', () => {
     keyExtractor?: (item: { assetId?: string; key?: string }) => string;
     testID?: string;
     onReorder?: (event: { from: number; to: number }) => void;
+    ListFooterComponent?: React.ReactNode;
   }) => {
     capturedOnReorder = onReorder;
     return ReactActual.createElement(
@@ -165,6 +190,7 @@ jest.mock('react-native-reorderable-list', () => {
             onPress: () => onReorder({ from: 0, to: 1 }),
           })
         : null,
+      ListFooterComponent ?? null,
     );
   };
 
@@ -297,6 +323,10 @@ describe('WatchlistFullScreenView', () => {
     mockCanGoBack.mockReturnValue(true);
     mockUseSelector.mockReturnValue(false);
     mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [],
       isLoading: false,
     });
@@ -1216,9 +1246,23 @@ describe('WatchlistFullScreenView', () => {
     });
 
     it.each([true, false])(
-      'tracks WATCHLIST_TOKEN_ADDED and respects isOrderReady=%s in addTokenMutation onSuccess',
+      'respects isOrderReady=%s when appending token order key for the current account group',
       (isOrderReady) => {
+        const suggestedToken = makeWatchlistToken('eth');
         const mockAppendOrderKey = jest.fn().mockResolvedValue(undefined);
+        mockUseSelector.mockImplementation((selector) => {
+          if (selector === selectIsUnifiedWatchlistActive) {
+            return true;
+          }
+          if (selector === selectSelectedAccountGroupId) {
+            return 'group-1';
+          }
+          return false;
+        });
+        mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+          data: [suggestedToken],
+          isLoading: false,
+        });
         mockUseUnifiedWatchlist.mockReturnValue({
           items: [],
           tokens: { items: [], error: null },
@@ -1227,7 +1271,7 @@ describe('WatchlistFullScreenView', () => {
           canUseLivePerpsPrices: false,
           canUseMotion: false,
           canRefresh: true,
-          canFetchSuggestions: false,
+          canFetchSuggestions: true,
           tokenMembershipAssetIds: [],
           perpsMembershipSymbols: [],
           tokenCount: 0,
@@ -1240,27 +1284,20 @@ describe('WatchlistFullScreenView', () => {
           refresh: jest.fn().mockResolvedValue(undefined),
         });
 
-        render(<WatchlistFullScreenView />);
+        const { getByTestId } = render(<WatchlistFullScreenView />);
+
+        fireEvent.press(
+          getByTestId(`mock-add-suggested-token-${suggestedToken.assetId}`),
+        );
+        const mutatedToken = mockAddTokenMutate.mock.calls[0]?.[0];
 
         act(() => {
-          capturedAddTokenOnSuccess?.({
-            assetId: 'eip155:1/slip44:60',
-            isInWallet: true,
-          });
+          capturedAddTokenOnSuccess?.(mutatedToken);
         });
 
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: MetaMetricsEvents.WATCHLIST_TOKEN_ADDED.category,
-            properties: expect.objectContaining({
-              asset_id: 'eip155:1/slip44:60',
-              has_balance: true,
-            }),
-          }),
-        );
         if (isOrderReady) {
           expect(mockAppendOrderKey).toHaveBeenCalledWith(
-            'token:eip155:1/slip44:60',
+            `token:${suggestedToken.assetId}`,
           );
         } else {
           expect(mockAppendOrderKey).not.toHaveBeenCalled();
@@ -1268,8 +1305,27 @@ describe('WatchlistFullScreenView', () => {
       },
     );
 
-    it('tracks WATCHLIST_TOKEN_REMOVED in removeTokenMutation onSuccess', () => {
-      mockUseUnifiedWatchlist.mockReturnValue({
+    it('does not append token order key when an in-flight add settles after switching account groups', () => {
+      const suggestedToken = makeWatchlistToken('eth');
+      let currentAccountGroupId = 'group-1';
+      const group1AppendOrderKey = jest.fn().mockResolvedValue(undefined);
+      const group2AppendOrderKey = jest.fn().mockResolvedValue(undefined);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnifiedWatchlistActive) {
+          return true;
+        }
+        if (selector === selectSelectedAccountGroupId) {
+          return currentAccountGroupId;
+        }
+        return false;
+      });
+      mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+        data: [suggestedToken],
+        isLoading: false,
+      });
+
+      const buildUnifiedState = (appendOrderKey: jest.Mock) => ({
         items: [],
         tokens: { items: [], error: null },
         perps: { items: [], error: null },
@@ -1277,7 +1333,7 @@ describe('WatchlistFullScreenView', () => {
         canUseLivePerpsPrices: false,
         canUseMotion: false,
         canRefresh: true,
-        canFetchSuggestions: false,
+        canFetchSuggestions: true,
         tokenMembershipAssetIds: [],
         perpsMembershipSymbols: [],
         tokenCount: 0,
@@ -1286,24 +1342,33 @@ describe('WatchlistFullScreenView', () => {
         isOrderReady: true,
         orderError: null,
         persistOrder: jest.fn(),
-        appendOrderKey: jest.fn(),
+        appendOrderKey,
         refresh: jest.fn().mockResolvedValue(undefined),
       });
 
-      render(<WatchlistFullScreenView />);
+      mockUseUnifiedWatchlist.mockReturnValue(
+        buildUnifiedState(group1AppendOrderKey),
+      );
+      const { getByTestId, rerender } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(`mock-add-suggested-token-${suggestedToken.assetId}`),
+      );
+      const mutatedToken = mockAddTokenMutate.mock.calls[0]?.[0];
+
+      // Switch to group-2 before the in-flight token add settles.
+      currentAccountGroupId = 'group-2';
+      mockUseUnifiedWatchlist.mockReturnValue(
+        buildUnifiedState(group2AppendOrderKey),
+      );
+      rerender(<WatchlistFullScreenView />);
 
       act(() => {
-        capturedRemoveTokenOnSuccess?.('eip155:1/slip44:60');
+        capturedAddTokenOnSuccess?.(mutatedToken);
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED.category,
-          properties: expect.objectContaining({
-            asset_id: 'eip155:1/slip44:60',
-          }),
-        }),
-      );
+      expect(group2AppendOrderKey).not.toHaveBeenCalled();
+      expect(group1AppendOrderKey).not.toHaveBeenCalled();
     });
   });
 });
