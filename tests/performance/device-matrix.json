@@ -1,10 +1,10 @@
 {
   "android_devices": [
     {
-      "name": "Google Pixel 8 Pro",
-      "os_version": "14.0",
+      "name": "Samsung Galaxy A12",
+      "os_version": "12.0",
       "category": "low",
-      "description": "Google Pixel 8 Pro with Android 14 — sole Android device for performance E2E (Galaxy removed to reduce cost/flakes)"
+      "description": "TEMPORARY, do not merge: LOW hardware tier (3 GB RAM) for the one-off perps baseline run (TAT-4429)."
     }
   ],
   "ios_devices": [
