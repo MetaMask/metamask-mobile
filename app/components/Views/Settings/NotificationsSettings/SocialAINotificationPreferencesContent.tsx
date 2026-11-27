@@ -13,8 +13,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { AppState, Switch, TouchableOpacity, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Switch, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -45,10 +45,9 @@ import { isSocialV1Treatment } from '../../SocialLeaderboard/Onboarding/socialLe
 import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
-import NotificationService, {
-  getPushPermissionStatus,
-} from '../../../../util/notifications/services/NotificationService';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useOsPushPermissionDenied } from './hooks/useOsPushPermissionDenied';
 
 const AVATAR_SIZE = 40;
 
@@ -150,30 +149,7 @@ const SocialAINotificationPreferencesContent = ({
   const { colors, brandColors } = useTheme();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const [isOsPushPermissionDenied, setIsOsPushPermissionDenied] =
-    useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-    const updateOsPushPermission = async () => {
-      const permissionStatus = await getPushPermissionStatus();
-      if (isMounted) {
-        setIsOsPushPermissionDenied(permissionStatus === 'denied');
-      }
-    };
-
-    void updateOsPushPermission();
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active') {
-        void updateOsPushPermission();
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.remove();
-    };
-  }, []);
+  const isOsPushPermissionDenied = useOsPushPermissionDenied();
 
   const handleOpenOsPushSettings = useCallback(() => {
     NotificationService.openSystemSettings();

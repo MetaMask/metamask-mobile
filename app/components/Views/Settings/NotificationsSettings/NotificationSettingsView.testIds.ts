@@ -28,4 +28,7 @@ export const NotificationSettingsViewSelectorsIDs = {
     'notification-settings-social-push-permission-warning',
   SOCIAL_PUSH_PERMISSION_SETTINGS_BUTTON:
     'notification-settings-social-push-permission-settings-button',
+  PUSH_PERMISSION_WARNING: 'notification-settings-push-permission-warning',
+  PUSH_PERMISSION_SETTINGS_BUTTON:
+    'notification-settings-push-permission-settings-button',
 };

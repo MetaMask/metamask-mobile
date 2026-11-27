@@ -40,8 +40,13 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   IconSize,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
+import { useOsPushPermissionDenied } from './hooks/useOsPushPermissionDenied';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 interface NotificationRowProps {
   title: string;
@@ -120,7 +125,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const { preferences } = useNotificationStoragePreferences();
+  const isOsPushPermissionDenied = useOsPushPermissionDenied();
   const sectionParam = route.params?.section;
+
+  const handleOpenOsPushSettings = useCallback(() => {
+    NotificationService.openSystemSettings();
+  }, []);
 
   const navigateToSection = useCallback(
     (section: NotificationSettingsSectionConfig) => {
@@ -174,6 +184,26 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.notifications_title')}
         </Text>
         <MainNotificationToggle />
+
+        {isMetamaskNotificationsEnabled && isOsPushPermissionDenied ? (
+          <Box twClassName="mt-4">
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('app_settings.push_permission_denied')}
+              actionButtonLabel={strings(
+                'app_settings.push_permission_open_settings',
+              )}
+              actionButtonOnPress={handleOpenOsPushSettings}
+              actionButtonProps={{
+                testID:
+                  NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_SETTINGS_BUTTON,
+              }}
+              testID={
+                NotificationSettingsViewSelectorsIDs.PUSH_PERMISSION_WARNING
+              }
+            />
+          </Box>
+        ) : null}
 
         {isMetamaskNotificationsEnabled &&
           NOTIFICATION_SETTINGS_SECTIONS.map((section) => {

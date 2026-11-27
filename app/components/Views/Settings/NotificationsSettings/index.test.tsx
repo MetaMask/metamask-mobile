@@ -80,6 +80,7 @@ jest.mock(
   '../../../../util/notifications/services/NotificationService',
   () => ({
     getAllPermissions: jest.fn(),
+    getPushPermissionStatus: jest.fn().mockResolvedValue('granted'),
   }),
 );
 
