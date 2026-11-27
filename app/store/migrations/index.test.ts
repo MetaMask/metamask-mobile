@@ -256,6 +256,27 @@ describe('Critical Error Handling', () => {
       },
     };
 
+    it('writes the renamed Collectibles journal before removing the prototype file', async () => {
+      const journal = { packPartner: { operations: {}, sales: {} } };
+      mockedControllerStorage.getAllPersistedState.mockResolvedValue({
+        backgroundState: { GachaController: journal },
+      });
+      const migrations = asyncifyMigrations({ 166: migrationList[166] });
+
+      await migrations['166'](initialState);
+
+      expect(mockedControllerStorage.getAllPersistedState).toHaveBeenCalledWith(
+        expect.arrayContaining(['GachaController']),
+      );
+      expect(mockedControllerStorage.setItem).toHaveBeenCalledWith(
+        'persist:CollectiblesController',
+        JSON.stringify(journal),
+      );
+      expect(mockedControllerStorage.removeItem).toHaveBeenCalledWith(
+        'persist:GachaController',
+      );
+    });
+
     it('removes the files of removed controllers dropped by the migrations after deflation', async () => {
       mockedControllerStorage.getAllPersistedState.mockResolvedValue(
         persistedTokensAndAssetsState,

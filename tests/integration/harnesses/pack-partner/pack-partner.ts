@@ -245,10 +245,8 @@ export const buildPackPartnerIntegrationHarness = ({
   const ui = createPackPartnerUIQueryClient(serviceMessenger);
 
   // Mirror Engine.resetState: invalidate workflow generations and its server cache together.
-  const resetWallet = async (): Promise<void> => {
-    controller.clearState();
-    await dataService.clearCache();
-  };
+  const resetWallet = async () =>
+    Promise.all([controller.clearState(), dataService.clearCache()]);
 
   return {
     messenger,

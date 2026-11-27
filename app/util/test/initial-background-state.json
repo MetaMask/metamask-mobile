@@ -954,7 +954,15 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
-  "CollectiblesController": {},
+  "CollectiblesController": {
+    "packPartnerEnvironment": "mainnet",
+    "packPartnerByEnvironment": {},
+    "hasCompletedOnboarding": false,
+    "packPartner": {
+      "operations": {},
+      "sales": {}
+    }
+  },
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",

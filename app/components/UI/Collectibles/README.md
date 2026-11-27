@@ -52,7 +52,9 @@ is omitted; `success: false` still rejects the submission.
 
 ## Controller registration and persistence
 
-Engine injects the workflow client into the controller-owned provider. The controller uses standard Engine hydration. Transaction-journal persistence and migration are staged in the POC.
+Engine injects the workflow client and restores the controller journal for the active network. The journal keeps operations and opening memos separate by account and network. The controller metadata removes transaction bytes from disk and excludes wallet activity from exported diagnostics. Migration 166 preserves the prototype journal if the wallet has no Collectibles state yet.
+
+EngineService queues background writes. Migration writes and explicit checkpoints use the same serialized filesystem writer. A checkpoint resolves after the native write finishes. When the primary file is invalid, storage tries its backup. EngineService skips background writes for quarantined state. Wallet reset drains journal and service cleanup before destroying the messengers.
 
 The Pack Partner service owns the collection snapshot in its StorageService namespace. Wallet reset clears registered Collectibles query caches. Feature tests reuse the [Pack Partner harness](../../../../tests/integration/harnesses/pack-partner/STRATEGY.md).
 

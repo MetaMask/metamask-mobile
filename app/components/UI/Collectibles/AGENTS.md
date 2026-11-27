@@ -26,6 +26,6 @@ Engine registers the data services and the controller owns the Pack Partner prov
   entry points follow the repository's separate composition convention.
 
 - Tests mock HTTP, Snap and storage; testing never authorizes real purchases.
-- Keep new queries, workflows and their tests inside Collectibles. Reuse the registered messengers and integration harnesses. Use the Pack Partner StorageService namespace for collection snapshots.
+- Keep new queries, workflows and their tests inside Collectibles. Reuse the registered messengers and integration harnesses. Route journal checkpoints through the existing writer and collection snapshots through Pack Partner’s StorageService namespace.
 - Use the repository mobile-testing skill. Run the focused unit/integration suites
   and init navigation regression tests listed in README after extraction changes.
