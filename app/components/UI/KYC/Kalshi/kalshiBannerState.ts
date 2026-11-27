@@ -68,6 +68,23 @@ const selectKalshiBannerState = (state: RootState): KalshiBannerState => {
 };
 
 /**
+ * Whether kyc-api approved the Kalshi account. Home reads the signed
+ * predict-api status only after this is true, so users who have not finished
+ * KYC cost no extra request. `GetStartedBanner` owns the focus refresh of this
+ * vendor step; this selector only reads the result.
+ *
+ * @param state - The app state.
+ * @returns Whether the KYC decision is approved.
+ */
+export const selectIsKalshiKycApproved = (state: RootState): boolean => {
+  const vendor =
+    state.engine.backgroundState.VendorOnboardingController?.vendors?.[
+      KALSHI_KYC_VENDOR.id
+    ];
+  return vendor?.step === 'decision' && vendor?.status === 'approved';
+};
+
+/**
  * The Kalshi banner state for the current screen. Asks kyc-api for the step
  * each time the screen gains focus, so a user who finished on another device,
  * before a reinstall, or in the onboarding flow sees where they really are.

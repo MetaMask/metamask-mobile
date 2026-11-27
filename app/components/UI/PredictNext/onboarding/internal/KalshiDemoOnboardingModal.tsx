@@ -15,25 +15,9 @@ import {
 
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type { KalshiMfaChallenge } from '../../contracts/v1/onboarding';
-import type { OnboardingMessage } from './kalshiDemoOnboardingMachine';
 import type { KalshiDemoOnboarding } from './useKalshiDemoOnboarding';
+import { KALSHI_ONBOARDING_MESSAGES as MESSAGES } from './kalshiOnboardingMessages';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
-
-/** Literal error copy. Temporary slice: no locale entries. */
-const MESSAGES: Record<OnboardingMessage, string> = {
-  generic: 'Something went wrong.',
-  code_incorrect: "That code didn't work.",
-  expired: 'Your link request expired. Start again.',
-  signup_incomplete: 'Finish signing up on Kalshi demo first.',
-  account_blocked: "This Kalshi account can't be linked.",
-  new_account_failed:
-    "We couldn't create a demo account for this email. Try an existing Kalshi demo account.",
-  wallet_invalid: 'Kalshi demo rejected this wallet address.',
-  rate_limited: 'Try again in a moment.',
-  unsupported: "This account can't be linked in the demo flow.",
-  review_timeout: 'Kalshi is still checking this account. Try again later.',
-  demo_unavailable: "Demo sign-up isn't available right now.",
-};
 
 /** Title for the second-factor step, from what Kalshi said it will use. */
 const mfaTitle = (mfa: KalshiMfaChallenge | undefined): string => {
