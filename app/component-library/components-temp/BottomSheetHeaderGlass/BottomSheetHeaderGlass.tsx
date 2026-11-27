@@ -30,9 +30,12 @@ const BottomSheetHeaderGlass = ({
   closeButtonProps,
   style,
   twClassName,
+  className,
   ...props
 }: BottomSheetHeaderGlassProps) => {
   const tw = useTailwind();
+  const mergedClassName =
+    [twClassName, className].filter(Boolean).join(' ') || undefined;
 
   if (!isGlass) {
     return (
@@ -43,7 +46,7 @@ const BottomSheetHeaderGlass = ({
         onClose={onClose}
         closeButtonProps={closeButtonProps}
         style={style}
-        twClassName={twClassName}
+        className={mergedClassName}
       />
     );
   }
@@ -51,6 +54,7 @@ const BottomSheetHeaderGlass = ({
   return (
     <HeaderBaseGlass
       {...props}
+      className={className}
       isFloating={false}
       style={[tw.style('px-4', twClassName), style]}
       startButtonIconProps={

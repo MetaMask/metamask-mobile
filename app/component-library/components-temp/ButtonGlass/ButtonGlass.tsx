@@ -36,6 +36,7 @@ const ButtonGlass = ({
   variant = ButtonVariant.Secondary,
   containerStyle,
   twClassName,
+  className,
   ...props
 }: ButtonGlassProps) => {
   const { isGlassEnabled } = useLiquidGlass();
@@ -50,7 +51,7 @@ const ButtonGlass = ({
       <Button
         {...props}
         variant={variant}
-        className={twClassName}
+        className={className ?? twClassName}
         style={props.style ?? containerStyle}
       />
     );
