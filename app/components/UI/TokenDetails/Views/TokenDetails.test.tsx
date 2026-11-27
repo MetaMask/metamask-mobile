@@ -482,6 +482,24 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
 }));
 
+jest.mock('../hooks/useTokenDetailsFeedCopyTrade', () => ({
+  useTokenDetailsFeedCopyTrade: () => ({
+    handleFeedCopyTrade: jest.fn(),
+    feedCopyTradeSheet: null,
+  }),
+}));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery',
+  () => ({
+    useQuoteTokensQuery: () => ({
+      data: undefined,
+      error: null,
+      isSuccess: false,
+    }),
+  }),
+);
+
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
