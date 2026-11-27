@@ -32,6 +32,9 @@ const firstTimeOverrides = {
   },
 };
 
+// The Continue button's double-tap guard is a ref-based 100ms timer with no
+// UI signal, so there is no observable condition to await; this waits out the
+// guard so the next loop iteration's press is not swallowed.
 const waitForContinueDebounce = async () => {
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, CONTINUE_DEBOUNCE_MS));
