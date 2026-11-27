@@ -6,7 +6,6 @@ import { Duration, inMilliseconds } from '@metamask/utils';
 import { MessengerClientInitFunction } from '../../types';
 import { SnapControllerInitMessenger } from '../../messengers/snaps';
 import {
-  EndowmentPermissions,
   ExcludedSnapEndowments,
   ExcludedSnapPermissions,
   detectSnapLocation,
@@ -64,7 +63,6 @@ export const snapControllerInit: MessengerClientInitFunction<
   }
 
   const controller = new SnapController({
-    environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
       ...ExcludedSnapPermissions,
       ...ExcludedSnapEndowments,
