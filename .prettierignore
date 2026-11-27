@@ -8,6 +8,7 @@ jest.preprocessor.js
 node_modules
 CHANGELOG.md
 eslint-suppressions.json
+knip-baseline.json
 wdio
 wdio.conf.js
 scripts

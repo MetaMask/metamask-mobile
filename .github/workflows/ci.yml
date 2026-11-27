@@ -517,6 +517,44 @@ jobs:
           fi
           echo "lint shards passed"
 
+  # Runs knip:check on a plain GitHub-hosted runner so it is never pulled onto a
+  # paid Namespace profile.
+  knip-check:
+    name: Run `knip:check`
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - run: yarn knip:check
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
   smart-e2e-contract-tests:
     name: Smart E2E contract tests
     runs-on: >-
@@ -2253,6 +2291,7 @@ jobs:
       - scripts
       - lint-shards
       - lint
+      - knip-check
       - unit-tests
       - component-view-tests
       - component-view-flakiness-detection
