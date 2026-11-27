@@ -992,6 +992,7 @@ export type RootStackParamList = {
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
+  PerpsSettings: PerpsNavigationParamList['PerpsSettings'];
   PerpsMarketDetails: PerpsNavigationParamList['PerpsMarketDetails'];
   PerpsTrendingView: PerpsNavigationParamList['PerpsMarketListView'];
   PerpsTutorial: PerpsNavigationParamList['PerpsTutorial'] | undefined;

@@ -43,6 +43,7 @@ import {
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
 import { useGetPerpsHomeNavigationTarget } from '../../utils/perpsModeSwitch';
@@ -55,7 +56,15 @@ const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  selectPerpsDefaultProvider,
+  selectPerpsEligibility,
+  selectPerpsHasExplicitDefaultProviderSelection,
+} from '../../selectors/perpsController';
+import { selectPerpsLighterProviderEnabledFlag } from '../../selectors/featureFlags';
+import { displayedDefaultExchange } from '../../Views/PerpsSettingsView';
+import { useSetPerpsDefaultExchange } from '../../hooks/useSetPerpsDefaultExchange';
+import PerpsDefaultExchangeSheet from '../PerpsDefaultExchangeSheet';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
@@ -147,7 +156,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const redirectScreen = route.params?.redirectScreen;
   const redirectParams = route.params?.redirectParams;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
-  const { markTutorialCompleted } = usePerpsFirstTimeUser();
+  const { markTutorialCompleted, isFirstTimeUser } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
@@ -163,6 +172,21 @@ const PerpsTutorialCarousel: React.FC = () => {
   const isProgrammaticNavigationRef = useRef(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
+  const isLighterEnabled = useSelector(selectPerpsLighterProviderEnabledFlag);
+  const defaultProvider = useSelector(selectPerpsDefaultProvider);
+  const hasExplicitDefault = useSelector(
+    selectPerpsHasExplicitDefaultProviderSelection,
+  );
+  const setDefaultExchange = useSetPerpsDefaultExchange();
+  const [isDefaultExchangeOpen, setIsDefaultExchangeOpen] = useState(false);
+  const openedFromSettings =
+    tutorialSource === PERPS_EVENT_VALUE.SOURCE.PERPS_HOME;
+
+  useEffect(() => {
+    if (isFirstTimeUser && isLighterEnabled && !openedFromSettings) {
+      setIsDefaultExchangeOpen(true);
+    }
+  }, [isFirstTimeUser, isLighterEnabled, openedFromSettings]);
 
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -518,6 +542,17 @@ const PerpsTutorialCarousel: React.FC = () => {
           >
             {buttonLabel}
           </Button>
+          {isLastScreen && isLighterEnabled ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={() => setIsDefaultExchangeOpen(true)}
+              size={ButtonSize.Lg}
+              style={styles.continueButton}
+              testID={PerpsTutorialSelectorsIDs.SELECT_DEFAULT_EXCHANGE}
+            >
+              {strings('perps.settings.select_default_exchange')}
+            </Button>
+          ) : null}
           {isLastScreen && (
             <Button
               variant={ButtonVariant.Secondary}
@@ -548,6 +583,18 @@ const PerpsTutorialCarousel: React.FC = () => {
           )}
         </View>
       </View>
+      {isDefaultExchangeOpen ? (
+        <PerpsStreamProvider>
+          <PerpsDefaultExchangeSheet
+            selectedProviderId={displayedDefaultExchange(
+              defaultProvider,
+              hasExplicitDefault,
+            )}
+            onClose={() => setIsDefaultExchangeOpen(false)}
+            onSave={setDefaultExchange}
+          />
+        </PerpsStreamProvider>
+      ) : null}
     </View>
   );
 };

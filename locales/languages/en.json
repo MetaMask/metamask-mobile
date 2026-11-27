@@ -2088,6 +2088,21 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "settings": {
+      "title": "Settings",
+      "save": "Save",
+      "preferences": "Preferences",
+      "default_exchange": "Default exchange",
+      "default_exchange_description": "Set a default exchange for all orders. You can change it anytime in settings.",
+      "select_default_exchange": "Select default exchange",
+      "markets": "Markets",
+      "fee": "Fee",
+      "maker_taker": "{{maker}} / {{taker}}",
+      "max_leverage": "Max leverage",
+      "open_interest": "Open interest",
+      "volume_24h": "24h volume",
+      "your_default": "Your default"
+    },
     "recovery": {
       "review_expired": "Your position review needs refreshing. Go back and review your positions and orders before trying again."
     },

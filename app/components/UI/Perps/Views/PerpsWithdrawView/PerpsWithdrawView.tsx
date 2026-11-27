@@ -43,6 +43,7 @@ import {
   USDC_TOKEN_ICON_URL,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   usePerpsMeasurement,
@@ -73,12 +74,20 @@ import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import {
+  selectPerpsDefaultProvider,
+  selectPerpsProvider,
+} from '../../selectors/perpsController';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
+import { resolveDepositOrderProvider } from '../../utils/prewarmedDepositOrder';
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
 
 const PerpsWithdrawView: React.FC = () => {
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
+  const activeProvider = useSelector(selectPerpsProvider);
+  const defaultProvider = useSelector(selectPerpsDefaultProvider);
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -258,9 +267,20 @@ const PerpsWithdrawView: React.FC = () => {
         chainIdDecimal,
       });
 
+      const resolvedProvider = resolveDepositOrderProvider(
+        activeProvider,
+        defaultProvider,
+      );
+      const providerId: PerpsProviderType | undefined =
+        resolvedProvider === PROVIDER_CONFIG.DefaultProvider ||
+        resolvedProvider === PROVIDER_CONFIG.LighterProvider
+          ? resolvedProvider
+          : undefined;
+
       const result = await controller.withdraw({
         amount: withdrawAmountDetailed,
         assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
+        ...(providerId ? { providerId } : {}),
       });
 
       if (result.success) {
@@ -309,6 +329,8 @@ const PerpsWithdrawView: React.FC = () => {
     destToken.address,
     isTestnet,
     withdrawAmountDetailed,
+    activeProvider,
+    defaultProvider,
   ]);
 
   const handleBack = useCallback(() => {

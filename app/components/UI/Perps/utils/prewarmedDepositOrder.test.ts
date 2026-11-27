@@ -111,6 +111,21 @@ describe('prewarmedDepositOrder', () => {
         PROVIDER_CONFIG.LighterProvider,
       );
     });
+
+    it('uses the saved default when aggregated mode has no venue of its own', () => {
+      expect(
+        resolveDepositOrderProvider(
+          PROVIDER_CONFIG.AggregatedProvider,
+          PROVIDER_CONFIG.LighterProvider,
+        ),
+      ).toBe(PROVIDER_CONFIG.LighterProvider);
+    });
+
+    it('falls back to Hyperliquid when the saved default is empty', () => {
+      expect(
+        resolveDepositOrderProvider(PROVIDER_CONFIG.AggregatedProvider, null),
+      ).toBe(PROVIDER_CONFIG.DefaultProvider);
+    });
   });
 
   describe('prewarmDepositOrder', () => {

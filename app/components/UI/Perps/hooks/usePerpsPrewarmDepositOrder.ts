@@ -7,7 +7,10 @@ import {
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
-import { selectPerpsProvider } from '../selectors/perpsController';
+import {
+  selectPerpsDefaultProvider,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   discardPrewarmedDepositOrder,
@@ -70,9 +73,13 @@ export function usePerpsPrewarmDepositOrder({
   const { depositWithOrder } = usePerpsTrading();
   const { isInitialized } = usePerpsConnection();
   const activeProvider = useSelector(selectPerpsProvider);
+  const defaultProvider = useSelector(selectPerpsDefaultProvider);
   const accountAddress = useSelector(selectPerpsSelectedAccountAddress);
 
-  const depositProvider = resolveDepositOrderProvider(activeProvider);
+  const depositProvider = resolveDepositOrderProvider(
+    activeProvider,
+    defaultProvider,
+  );
   // A market pinned to another provider needs a provider switch first, which
   // this prewarm deliberately does not perform.
   const requiresProviderSwitch =

@@ -60,7 +60,6 @@ import {
   usePerpsNavigation,
   usePerpsMeasurement,
   usePerpsHomeSectionTracking,
-  usePerpsMode,
 } from '../../hooks';
 import { usePerpsSectionNearViewport } from '../../hooks/usePerpsSectionNearViewport';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
@@ -82,19 +81,11 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
-  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
-import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
-import { usePerpsHeaderEntryNavigation } from '../../hooks/usePerpsHeaderEntryNavigation';
-import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
-import {
-  resetToPerpsHomeTarget,
-  withHomeDroppedFromHistory,
-} from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -204,56 +195,8 @@ const PerpsHomeView = () => {
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const { showExploreTable } = usePerpsHomeExploreAbTest();
-  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const [trackProSwitchExposure, setTrackProSwitchExposure] = useState(false);
-  const [commitProSwitch, setCommitProSwitch] = useState(false);
-  const { getProSwitchTarget } = usePerpsHeaderEntryNavigation({
-    // Arm exposure only after a committed switch into Pro. Viewing Lite, or
-    // opening the chooser and then staying in Lite, must not enroll the user.
-    trackExposure: trackProSwitchExposure,
-  });
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const isGlass = useIsGlassSurfaceEnabled(selectPerpsBrandRefreshEnabled);
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
-  const handleModeChange = useCallback(
-    async (nextMode: PerpsMode): Promise<boolean> => {
-      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
-        entry: 'home',
-        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-      });
-      if (openedChooser) {
-        return false;
-      }
-
-      // Chooser already completed — flip immediately without the sheet.
-      setPerpsMode(nextMode);
-      // Discard Perps Home while Pro is active (TAT-3612). Navigation runs
-      // in an effect so Experiment Viewed is emitted before the reset.
-      if (nextMode === PerpsMode.Pro) {
-        setTrackProSwitchExposure(true);
-        setCommitProSwitch(true);
-      }
-      return true;
-    },
-    [navigation, setPerpsMode],
-  );
-
-  const hasCommittedProSwitchRef = useRef(false);
-  useEffect(() => {
-    if (!commitProSwitch || hasCommittedProSwitchRef.current) {
-      return;
-    }
-    hasCommittedProSwitchRef.current = true;
-
-    resetToPerpsHomeTarget(
-      navigation,
-      getProSwitchTarget(
-        withHomeDroppedFromHistory({
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-        }),
-      ),
-    );
-  }, [commitProSwitch, getProSwitchTarget, navigation]);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
   // one recently listed market — see useHasNewMarkets).
@@ -710,6 +653,10 @@ const PerpsHomeView = () => {
       }),
     },
   });
+
+  const openSettings = useCallback(() => {
+    navigation.navigate(Routes.PERPS.SETTINGS);
+  }, [navigation]);
 
   const handleSearchToggle = useCallback(() => {
     // Track button click
@@ -1398,16 +1345,14 @@ const PerpsHomeView = () => {
             accessibilityLabel="Search"
             testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
           />
-          {isPerpsProModeEnabled ? (
-            <PerpsModeToggle
-              mode={perpsMode}
-              onChange={handleModeChange}
-              variant="active"
-              enableHaptics
-              isCapsule={isBrandRefresh}
-              source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            />
-          ) : null}
+          <ButtonIconGlass
+            isCapsule={isBrandRefresh}
+            iconName={IconName.Setting}
+            size={ButtonIconSize.Md}
+            onPress={openSettings}
+            accessibilityLabel={strings('perps.settings.title')}
+            testID={PerpsHomeViewSelectorsIDs.SETTINGS_BUTTON}
+          />
         </Box>
       }
       testID="perps-home"
@@ -1503,7 +1448,7 @@ const PerpsHomeView = () => {
         </Box>
       )}
 
-      {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
+      {/* Header — scroll-linked compact title; settings gear stays in endAccessory */}
       {isBrandRefresh ? (
         <View style={styles.scrollView}>
           {/* Mounted before the content so assistive tech reads the header first. */}

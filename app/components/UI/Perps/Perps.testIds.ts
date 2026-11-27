@@ -305,6 +305,7 @@ export const PerpsHomeViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BACK_HOME_BUTTON: 'perps-home-back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
+  SETTINGS_BUTTON: 'perps-home-settings-button',
   SEARCH_INPUT: 'perps-home-search',
   HOME_HEADING: 'perps-home-heading',
   SCROLL_CONTENT: 'scroll-content',
@@ -1067,6 +1068,7 @@ export const PerpsTutorialSelectorsIDs = {
   CONTINUE_BUTTON: 'perps-tutorial-continue-button',
   SKIP_BUTTON: 'perps-tutorial-skip-button',
   LEARN_MORE_BUTTON: 'perps-tutorial-learn-more-button',
+  SELECT_DEFAULT_EXCHANGE: 'perps-tutorial-select-default-exchange',
   CAROUSEL: 'perps-tutorial-carousel',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
@@ -1623,4 +1625,22 @@ export const PerpsTradeOnSelectorsIDs = {
   ROW: 'perps-trade-on-row',
   SHEET: 'perps-trade-on-sheet',
   SHEET_OPTION: 'perps-trade-on-sheet-option',
+} as const;
+
+export const PerpsSettingsViewSelectorsIDs = {
+  CONTAINER: 'perps-settings',
+  BACK: 'perps-settings-back',
+  SAVE: 'perps-settings-save',
+  DEFAULT_EXCHANGE: 'perps-settings-default-exchange',
+  SUPPORT_BUTTON: 'perps-settings-support-button',
+  FEEDBACK_BUTTON: 'perps-settings-feedback-button',
+  LEARN_MORE_BUTTON: 'perps-settings-learn-more-button',
+} as const;
+
+export const PerpsDefaultExchangeSheetSelectorsIDs = {
+  SHEET: 'perps-default-exchange-sheet',
+  CLOSE: 'perps-default-exchange-close',
+  OPTION: 'perps-default-exchange-option',
+  STAT: 'perps-default-exchange-stat',
+  SAVE: 'perps-default-exchange-save',
 } as const;
