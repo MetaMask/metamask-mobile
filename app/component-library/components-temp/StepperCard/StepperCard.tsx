@@ -55,7 +55,7 @@ const StepperCard = ({
     <>
       {/* Image */}
       <Box className="px-4 pt-4">
-        <Box testID={getTestId('step-image')} className="w-full aspect-video">
+        <Box testID={getTestId('step-image')} className="aspect-video w-full">
           {step.media ?? (
             <Image
               source={step.image}
@@ -72,7 +72,7 @@ const StepperCard = ({
           <Text
             variant={TextVariant.DisplayMd}
             fontFamily={FontFamily.Hero}
-            className="leading-[32px]"
+            className="leading-heading-lg"
             testID={getTestId('title')}
           >
             {step.title}

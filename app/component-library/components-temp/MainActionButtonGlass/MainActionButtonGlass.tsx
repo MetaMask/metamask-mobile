@@ -116,7 +116,7 @@ const CustomIconMainActionButton = ({
       ]}
       {...props}
     >
-      <Box className="w-6 h-6 items-center justify-center text-icon-alternative">
+      <Box className="size-6 items-center justify-center text-icon-alternative">
         {customIcon}
       </Box>
       <Text
