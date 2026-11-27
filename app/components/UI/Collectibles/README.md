@@ -4,7 +4,7 @@ This branch adds Pack Partner to the existing Collectibles module. Tapping the h
 
 ## Review stack
 
-Engine registers the Pack Partner and Collectibles API data services. The existing Pack Partner client is also injected into the controller-owned provider. Their registration does not start requests. The remaining provider, query and hook implementations are staged in `collectibles-rest`.
+Engine registers the Pack Partner, Collectibles API and Social API data services. The existing Pack Partner client is also injected into the controller-owned provider. Their registration does not start requests. The remaining provider, query and hook implementations are staged in `collectibles-rest`.
 
 ## Naming convention
 
@@ -56,7 +56,7 @@ Engine injects the workflow client and restores the controller journal for the a
 
 EngineService queues background writes. Migration writes and explicit checkpoints use the same serialized filesystem writer. A checkpoint resolves after the native write finishes. When the primary file is invalid, storage tries its backup. EngineService skips background writes for quarantined state. Wallet reset drains journal and service cleanup before destroying the messengers.
 
-The Pack Partner service owns the collection snapshot in its StorageService namespace. Wallet reset clears registered Collectibles query caches. Feature tests reuse the [Pack Partner harness](../../../../tests/integration/harnesses/pack-partner/STRATEGY.md) and the [discovery strategy](../../../../tests/integration/harnesses/collectibles-discovery/STRATEGY.md).
+The Pack Partner service owns the collection snapshot in its StorageService namespace. The three data-service query caches are cleared at wallet reset. Feature tests reuse the [Pack Partner harness](../../../../tests/integration/harnesses/pack-partner/STRATEGY.md) and the [discovery harness](../../../../tests/integration/harnesses/collectibles-discovery/STRATEGY.md).
 
 Implementation references:
 
@@ -109,7 +109,9 @@ These rules follow from it:
 
 ## Scope for contributors and agents
 
-Keep service registration and wallet cleanup separate from product queries, transaction workflows and UI changes. Preserve the initialization branch's public entry points.
+Keep this branch limited to the Pack Partner integration and its Engine/storage
+wiring. Do not introduce the POC's artwork, routes, UI, Social or Collectibles API
+services. Preserve the initialization branch's public entry points.
 
 ## Test layer placement
 

@@ -6,6 +6,7 @@ import {
 import type { RootMessenger } from '../types';
 import type { PackPartnerDataServiceMessenger } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
 import type { CollectiblesApiDataServiceMessenger } from '../../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import type { CollectiblesSocialApiDataServiceMessenger } from '../../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
 
 export const getPackPartnerDataServiceMessenger = (
   root: RootMessenger<
@@ -36,3 +37,14 @@ export const getCollectiblesApiDataServiceMessenger = (
   >,
 ): CollectiblesApiDataServiceMessenger =>
   new Messenger({ namespace: 'CollectiblesApiDataService', parent: root });
+
+export const getCollectiblesSocialApiDataServiceMessenger = (
+  root: RootMessenger<
+    MessengerActions<CollectiblesSocialApiDataServiceMessenger>,
+    MessengerEvents<CollectiblesSocialApiDataServiceMessenger>
+  >,
+): CollectiblesSocialApiDataServiceMessenger =>
+  new Messenger({
+    namespace: 'CollectiblesSocialApiDataService',
+    parent: root,
+  });

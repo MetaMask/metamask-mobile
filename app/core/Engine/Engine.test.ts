@@ -157,6 +157,7 @@ describe('Engine', () => {
     for (const name of [
       'PackPartnerDataService',
       'CollectiblesApiDataService',
+      'CollectiblesSocialApiDataService',
     ] as const) {
       expect(engine.context[name].name).toBe(name);
       expect(DATA_SERVICES).toContain(name);
@@ -1504,6 +1505,7 @@ describe('Engine', () => {
       const clearReads = [
         engine.context.PackPartnerDataService,
         engine.context.CollectiblesApiDataService,
+        engine.context.CollectiblesSocialApiDataService,
       ].map((service) => jest.spyOn(service, 'clearCache'));
 
       const reset = engine.resetState();

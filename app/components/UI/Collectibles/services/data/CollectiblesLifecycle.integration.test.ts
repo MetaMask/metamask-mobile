@@ -1,3 +1,5 @@
+import { CollectiblesSocialApiClient } from '../clients/CollectiblesSocialApiClient';
+import { buildCollectiblesSocialApiDataHarness } from '../../../../../../tests/integration/harnesses/collectibles-discovery/social-data-services';
 import { buildPackPartnerIntegrationHarness } from '../../../../../../tests/integration/harnesses/pack-partner/pack-partner';
 import { buildPackPartnerPersistenceHarness } from '../../../../../../tests/integration/harnesses/pack-partner/storage';
 
@@ -38,6 +40,19 @@ describe('Collectibles data infrastructure', () => {
       ).resolves.toEqual({ result: 'keep' });
     } finally {
       harness.cleanup();
+    }
+  });
+
+  it('connects the Social query bridge without fetching on startup', () => {
+    const harness = buildCollectiblesSocialApiDataHarness(
+      new CollectiblesSocialApiClient(),
+    );
+
+    try {
+      expect(harness.ui.isFetching()).toBe(0);
+      expect(harness.service.name).toBe('CollectiblesSocialApiDataService');
+    } finally {
+      harness.destroy();
     }
   });
 });

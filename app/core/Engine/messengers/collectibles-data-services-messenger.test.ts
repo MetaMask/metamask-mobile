@@ -9,11 +9,16 @@ import type {
   CollectiblesApiDataServiceEvents,
 } from '../../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
 import type {
+  CollectiblesSocialApiDataServiceActions,
+  CollectiblesSocialApiDataServiceEvents,
+} from '../../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
+import type {
   PackPartnerDataServiceActions,
   PackPartnerDataServiceEvents,
 } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
 import {
   getCollectiblesApiDataServiceMessenger,
+  getCollectiblesSocialApiDataServiceMessenger,
   getPackPartnerDataServiceMessenger,
 } from './collectibles-data-services-messenger';
 
@@ -81,6 +86,30 @@ describe('getCollectiblesApiDataServiceMessenger', () => {
 
     await rootMessenger.call(
       'CollectiblesApiDataService:invalidateQueries',
+      {},
+    );
+
+    expect(invalidate).toHaveBeenCalledWith({});
+  });
+});
+
+describe('getCollectiblesSocialApiDataServiceMessenger', () => {
+  it('exposes Social cache invalidation to the root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      CollectiblesSocialApiDataServiceActions,
+      CollectiblesSocialApiDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const serviceMessenger =
+      getCollectiblesSocialApiDataServiceMessenger(rootMessenger);
+    const invalidate = jest.fn().mockResolvedValue(undefined);
+    serviceMessenger.registerActionHandler(
+      'CollectiblesSocialApiDataService:invalidateQueries',
+      invalidate,
+    );
+
+    await rootMessenger.call(
+      'CollectiblesSocialApiDataService:invalidateQueries',
       {},
     );
 

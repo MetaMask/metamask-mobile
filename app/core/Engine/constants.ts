@@ -34,6 +34,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SocialService',
   'PackPartnerDataService',
   'CollectiblesApiDataService',
+  'CollectiblesSocialApiDataService',
   'SocialRealtimeService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',

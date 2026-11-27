@@ -118,6 +118,7 @@ import { predictControllerInit } from './controllers/predict-controller';
 import {
   packPartnerDataServiceInit,
   collectiblesApiDataServiceInit,
+  collectiblesSocialApiDataServiceInit,
 } from '../../components/UI/Collectibles/services/data/collectibles-data-services-init';
 import { collectiblesControllerInit } from './controllers/collectibles-controller';
 import {
@@ -362,6 +363,7 @@ export class Engine {
         PredictController: predictControllerInit,
         PackPartnerDataService: packPartnerDataServiceInit,
         CollectiblesApiDataService: collectiblesApiDataServiceInit,
+        CollectiblesSocialApiDataService: collectiblesSocialApiDataServiceInit,
         CollectiblesController: collectiblesControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
@@ -653,6 +655,8 @@ export class Engine {
       PackPartnerDataService: messengerClientsByName.PackPartnerDataService,
       CollectiblesApiDataService:
         messengerClientsByName.CollectiblesApiDataService,
+      CollectiblesSocialApiDataService:
+        messengerClientsByName.CollectiblesSocialApiDataService,
       CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
@@ -1367,9 +1371,10 @@ export class Engine {
         this.context.CollectiblesController.clearState(),
         this.context.PackPartnerDataService.clearCache(),
         this.#resetWalletControllers(),
-        ...[this.context.CollectiblesApiDataService].map(async (service) =>
-          service.clearCache(),
-        ),
+        ...[
+          this.context.CollectiblesApiDataService,
+          this.context.CollectiblesSocialApiDataService,
+        ].map(async (service) => service.clearCache()),
       ]);
     for (const cleanup of [controllers, journal, storage, ...otherCaches]) {
       if (cleanup.status === 'rejected') {
