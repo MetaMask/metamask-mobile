@@ -80,8 +80,8 @@ export interface EarnSectionProps {
 
 const renderAssetCardSkeleton = (key: string) => (
   <EarnSectionCard key={key} testID={key}>
-    <Skeleton height={40} width={40} twClassName="rounded-full" />
-    <Box twClassName="gap-2">
+    <Skeleton height={40} width={40} className="rounded-full" />
+    <Box className="gap-2">
       <Skeleton height={16} width={64} />
       <Skeleton height={20} width={112} />
       <Skeleton height={20} width={88} />
@@ -459,7 +459,7 @@ const EarnSection = ({
               testID: EarnSectionTestIds.ERROR_RETRY_BUTTON,
             }}
             testID={EarnSectionTestIds.ERROR}
-            twClassName="mx-4 mt-3"
+            className="mx-4 mt-3"
           />
         )}
         <ScrollView
@@ -516,7 +516,7 @@ const EarnSection = ({
               <Box
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
-                twClassName="w-full flex-1 gap-2"
+                className="w-full flex-1 gap-2"
               >
                 <Icon name={IconName.ArrowRight} size={IconSize.Md} />
                 <Text

@@ -352,7 +352,7 @@ const EarnStrategySelectionModal = () => {
   }, []);
 
   const strategyContent = (
-    <Box gap={4} twClassName="mt-1">
+    <Box gap={4} className="mt-1">
       {strategies.map((strategy) => {
         if (isMoneyAccountDepositExperience(strategy)) {
           return renderMoneyStrategyCard(strategy, {
@@ -381,7 +381,7 @@ const EarnStrategySelectionModal = () => {
       goBack={handleGoBack}
       isInteractable
       testID={EarnStrategySelectionModalTestIds.MODAL}
-      twClassName="flex-1"
+      className="flex-1"
     >
       <BottomSheetHeaderGlass
         isGlass={isGlassHeader}
@@ -400,7 +400,7 @@ const EarnStrategySelectionModal = () => {
         {strategyContent}
       </ScrollView>
 
-      <Box twClassName="px-4 pt-3 pb-3">
+      <Box className="px-4 py-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

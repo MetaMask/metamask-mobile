@@ -34,7 +34,7 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="mt-1"
+    className="mt-1"
   >
     <Text variant={TextVariant.BodyMd}>{label}</Text>
     <Box>{typeof value === 'string' ? <Text>{value}</Text> : value}</Box>
@@ -144,10 +144,7 @@ const TronStakePreview = ({
         },
       ]}
     >
-      <Box
-        twClassName="w-full bg-default pl-6 pr-6 rounded-lg"
-        style={tw.style()}
-      >
+      <Box className="w-full rounded-lg bg-default px-6" style={tw.style()}>
         {mode === 'stake' && (
           <Row
             label={strings('stake.tron.estimated_annual_reward')}

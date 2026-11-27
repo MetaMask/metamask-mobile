@@ -20,8 +20,8 @@ const EarnStrategyInfoRow = ({
     alignItems={BoxAlignItems.Start}
     testID={testID}
   >
-    {startAccessory ? <Box twClassName="mr-3">{startAccessory}</Box> : null}
-    <Box twClassName="min-w-0 flex-1">
+    {startAccessory ? <Box className="mr-3">{startAccessory}</Box> : null}
+    <Box className="min-w-0 flex-1">
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}

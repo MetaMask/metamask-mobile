@@ -48,12 +48,12 @@ const AccountCard = ({
       <Card
         accessible
         testID="account-card"
-        twClassName="bg-default"
+        className="bg-default"
         style={styles.cardGroupTop}
       >
         {selectedAccount && (
           <KeyValueRow
-            twClassName={KEY_VALUE_ROW_CLASSNAME}
+            className={KEY_VALUE_ROW_CLASSNAME}
             keyLabel={primaryLabel}
             keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
             value={
@@ -66,7 +66,7 @@ const AccountCard = ({
           />
         )}
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={secondaryLabel}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
@@ -78,15 +78,15 @@ const AccountCard = ({
           }
         />
       </Card>
-      <Card accessible twClassName="bg-default" style={styles.cardGroupBottom}>
+      <Card accessible className="bg-default" style={styles.cardGroupBottom}>
         <KeyValueRow
-          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          className={KEY_VALUE_ROW_CLASSNAME}
           keyLabel={strings('asset_details.network')}
           keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
           value={
             <View style={styles.networkKeyValueRow}>
               <AvatarNetwork
-                twClassName="rounded bg-default"
+                className="rounded bg-default"
                 src={
                   images.ETHEREUM as React.ComponentProps<
                     typeof AvatarNetwork

@@ -386,7 +386,7 @@ const EarnMusdConversionEducationView = () => {
       })}
       descriptionProps={{
         testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.DESCRIPTION,
-        twClassName: 'text-center px-10',
+        className: 'text-center px-10',
       }}
       artworkWrapperProps={{
         alignItems: BoxAlignItems.Stretch,
@@ -395,14 +395,14 @@ const EarnMusdConversionEducationView = () => {
       artwork={
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="min-h-0 w-full flex-1"
+          className="min-h-0 w-full flex-1"
         >
           <MusdEducationChecklistMarquee />
           <Box
             justifyContent={BoxJustifyContent.Start}
-            twClassName="min-h-0 w-full flex-1"
+            className="min-h-0 w-full flex-1"
           >
-            <Box twClassName="w-full" style={coinFrameStyle.frame}>
+            <Box className="w-full" style={coinFrameStyle.frame}>
               <Image
                 source={backgroundImage}
                 style={tw.style('absolute inset-0 h-full w-full')}

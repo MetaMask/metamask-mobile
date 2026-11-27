@@ -24,7 +24,7 @@ const StakeEarningsHistoryView = () => {
   const { asset } = route.params;
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
