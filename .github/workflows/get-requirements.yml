@@ -30,7 +30,7 @@ on:
         description: 'Whether the unit, component-view and integration Jest jobs should run only the tests related to the changed files (jest --findRelatedTests). True only for pull requests that change no Jest config, setup file, mock, fixture, test utility, dependency manifest or .github file and whose changed source file list is usable. False means the full sharded suite runs (merge queue, push, schedule, manual runs, and every pull request that does not qualify).'
         value: ${{ jobs.detect-changes.outputs.jest_related_only }}
       jest_related_files:
-        description: 'Newline-separated list of changed source files (deleted files excluded) to pass to jest --findRelatedTests. Empty unless jest_related_only is true.'
+        description: 'Newline-separated list of changed files to pass to jest --findRelatedTests. Empty unless jest_related_only is true.'
         value: ${{ jobs.detect-changes.outputs.jest_related_files }}
       jest_coverage_args:
         description: 'Space-separated --collectCoverageFrom arguments that scope Jest coverage to the changed app source files. Only set on pull requests. Empty means collect coverage from the whole app (the default jest config). When a pull request changes no app source files the arguments point at a path that does not exist, so shards report empty coverage. Falls back to empty when the changed file list is too large or has paths that are unsafe to pass on a command line.'
@@ -189,7 +189,7 @@ jobs:
       # filter-rules.yml), keeps the full sharded suite. The file list ends up in
       # command-line arguments of the Jest shards, so it is capped and validated
       # here; a list that is too long or has an unusual path falls back to the full
-      # suite. Deleted files are dropped because Jest cannot resolve them.
+      # suite. Jest ignores files it cannot follow, including deleted ones.
       # Put [full-jest] in the head commit message to force the full suite.
       - name: Resolve Jest test scope
         id: jest-scope
@@ -197,12 +197,12 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           JEST_FULL_RUN_TRIGGERS_COUNT: ${{ steps.filter.outputs.jest_full_run_triggers_count }}
-          JEST_RELATED_CANDIDATES_COUNT: ${{ steps.filter.outputs.jest_related_candidates_count }}
-          JEST_RELATED_CANDIDATES_LIST: ${{ steps.filter.outputs.jest_related_candidates_count <= 300 && steps.filter.outputs.jest_related_candidates_files || '' }}
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          ALL_CHANGES_LIST: ${{ steps.filter.outputs.all_changes_count <= 300 && steps.filter.outputs.all_changes_files || '' }}
         run: |
           set -f
           # The changed-file list goes into the command line of every Jest shard
-          # and into a step output. Past 300 files the related set is close to the
+          # and into a step output. Past 300 changed files the related set is close to the
           # whole suite anyway, so the full suite is the simpler, safe fallback.
           MAX_FILES=300
           related=false
@@ -227,26 +227,22 @@ jobs:
             reason="[full-jest] tag in the head commit message"
           elif [[ "${JEST_FULL_RUN_TRIGGERS_COUNT:-0}" -gt 0 ]]; then
             reason="${JEST_FULL_RUN_TRIGGERS_COUNT} changed file(s) can affect every test (Jest config, setup, mocks, fixtures, test utilities, dependencies or .github)"
-          elif [[ "${JEST_RELATED_CANDIDATES_COUNT:-0}" -eq 0 ]]; then
-            reason="no changed file that Jest can follow"
-          elif [[ "${JEST_RELATED_CANDIDATES_COUNT}" -gt "$MAX_FILES" ]]; then
-            reason="${JEST_RELATED_CANDIDATES_COUNT} changed source files (cap ${MAX_FILES})"
+          elif [[ "${ALL_CHANGES_COUNT:-0}" -eq 0 ]]; then
+            reason="no changed files"
+          elif [[ "${ALL_CHANGES_COUNT}" -gt "$MAX_FILES" ]]; then
+            reason="${ALL_CHANGES_COUNT} changed files (cap ${MAX_FILES})"
           else
-            for file in $JEST_RELATED_CANDIDATES_LIST; do
+            for file in $ALL_CHANGES_LIST; do
               if [[ ! "$file" =~ ^[A-Za-z0-9_./@+-]+$ ]]; then
                 files=()
                 reason="unsafe path '${file}'"
                 break
               fi
-              [ -f "$file" ] && files+=("$file")
+              files+=("$file")
             done
             if [[ -z "$reason" ]]; then
-              if [[ "${#files[@]}" -eq 0 ]]; then
-                reason="every changed source file was deleted"
-              else
-                related=true
-                reason="${#files[@]} changed source file(s)"
-              fi
+              related=true
+              reason="${#files[@]} changed file(s)"
             fi
           fi
 
