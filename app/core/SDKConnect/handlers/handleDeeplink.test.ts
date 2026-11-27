@@ -130,7 +130,7 @@ describe('handleDeeplink', () => {
 
   it('should reconnects to an existing channel', async () => {
     mockHasInitialized.mockReturnValue(true);
-    mockGetConnections.mockReturnValue({ [channelId]: {} });
+    mockGetConnections.mockReturnValue({ [channelId]: { otherPublicKey } });
 
     // Mock the getConnected method to return a connection that's not connected
     mockGetConnected.mockReturnValue({
@@ -160,9 +160,45 @@ describe('handleDeeplink', () => {
       protocolVersion,
       initialConnection: false,
       trigger: 'deeplink',
-      updateKey: true,
     });
   });
+
+  it.each([
+    ['disconnected', false],
+    ['connected', true],
+  ])(
+    'ignores a deeplink whose peer key differs from the persisted key for a %s channel',
+    async (_state, isConnected) => {
+      mockHasInitialized.mockReturnValue(true);
+      mockGetConnections.mockReturnValue({ [channelId]: { otherPublicKey } });
+      mockGetConnected.mockReturnValue({
+        [channelId]: {
+          remote: {
+            isConnected: jest.fn().mockReturnValue(isConnected),
+            decrypt: mockDecrypt,
+            getRPCMethodTracker: jest.fn().mockReturnValue({}),
+          },
+        },
+      });
+      sdkConnect.state = { connecting: {} } as unknown as SDKConnectState;
+
+      await handleDeeplink({
+        sdkConnect,
+        channelId,
+        origin,
+        url,
+        otherPublicKey: 'differentPublicKey',
+        protocolVersion,
+        context,
+        rpc,
+      });
+
+      expect(sdkConnect.reconnect).not.toHaveBeenCalled();
+      expect(sdkConnect.connectToChannel).not.toHaveBeenCalled();
+      expect(mockDecrypt).not.toHaveBeenCalled();
+      expect(handleConnectionMessage).not.toHaveBeenCalled();
+    },
+  );
 
   it('should connects to a new channel if it does not exist', async () => {
     mockHasInitialized.mockReturnValue(true);
@@ -212,7 +248,7 @@ describe('handleDeeplink', () => {
 
   it('should handle rpc calls for existing connections', async () => {
     mockHasInitialized.mockReturnValue(true);
-    mockGetConnections.mockReturnValue({ [channelId]: {} });
+    mockGetConnections.mockReturnValue({ [channelId]: { otherPublicKey } });
 
     sdkConnect.state = { connecting: {} } as unknown as SDKConnectState;
 
