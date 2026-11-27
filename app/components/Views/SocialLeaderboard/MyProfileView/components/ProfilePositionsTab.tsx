@@ -12,8 +12,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
-import React, { useMemo } from 'react';
-import { TouchableOpacity, type View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { AccessibilityInfo, TouchableOpacity, type View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../../UI/DottedUnderline';
 import { useTheme } from '../../../../../util/theme';
@@ -31,6 +31,59 @@ const POSITION_SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
 
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
+
+interface ProfilePositionsErrorProps {
+  onRetry: () => void;
+}
+
+/**
+ * Shown when the positions failed to load and nothing is listed. Screen
+ * readers hear the title once each time it appears. The announcement is
+ * explicit because iOS ignores `accessibilityLiveRegion`.
+ */
+const ProfilePositionsError: React.FC<ProfilePositionsErrorProps> = ({
+  onRetry,
+}) => {
+  useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      strings('social_leaderboard.feed.error.title'),
+    );
+  }, []);
+
+  return (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="w-full px-4 py-16 gap-3"
+      testID={MyProfileViewSelectorsIDs.POSITIONS_ERROR}
+    >
+      <Text
+        variant={TextVariant.HeadingSm}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.TextDefault}
+        twClassName="text-center"
+      >
+        {strings('social_leaderboard.feed.error.title')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {strings('social_leaderboard.feed.error.description')}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
+        onPress={onRetry}
+        twClassName="self-center"
+        testID={MyProfileViewSelectorsIDs.POSITIONS_RETRY_BUTTON}
+      >
+        {strings('social_leaderboard.feed.error.retry')}
+      </Button>
+    </Box>
+  );
+};
 
 export interface ProfilePositionsTabProps {
   positions: Position[];
@@ -107,37 +160,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
   return (
     <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
       {error && isEmpty ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="w-full px-4 py-16 gap-3"
-          testID={MyProfileViewSelectorsIDs.POSITIONS_ERROR}
-        >
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-            twClassName="text-center"
-          >
-            {strings('social_leaderboard.feed.error.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings('social_leaderboard.feed.error.description')}
-          </Text>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={onRetry}
-            twClassName="self-center"
-            testID={MyProfileViewSelectorsIDs.POSITIONS_RETRY_BUTTON}
-          >
-            {strings('social_leaderboard.feed.error.retry')}
-          </Button>
-        </Box>
+        <ProfilePositionsError onRetry={onRetry} />
       ) : isLoading && isEmpty ? (
         POSITION_SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
       ) : isEmpty ? (

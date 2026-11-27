@@ -35,6 +35,7 @@ import React, {
   useSyncExternalStore,
 } from 'react';
 import {
+  AccessibilityInfo,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -783,6 +784,10 @@ const SocialPostComposerEditor: React.FC = () => {
           ...(profile?.profileId ? { profileId: profile.profileId } : {}),
         });
       }
+      // The toast is visual only, so announce the failure for screen readers.
+      AccessibilityInfo.announceForAccessibility(
+        strings('social_leaderboard.composer.post_failed_announcement'),
+      );
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: ComponentLibraryIconName.Danger,
