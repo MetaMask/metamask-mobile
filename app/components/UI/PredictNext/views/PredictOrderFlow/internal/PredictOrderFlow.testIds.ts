@@ -30,6 +30,7 @@ export const PredictOrderFlowTestIds = {
   FEE_COMPONENT: (source: string) => `predict-order-flow-fee-${source}`,
   TOTAL_DEBIT: 'predict-order-flow-total-debit',
   PAY_WITH: 'predict-order-flow-pay-with',
+  MAX_COST: 'predict-order-flow-max-cost',
   BREAKDOWN: 'predict-order-flow-breakdown',
   DETAILS: 'predict-order-flow-details',
   DETAILS_ODDS: 'predict-order-flow-details-odds',
