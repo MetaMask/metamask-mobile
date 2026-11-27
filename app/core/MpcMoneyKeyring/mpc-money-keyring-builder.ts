@@ -20,7 +20,7 @@ const envOrDefault = (value: string | undefined, fallback: string): string =>
 
 const MPC_CLOUD_URL = envOrDefault(
   process.env.MM_MONEY_MPC_CLOUD_URL,
-  'https://mpc-service.dev-api.cx.metamask.io/v2',
+  'https://mpc-service.dev-api.cx.metamask.io/v1',
 );
 const MPC_RELAYER_URL = envOrDefault(
   process.env.MM_MONEY_MPC_RELAYER_URL,
