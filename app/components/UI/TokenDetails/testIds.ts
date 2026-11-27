@@ -31,6 +31,14 @@ export const TokenDetailsIds = {
     sectionRule: 'token-details-overview-section-rule',
     performance: 'token-details-overview-tab-performance',
   },
+  feed: {
+    empty: 'token-details-feed-empty',
+  },
+  securityHolders: {
+    count: 'token-details-security-holders-count',
+    topTen: 'token-details-security-holders-top-ten',
+    row: 'token-details-security-holder-row',
+  },
   holderRow: {
     CONTAINER: 'token-holder-row',
     PRESS: 'token-holder-row-press',

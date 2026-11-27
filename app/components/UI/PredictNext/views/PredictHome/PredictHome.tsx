@@ -6,10 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIconSize,
-  IconName,
   SectionDivider,
   Text,
   TextVariant,
@@ -18,15 +14,11 @@ import {
 import Reanimated from 'react-native-reanimated';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
-import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
-import {
-  KalshiDebugPanel,
-  KalshiDebugTestIds,
-} from '../../onboarding/KalshiDebugPanel';
 import { getFeedScreen, type FeedScreenId } from '../../navigation/feedScreens';
 import {
   canPerformVenueAction,
@@ -39,7 +31,6 @@ import {
   usePredictNextDepositAvailable,
   usePredictWithdrawAvailable,
 } from '../../funding';
-import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -66,6 +57,7 @@ import {
 import { HomeFeedReads, type HomeFeedRead } from './internal/HomeFeedReads';
 import { useHomeReadSize } from './internal/useHomeReadSize';
 import { HomeGamesError } from './internal/HomeGamesError';
+import { HomeHeaderActions } from './internal/HomeHeaderActions';
 import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
 import { HomeSportsSection } from './internal/HomeSportsSection';
 import { HomeTrendingSection } from './internal/HomeTrendingSection';
@@ -96,7 +88,12 @@ const PredictHomeView = ({
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
-  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
+  // Glass is blur. Offline is local-only UI on every hardware tier, so Home
+  // keeps the plain header; LOW hardware already gets an opaque capsule fill
+  // from the glass material. An unknown network keeps the glass.
+  const isOffline = useNetworkTier() === 'NONE';
+  const isGlassHeader = isBrandRefresh && !isOffline;
   const { top: topInset } = useSafeAreaInsets();
   const { inset: headerInset, onLayout: handleHeaderLayout } =
     useHeaderGlassInset(isGlassHeader, topInset);
@@ -306,7 +303,6 @@ const PredictHomeView = ({
         return (
           <HomeCategoriesSection
             key={section.key}
-            title={strings('predict_next.home_categories.title')}
             categories={categories}
             onSelect={openCategory}
           />
@@ -362,18 +358,24 @@ const PredictHomeView = ({
   );
   // Collect only the blocks that actually render so SectionDivider sits
   // between PortfolioActions and the first visible block, and strictly
-  // between adjacent visible blocks — never doubled or trailing.
-  const visibleItems: { key: string; node: React.ReactNode }[] = [];
+  // between adjacent visible blocks (except directly below Categories) —
+  // never doubled or trailing.
+  const visibleItems: {
+    key: string;
+    kind: HomeSectionView<HomeFeedRead>['kind'] | 'games-error';
+    node: React.ReactNode;
+  }[] = [];
   liveSections.forEach((section, index) => {
     if (isSectionVisible(section)) {
       const node = renderSection(section);
       if (node !== null) {
-        visibleItems.push({ key: section.key, node });
+        visibleItems.push({ key: section.key, kind: section.kind, node });
       }
     }
     if (index === gamesErrorAfter && failedGamesReads.length > 0) {
       visibleItems.push({
         key: '__games-error__',
+        kind: 'games-error',
         node: <HomeGamesError onRetry={retryFailedGamesReads} />,
       });
     }
@@ -390,42 +392,12 @@ const PredictHomeView = ({
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
         endAccessory={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <PredictVenueSelectorButton
-              variant={isGlassHeader ? 'glass' : 'standard'}
-            />
-            {isVenueSearchSupported(capabilities) ? (
-              <ButtonIconGlass
-                isCapsule={isGlassHeader}
-                size={ButtonIconSize.Md}
-                iconName={IconName.Search}
-                onPress={openSearch}
-                testID={PredictHomeTestIds.SEARCH}
-                accessibilityLabel={strings('predict_next.search.placeholder')}
-                accessibilityRole="button"
-              />
-            ) : null}
-            {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on a
-                development build with Kalshi authentication on. Remove with
-                the demo onboarding. */}
-            <KalshiDebugPanel
-              renderTrigger={(open) => (
-                <ButtonIconGlass
-                  isCapsule={isGlassHeader}
-                  size={ButtonIconSize.Md}
-                  iconName={IconName.Flask}
-                  onPress={open}
-                  testID={KalshiDebugTestIds.OPEN}
-                  accessibilityLabel="User debug"
-                  accessibilityRole="button"
-                />
-              )}
-            />
-          </Box>
+          <HomeHeaderActions
+            variant={isGlassHeader ? 'glass' : 'standard'}
+            onSearch={
+              isVenueSearchSupported(capabilities) ? openSearch : undefined
+            }
+          />
         }
         {...(navigation.canGoBack()
           ? {
@@ -486,7 +458,7 @@ const PredictHomeView = ({
           />
           {visibleItems.map((item, index) => (
             <React.Fragment key={item.key}>
-              {index > 0 ? (
+              {index > 0 && visibleItems[index - 1].kind !== 'categories' ? (
                 <SectionDivider
                   marginVertical={0}
                   twClassName="-mx-4"

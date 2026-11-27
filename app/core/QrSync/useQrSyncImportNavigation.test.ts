@@ -204,7 +204,7 @@ describe('useQrSyncImportNavigation', () => {
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
       expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     expect(mockResetState).not.toHaveBeenCalled();
@@ -232,7 +232,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
     expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
     expect(mockResetState).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });
 
@@ -255,7 +255,7 @@ describe('useQrSyncImportNavigation', () => {
 
     expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('navigates home and starts Phase C without resetting when sync adds accounts', async () => {
@@ -275,7 +275,7 @@ describe('useQrSyncImportNavigation', () => {
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
       expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     expect(mockResetState).not.toHaveBeenCalled();
@@ -295,7 +295,7 @@ describe('useQrSyncImportNavigation', () => {
 
     await waitFor(() => {
       expect(mockResetState).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     expect(mockLoggerLog).toHaveBeenCalled();

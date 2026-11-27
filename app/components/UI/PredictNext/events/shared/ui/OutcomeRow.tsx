@@ -27,15 +27,17 @@ const Label = ({
   percent,
   color,
   lineTestID,
+  variant = TextVariant.BodyMd,
 }: {
   label: string;
   /** Line width in percent; no line when undefined. */
   percent?: number;
   color: string;
   lineTestID?: string;
+  variant?: TextVariant;
 }) => (
   <Box twClassName="min-w-0 flex-1 gap-2">
-    <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+    <Text variant={variant} numberOfLines={1}>
       {label}
     </Text>
     {percent === undefined ? null : (
@@ -85,7 +87,7 @@ const Price = ({
     variant={ButtonVariant.Secondary}
     size={ButtonSize.Lg}
     onPress={onPress}
-    twClassName={twClassName}
+    className={twClassName}
   >
     <Text
       variant={TextVariant.BodyMd}

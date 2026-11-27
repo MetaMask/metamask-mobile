@@ -492,6 +492,8 @@ describe('PredictWithdrawFlow', () => {
       await screen.findByTestId(
         PredictWithdrawFlowTestIds.status('settled'),
         {},
+        // The settled status arrives through the deposit polling backoff,
+        // which can outlast the 5s default on a loaded CV shard.
         { timeout: 6_000 },
       ),
     ).toBeOnTheScreen();

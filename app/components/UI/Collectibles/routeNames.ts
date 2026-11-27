@@ -3,6 +3,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export const collectiblesRoutes = {
   root: 'Collectibles',
   home: 'CollectiblesHome',
+  buySheet: 'CollectiblesBuySheet',
 } as const;
 
 export const collectiblesTabs = [
@@ -23,8 +24,15 @@ export type CollectiblesStackParamList = Record<
   CollectiblesHomeParams | undefined
 >;
 
+export interface BuySheetParams {
+  packCode: string;
+  name: string;
+  priceUsd: number;
+}
+
 export type CollectiblesParamList = ReactNavigation.RootParamList &
   Record<
     typeof collectiblesRoutes.root,
     NavigatorScreenParams<CollectiblesStackParamList> | undefined
-  >;
+  > &
+  Record<typeof collectiblesRoutes.buySheet, BuySheetParams>;

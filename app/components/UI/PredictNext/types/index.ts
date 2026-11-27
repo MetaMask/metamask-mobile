@@ -285,6 +285,10 @@ export interface PredictVenueFeedScreen {
   id: string;
   title: string;
   subtitle?: string;
+  /** The server's design-system icon name, for example `TrendUp`, unchecked
+   * against the app's icons. PRED-1611 maps it to an `IconName` for the
+   * Category pill. */
+  icon?: string;
   /** In display order; never empty. */
   tabs: readonly PredictVenueFeedScreenTab[];
 }
@@ -292,7 +296,8 @@ export interface PredictVenueFeedScreen {
 /**
  * One PredictNext Home section (PRED-1527). `screen` names the Feed Screen
  * its header opens; the header opens nothing while the Venue's `screens` lack
- * it. Feed keys are keys of the same catalog's `feeds`.
+ * it. Feed keys are keys of the same catalog's `feeds`. A `limit` is how
+ * many Events the section shows, from 1 to 10; without it the app decides.
  */
 export type PredictHomeSection =
   /** The Trending carousel, ranked from the Games of its source Feeds. */
@@ -300,6 +305,9 @@ export type PredictHomeSection =
       kind: 'trending';
       /** In read order; never empty. */
       sources: readonly PredictFeedKey[];
+      /** The server's title; without it the app titles the carousel. */
+      title?: string;
+      limit?: number;
       screen?: string;
     }
   /** A row of the Games of one Feed. */
@@ -318,6 +326,7 @@ export type PredictHomeSection =
       id: string;
       title: string;
       feed: PredictFeedKey;
+      limit?: number;
       screen: string;
     };
 

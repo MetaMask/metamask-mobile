@@ -1,6 +1,6 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { BackHandler, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -11,7 +11,10 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
-import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import useRampSellGasFee, {
+  RampSellGasFee,
+} from '../../hooks/useRampSellGasFee';
+import useRampNetworkClientId from '../../hooks/useRampNetworkClientId';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 import {
   mockCryptoCurrenciesData,
@@ -22,8 +25,15 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../../../../util/number/bigint';
+import {
+  bigIntToHex,
+  fromTokenMinimalUnitString,
+  toTokenMinimalUnit,
+} from '../../../../../../util/number/bigint';
+import { generateTransferData } from '../../../../../../util/transactions';
+import { GasFeeEstimateLevel } from '@metamask/transaction-controller';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { getMaxSendableAmountMultichain } from '../../../../../Views/confirmations/utils/multichain-snaps';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
@@ -45,6 +55,11 @@ jest.mock('../../../../../../core/Engine', () => ({
   get context() {
     return mockEngineContext;
   },
+}));
+
+jest.mock('../../../../../Views/confirmations/utils/multichain-snaps', () => ({
+  validateAmountMultichain: jest.fn(),
+  getMaxSendableAmountMultichain: jest.fn(),
 }));
 
 const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
@@ -171,7 +186,7 @@ jest.mock('../../hooks/useCryptoCurrencies', () =>
 );
 
 const mockGetFiatCurrencies = jest.fn();
-const mockGetDefaultFiatCurrencies = jest.fn();
+const mockGetDefaultFiatCurrencies = jest.fn().mockResolvedValue(undefined);
 
 const mockUseFiatCurrenciesInitialValues: Partial<
   ReturnType<typeof useFiatCurrencies>
@@ -265,6 +280,31 @@ const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
 const mockSetSelectedFiatCurrencyId = jest.fn();
 
+const mockTronAsset = {
+  ...mockCryptoCurrenciesData[0],
+  network: {
+    ...mockCryptoCurrenciesData[0].network,
+    chainId: 'tron:728126428',
+    chainName: 'Tron',
+    shortName: 'TRX',
+  },
+  symbol: 'TRX',
+  assetId: 'slip44:195',
+};
+
+const mockStellarAsset = {
+  ...mockCryptoCurrenciesData[0],
+  network: {
+    ...mockCryptoCurrenciesData[0].network,
+    chainId: 'stellar:pubnet',
+    chainName: 'Stellar',
+    shortName: 'XLM',
+  },
+  symbol: 'XLM',
+  assetId: 'slip44:148',
+  decimals: 7,
+};
+
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: mockPaymentMethods[0].id,
   selectedRegion: mockRegionsData[0],
@@ -272,7 +312,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
-  selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
+  selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   setIntent: mockSetIntent,
@@ -298,23 +338,32 @@ let mockUseParamsValues:
   showBack: undefined,
 };
 
-const mockUseGasPriceEstimationInitialValue: ReturnType<
-  typeof useGasPriceEstimation
-> = {
-  estimatedGasFee: toTokenMinimalUnit(
-    '0.01',
-    mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
-  ),
+const mockRecipient = '0x1111111111111111111111111111111111111111';
+
+const mockUseRampSellGasFeeInitialValue: RampSellGasFee = {
+  status: 'ready',
+  gasFeeWei: toTokenMinimalUnit('0.01', 18),
 };
 
-let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
-  mockUseGasPriceEstimationInitialValue;
+let mockUseRampSellGasFeeValue: RampSellGasFee =
+  mockUseRampSellGasFeeInitialValue;
 
-jest.mock('../../hooks/useGasPriceEstimation', () =>
-  jest.fn(() => mockUseGasPriceEstimationValue),
+jest.mock('../../hooks/useRampSellGasFee', () =>
+  jest.fn(() => mockUseRampSellGasFeeValue),
 );
 
+jest.mock('../../hooks/useRampNetworkClientId', () => jest.fn(() => 'mainnet'));
+
+jest.mock('../../utils/createUnfundedRecipient', () => ({
+  createUnfundedRecipient: jest.fn(() => mockRecipient),
+}));
+
 jest.mock('../../hooks/useIntentAmount');
+
+const mockUseOffRampNonEvmEnabled = jest.fn(() => false);
+jest.mock('../../hooks/useOffRampNonEvmEnabled', () =>
+  jest.fn(() => mockUseOffRampNonEvmEnabled()),
+);
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
@@ -409,12 +458,17 @@ describe('BuildQuote View', () => {
     mockUseLimitsValues = {
       ...mockUseLimitsInitialValues,
     };
+    mockUseBalanceValues = {
+      ...mockUseBalanceInitialValue,
+    };
     mockUseParamsValues = {
       showBack: undefined,
     };
-    mockUseGasPriceEstimationValue = {
-      ...mockUseGasPriceEstimationInitialValue,
+    mockUseRampSellGasFeeValue = {
+      ...mockUseRampSellGasFeeInitialValue,
     };
+    jest.mocked(useRampSellGasFee).mockClear();
+    jest.mocked(useRampNetworkClientId).mockReturnValue('mainnet');
     mockIsNonEvmAddress.mockReturnValue(false);
     mockGlassHeadersEnabled = false;
   });
@@ -1164,6 +1218,14 @@ describe('BuildQuote View', () => {
       mockUseRampSDKValues.isSell = true;
     });
 
+    afterEach(() => {
+      jest
+        .mocked(useBalance)
+        .mockImplementation(
+          () => mockUseBalanceValues as ReturnType<typeof useBalance>,
+        );
+    });
+
     it('opens the amount keypad bottom sheet when the sell amount input is pressed', () => {
       render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
@@ -1356,8 +1418,9 @@ describe('BuildQuote View', () => {
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ),
       };
-      mockUseGasPriceEstimationValue = {
-        estimatedGasFee: toTokenMinimalUnit(
+      mockUseRampSellGasFeeValue = {
+        status: 'ready',
+        gasFeeWei: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ),
@@ -1389,8 +1452,9 @@ describe('BuildQuote View', () => {
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ),
       };
-      mockUseGasPriceEstimationValue = {
-        estimatedGasFee: toTokenMinimalUnit(
+      mockUseRampSellGasFeeValue = {
+        status: 'ready',
+        gasFeeWei: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ),
@@ -1412,6 +1476,284 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
     });
 
+    it('sets native Max to balance minus the node reservation', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+      };
+      mockUseBalanceValues = {
+        balance: '1',
+        balanceFiat: '$1.00',
+        balanceBN: 10n ** 18n,
+      };
+      mockUseRampSellGasFeeValue = {
+        status: 'ready',
+        gasFeeWei: 409_200_000_000_000n,
+      };
+
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+      fireEvent.press(getByRoleButton('Max'));
+
+      expect(getByRoleButton('0.9995908 ETH')).toBeOnTheScreen();
+    });
+
+    it('estimates the native shape with the unfunded recipient and one wei', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+      };
+
+      render(BuildQuote);
+
+      expect(useRampSellGasFee).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: '0x1',
+          networkClientId: 'mainnet',
+          level: GasFeeEstimateLevel.High,
+          transaction: expect.objectContaining({
+            to: mockRecipient,
+            value: '0x1',
+          }),
+        }),
+      );
+    });
+
+    it('skips the estimate when the selected address is not an EVM address', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAddress: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      };
+
+      expect(() => render(BuildQuote)).not.toThrow();
+
+      expect(useRampSellGasFee).toHaveBeenLastCalledWith(
+        expect.objectContaining({ transaction: undefined }),
+      );
+    });
+
+    it('disables native Max while the estimate is loading or failed', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+      };
+      mockUseRampSellGasFeeValue = { status: 'loading' };
+
+      const { unmount } = render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+
+      expect(getByRoleButton('Max')).toBeDisabled();
+      expect(getByRoleButton('25%')).toBeEnabled();
+      unmount();
+
+      mockUseRampSellGasFeeValue = { status: 'error' };
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+
+      expect(getByRoleButton('Max')).toBeDisabled();
+
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.getByText(
+          "We couldn't estimate the network fee. You'll review it before you send.",
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('disables native Max when the balance does not cover the fee', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+      };
+      mockUseBalanceValues = {
+        balance: '0.000000000000001',
+        balanceFiat: undefined,
+        balanceBN: 1000n,
+      };
+      mockUseRampSellGasFeeValue = { status: 'ready', gasFeeWei: 5000n };
+
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+
+      expect(getByRoleButton('Max')).toBeDisabled();
+      fireEvent.press(getByRoleButton('Max'));
+      expect(getByRoleButton('0 ETH')).toBeOnTheScreen();
+    });
+
+    it('disables native Max once the estimate goes stale', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: false,
+        isSell: true,
+        selectedAsset: {
+          ...mockCryptoCurrenciesData[0],
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+      };
+      mockUseBalanceValues = {
+        balance: '1',
+        balanceFiat: '$1.00',
+        balanceBN: 10n ** 18n,
+      };
+      mockUseRampSellGasFeeValue = {
+        status: 'ready',
+        gasFeeWei: 409_200_000_000_000n,
+      };
+
+      const { unmount } = render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+      expect(getByRoleButton('Max')).toBeEnabled();
+      unmount();
+
+      mockUseRampSellGasFeeValue = { status: 'error' };
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+
+      expect(getByRoleButton('Max')).toBeDisabled();
+    });
+
+    it('does not fall back to a fixed gas value when the ERC-20 estimate fails', () => {
+      mockUseBalanceValues = {
+        balance: '5',
+        balanceFiat: '$5.00',
+        balanceBN: toTokenMinimalUnit('5', 18),
+      };
+      jest
+        .mocked(useBalance)
+        .mockImplementation((asset) =>
+          asset?.address === NATIVE_ADDRESS
+            ? { balance: '0', balanceFiat: undefined, balanceBN: 0n }
+            : (mockUseBalanceValues as ReturnType<typeof useBalance>),
+        );
+      mockUseRampSellGasFeeValue = { status: 'error' };
+
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton('0 ETH'));
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.queryByText(
+          "You don't have enough ETH to cover the network fees.",
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          "We couldn't estimate the network fee. You'll review it before you send.",
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('estimates ERC-20 transfer calldata with a one-unit amount', () => {
+      const tokenAddress = '0x2222222222222222222222222222222222222222';
+      mockUseRampSDKValues.selectedAsset = {
+        ...mockCryptoCurrenciesData[0],
+        address: tokenAddress,
+      };
+      render(BuildQuote);
+
+      const expectedData = generateTransferData('transfer', {
+        toAddress: mockRecipient,
+        amount: bigIntToHex(1n),
+      });
+
+      expect(useRampSellGasFee).toHaveBeenCalledWith(
+        expect.objectContaining({
+          networkClientId: 'mainnet',
+          chainId: '0x1',
+          level: GasFeeEstimateLevel.High,
+          transaction: expect.objectContaining({
+            to: tokenAddress,
+            value: '0x0',
+            data: expectedData,
+          }),
+        }),
+      );
+
+      fireEvent.press(getByRoleButton('0 ETH'));
+      fireEvent.press(getByRoleButton('1'));
+
+      const lastCall = jest.mocked(useRampSellGasFee).mock.lastCall?.[0];
+      expect(lastCall?.transaction?.data).toBe(expectedData);
+    });
+
+    it('reads the native balance on the asset chain for ERC-20 sells', () => {
+      mockUseBalanceValues = {
+        balance: '5',
+        balanceFiat: '$5.00',
+        balanceBN: toTokenMinimalUnit('5', 18),
+      };
+      jest
+        .mocked(useBalance)
+        .mockImplementation((asset) =>
+          asset?.address === NATIVE_ADDRESS
+            ? { balance: '0', balanceFiat: undefined, balanceBN: 1n }
+            : (mockUseBalanceValues as ReturnType<typeof useBalance>),
+        );
+      mockUseRampSellGasFeeValue = { status: 'ready', gasFeeWei: 2n };
+
+      render(BuildQuote);
+
+      expect(useBalance).toHaveBeenCalledWith({
+        address: NATIVE_ADDRESS,
+        decimals: 18,
+        chainId: '0x1',
+      });
+
+      fireEvent.press(getByRoleButton('0 ETH'));
+      fireEvent.press(getByRoleButton('1'));
+
+      expect(
+        screen.getByText(
+          "You don't have enough ETH to cover the network fees.",
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not estimate for buy', () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        isBuy: true,
+        isSell: false,
+      };
+
+      render(BuildQuote);
+
+      expect(useRampSellGasFee).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: GasFeeEstimateLevel.High,
+          transaction: undefined,
+        }),
+      );
+    });
+
     describe('non-EVM asset', () => {
       const solanaNetwork = {
         ...mockCryptoCurrenciesData[0].network,
@@ -1421,8 +1763,9 @@ describe('BuildQuote View', () => {
       };
 
       beforeEach(() => {
-        mockUseGasPriceEstimationValue = {
-          estimatedGasFee: toTokenMinimalUnit('0.27', 9),
+        mockUseRampSellGasFeeValue = {
+          status: 'ready',
+          gasFeeWei: toTokenMinimalUnit('0.27', 9),
         };
       });
 
@@ -1690,6 +2033,206 @@ describe('BuildQuote View', () => {
       tags: {
         rampType: RampType.SELL,
       },
+    });
+  });
+
+  describe('Stellar Max quick amount', () => {
+    let savedBalanceBN: bigint | null | undefined;
+    let savedOffRampNonEvmEnabled: boolean;
+
+    beforeEach(() => {
+      savedBalanceBN = mockUseBalanceValues.balanceBN;
+      savedOffRampNonEvmEnabled = mockUseOffRampNonEvmEnabled();
+
+      mockUseRampSDKValues.rampType = RampType.SELL;
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseRampSDKValues.selectedAsset = mockStellarAsset;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(true);
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '10',
+        mockStellarAsset.decimals,
+      );
+    });
+
+    afterEach(() => {
+      mockUseBalanceValues.balanceBN = savedBalanceBN;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(savedOffRampNonEvmEnabled);
+    });
+
+    it('uses the Stellar Snap max (balance minus reserve and fee) for Max', async () => {
+      (getMaxSendableAmountMultichain as jest.Mock).mockResolvedValue({
+        amount: '7.5',
+      });
+
+      render(BuildQuote);
+
+      const symbol = mockStellarAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      fireEvent.press(getByRoleButton('Max'));
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`7\\.5.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
+      expect(getMaxSendableAmountMultichain).toHaveBeenCalled();
+    });
+  });
+
+  describe('Tron Max quick amount race condition', () => {
+    let savedBalanceBN: bigint | null | undefined;
+    let savedOffRampNonEvmEnabled: boolean;
+
+    beforeEach(() => {
+      // Save state
+      savedBalanceBN = mockUseBalanceValues.balanceBN;
+      savedOffRampNonEvmEnabled = mockUseOffRampNonEvmEnabled();
+
+      mockUseRampSDKValues.rampType = RampType.SELL;
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseRampSDKValues.selectedAsset = mockTronAsset;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(true);
+      // Update balance to use Tron's 8 decimals
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '5.36385',
+        mockTronAsset.decimals,
+      );
+    });
+
+    afterEach(() => {
+      // Restore state
+      mockUseBalanceValues.balanceBN = savedBalanceBN;
+      mockUseOffRampNonEvmEnabled.mockReturnValue(savedOffRampNonEvmEnabled);
+    });
+
+    it('discards Max result when user presses another quick amount during Max request', async () => {
+      let maxResolve!: (value: { amount: string }) => void;
+      const maxPromise = new Promise<{ amount: string }>((resolve) => {
+        maxResolve = resolve;
+      });
+
+      (getMaxSendableAmountMultichain as jest.Mock).mockReturnValue(maxPromise);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // While Max is resolving, press 75%
+      fireEvent.press(getByRoleButton('75%'));
+
+      // Resolve Max with a value and wait for it to settle
+      await act(async () => {
+        maxResolve({ amount: '1000' });
+        await maxPromise;
+      });
+
+      // Amount should be 75% of balance, not the Max result
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
+      const expected75 = (balanceBN * 75n) / 100n;
+      const expectedAmount = fromTokenMinimalUnitString(
+        expected75.toString(10),
+        mockTronAsset.decimals,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('discards Max result when user inputs keypad value during Max request', async () => {
+      let maxResolve!: (value: { amount: string }) => void;
+      const maxPromise = new Promise<{ amount: string }>((resolve) => {
+        maxResolve = resolve;
+      });
+
+      (getMaxSendableAmountMultichain as jest.Mock).mockReturnValue(maxPromise);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // While Max is resolving, user types a number
+      fireEvent.press(getByRoleButton('5'));
+
+      // Resolve Max with a different value and wait for it to settle
+      await act(async () => {
+        maxResolve({ amount: '1000' });
+        await maxPromise;
+      });
+
+      // Amount should be the user's input (5), not the Max result
+      // Use exact match to ensure it's the typed value, not the fallback 5.36385
+      await waitFor(() => {
+        expect(getByRoleButton(`5 ${symbol}`)).toBeOnTheScreen();
+      });
+    });
+
+    it('falls back to balance-based calculation when Snap returns undefined', async () => {
+      (getMaxSendableAmountMultichain as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // Amount should be 100% of balance (balance-based fallback)
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
+      const expectedAmount = fromTokenMinimalUnitString(
+        balanceBN.toString(10),
+        mockTronAsset.decimals,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('falls back to balance-based calculation when Snap returns empty result', async () => {
+      (getMaxSendableAmountMultichain as jest.Mock).mockResolvedValue({});
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockTronAsset.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // Amount should be 100% of balance (balance-based fallback)
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
+      const expectedAmount = fromTokenMinimalUnitString(
+        balanceBN.toString(10),
+        mockTronAsset.decimals,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+        ).toBeOnTheScreen();
+      });
     });
   });
 });

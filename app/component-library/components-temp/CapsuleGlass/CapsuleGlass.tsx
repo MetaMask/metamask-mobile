@@ -18,6 +18,12 @@ export interface CapsuleGlassProps {
 const CAPSULE_CLASS = 'h-10 flex-row items-center overflow-hidden rounded-full';
 
 /**
+ * Stretches a medium `ButtonIcon` seated in a capsule over the capsule's
+ * height, so its whole column responds.
+ */
+export const CAPSULE_ITEM_HIT_SLOP = { top: 4, bottom: 4 };
+
+/**
  * A header capsule drawn as Liquid Glass where the OS can render it, as a
  * blurred system material on older iOS, and as a plain section-coloured
  * capsule everywhere else. Children must not paint their own background on

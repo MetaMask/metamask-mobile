@@ -11,6 +11,8 @@ export const PredictHomeTestIds = {
   HOME: 'predict-next-home',
   BACK: 'predict-next-home-back',
   SEARCH: 'predict-next-home-search',
+  /** The glass capsule grouping the end header icons. */
+  HEADER_ACTIONS: 'predict-next-home-header-actions',
   HEADER_TITLE: 'predict-next-home-header-title',
   TITLE_SECTION: 'predict-next-home-title-section',
   SCROLL: 'predict-next-home-scroll',
@@ -51,10 +53,11 @@ export const PredictHomeTestIds = {
   SECTIONS_RETRY: 'predict-next-home-sections-retry',
   SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
   CATEGORIES: 'predict-next-home-categories',
-  CATEGORIES_HEADER: 'predict-next-home-categories-header',
   CATEGORIES_LIST: 'predict-next-home-categories-list',
   categoryChip: (categoryId: string) =>
     `predict-next-home-category-${categoryId}`,
+  categoryChipIcon: (categoryId: string) =>
+    `predict-next-home-category-icon-${categoryId}`,
   /** A Feed preview section, by its catalog section ID. */
   section: (sectionId: string) => `predict-next-home-section-${sectionId}`,
   sectionHeader: (sectionId: string) =>
@@ -76,8 +79,10 @@ export const PredictHomeTestIds = {
   /** The yes Outcome price of one Market on a multi-row or featured card. */
   marketOutcome: (eventId: string, marketId: string) =>
     `predict-next-outcome-${eventId}-${marketId}-yes`,
-  gameQuote: (eventId: string, selection: 'away' | 'home') =>
+  gameQuote: (eventId: string, selection: 'away' | 'draw' | 'home') =>
     `predict-next-game-quote-${eventId}-${selection}`,
+  gameTeam: (eventId: string, selection: 'away' | 'draw' | 'home') =>
+    `predict-next-game-team-${eventId}-${selection}`,
   image: (eventId: string) => `predict-next-event-image-${eventId}`,
   category: (eventId: string) => `predict-next-event-category-${eventId}`,
   volume: (eventId: string) => `predict-next-event-volume-${eventId}`,

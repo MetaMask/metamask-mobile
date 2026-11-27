@@ -444,9 +444,9 @@ export default [
     ],
     plugins: { 'component-view': componentViewPlugin },
     rules: {
-      'component-view/no-restricted-syntax': ['warn', ...cvFlakeSelectors],
-      'component-view/no-bare-query-timeout': 'warn',
-      'component-view/no-clear-all-mocks-without-reset': 'warn',
+      'component-view/no-restricted-syntax': ['error', ...cvFlakeSelectors],
+      'component-view/no-bare-query-timeout': 'error',
+      'component-view/no-clear-all-mocks-without-reset': 'error',
     },
   },
   // Existing violations are baselined in eslint-suppressions.json. After

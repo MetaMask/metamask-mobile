@@ -84,10 +84,19 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   );
 
   const withdrawMutation = useMutation({
-    mutationFn: async (amount: string) =>
-      Engine.context.CardController.withdrawRedeemable({ mode, amount }),
+    mutationFn: async (
+      input: string | { amount: string; moneyAccountAddress?: string },
+    ) => {
+      const { amount, moneyAccountAddress } =
+        typeof input === 'string' ? { amount: input } : input;
+      return Engine.context.CardController.withdrawRedeemable({
+        mode,
+        amount,
+        moneyAccountAddress,
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      void queryClient.invalidateQueries({ queryKey: queries.allKey });
     },
   });
 
@@ -135,7 +144,7 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   // Invalidate wallet cache when controller reports success (covers unmount case).
   useEffect(() => {
     if (modeWithdrawal?.status === 'success') {
-      queryClient.invalidateQueries({ queryKey: queries.allKey });
+      void queryClient.invalidateQueries({ queryKey: queries.allKey });
     }
   }, [modeWithdrawal?.status, queries.allKey, queryClient]);
 

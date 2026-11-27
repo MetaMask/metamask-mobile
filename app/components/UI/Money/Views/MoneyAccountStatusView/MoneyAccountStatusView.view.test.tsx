@@ -93,6 +93,13 @@ describeForPlatforms('MoneyAccountStatusView', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    // The copy test restores its spies on the success path; restore here too
+    // so a failing test's Clipboard/Accessibility spies cannot leak into the
+    // next case.
+    jest.restoreAllMocks();
+  });
+
   it('shows the address, debug info, every registration signal and the CHOMP entries once loaded', async () => {
     mockChompResponses();
 

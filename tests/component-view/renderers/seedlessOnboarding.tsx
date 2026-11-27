@@ -154,6 +154,8 @@ export function renderAccountNotFound(
 interface ChoosePasswordRendererOptions {
   overrides?: DeepPartial<RootState>;
   routeParams?: Record<string, unknown>;
+  /** Overrides the default `GeolocationController:refreshGeolocation` mock. */
+  geolocationMock?: jest.Mock;
 }
 
 function choosePasswordProviderValues(
@@ -162,9 +164,8 @@ function choosePasswordProviderValues(
   return {
     state: buildSeedlessOnboardingState(options),
     routeMessenger: createMockRouteMessenger({
-      'GeolocationController:refreshGeolocation': jest
-        .fn()
-        .mockResolvedValue('US'),
+      'GeolocationController:refreshGeolocation':
+        options.geolocationMock ?? jest.fn().mockResolvedValue('US'),
     }),
   };
 }

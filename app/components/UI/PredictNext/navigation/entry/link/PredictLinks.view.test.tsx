@@ -97,22 +97,11 @@ type View = ReturnType<typeof renderLink>;
 
 const openLink = (view: View) => fireEvent.press(view.getByTestId(LINK_BUTTON));
 
-/**
- * The handler loads the PredictNext entry point lazily, which compiles cold
- * on a suite's first link, so landings get more than the default second.
- */
-const LANDING = { timeout: 5_000 };
-
 const readParams = async (view: View, route: string) =>
   JSON.parse(
     String(
-      (
-        await view.findByTestId(
-          getRouteParamsProbeTestId(route),
-          undefined,
-          LANDING,
-        )
-      ).props.children,
+      (await view.findByTestId(getRouteParamsProbeTestId(route))).props
+        .children,
     ),
   );
 
@@ -171,11 +160,7 @@ describe('V1 Predict links', () => {
       openLink(view);
 
       expect(
-        await view.findByTestId(
-          PredictEventScreenTestIds.STANDARD_HEADER,
-          undefined,
-          LANDING,
-        ),
+        await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
       ).toBeOnTheScreen();
       expect(
         view.getByTestId(PredictEventScreenTestIds.TITLE),
@@ -189,7 +174,7 @@ describe('V1 Predict links', () => {
       openLink(view);
 
       expect(
-        await view.findByTestId(PredictHomeTestIds.HOME, undefined, LANDING),
+        await view.findByTestId(PredictHomeTestIds.HOME),
       ).toBeOnTheScreen();
     });
 

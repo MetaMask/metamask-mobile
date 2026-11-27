@@ -6,9 +6,15 @@ import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.t
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 
 const mockDrag = jest.fn();
+const mockFireImpact = jest.fn();
 
 jest.mock('react-native-reorderable-list', () => ({
   useReorderableDrag: () => mockDrag,
+}));
+
+jest.mock('../../../../../../util/haptics', () => ({
+  fireImpact: (...args: unknown[]) => mockFireImpact(...args),
+  ImpactMoment: { SliderGrip: 'SliderGrip' },
 }));
 
 jest.mock(
@@ -83,7 +89,7 @@ describe('WatchlistEditableRow', () => {
     ).toBeDefined();
   });
 
-  it('calls reorderable drag on long press of the row in edit mode', () => {
+  it('calls reorderable drag and fires haptics on long press of the row in edit mode', () => {
     const { getByTestId } = render(
       <WatchlistEditableRow token={createToken()} position={0} isEditMode />,
     );
@@ -93,7 +99,35 @@ describe('WatchlistEditableRow', () => {
       'longPress',
     );
 
+    expect(mockFireImpact).toHaveBeenCalledWith('SliderGrip');
     expect(mockDrag).toHaveBeenCalledTimes(1);
+  });
+
+  it('invokes moveUp and moveDown accessibility actions in edit mode', () => {
+    const onMoveUp = jest.fn();
+    const onMoveDown = jest.fn();
+    const { getByTestId } = render(
+      <WatchlistEditableRow
+        token={createToken()}
+        position={1}
+        isEditMode
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+      />,
+    );
+
+    const dragHandle = getByTestId(
+      WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE,
+    );
+    fireEvent(dragHandle, 'accessibilityAction', {
+      nativeEvent: { actionName: 'moveUp' },
+    });
+    fireEvent(dragHandle, 'accessibilityAction', {
+      nativeEvent: { actionName: 'moveDown' },
+    });
+
+    expect(onMoveUp).toHaveBeenCalledTimes(1);
+    expect(onMoveDown).toHaveBeenCalledTimes(1);
   });
 
   it('does not expose a drag area outside edit mode', () => {

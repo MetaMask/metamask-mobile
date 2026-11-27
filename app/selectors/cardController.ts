@@ -10,6 +10,7 @@ import {
   type CardHomeDataStatus,
   type CardLink,
   type CardRedeemWithdrawal,
+  type CardCashbackClaim,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   CardProviderIds,
@@ -184,6 +185,12 @@ export const selectCardRedeemWithdrawal = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
+);
+
+export const selectCardCashbackClaim = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    (cardState?.cashbackClaim as CardCashbackClaim | null) ?? null,
 );
 
 const selectSelectedEvmAccount = (state: RootState) =>

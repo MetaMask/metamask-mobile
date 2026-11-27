@@ -703,17 +703,11 @@ describeForPlatforms('Wallet', () => {
       });
 
       fireEvent.press(
-        await findByTestId(
-          homepageSectionTitleTestId(HomeSectionNames.PERPS),
-          {},
-          { timeout: 10000 },
-        ),
+        await findByTestId(homepageSectionTitleTestId(HomeSectionNames.PERPS)),
       );
 
       const probe = await findByTestId(
         getRouteParamsProbeTestId(Routes.PERPS.MARKET_LIST),
-        {},
-        { timeout: 10000 },
       );
 
       expect(JSON.parse(String(probe.props.children))).toEqual(

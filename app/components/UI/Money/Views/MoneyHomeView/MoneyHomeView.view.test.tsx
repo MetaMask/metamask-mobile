@@ -20,9 +20,6 @@ import { KycRejectedSelectorsIDs } from '../../../KYC/Views/Status/KycRejected';
 import { KycSumSubSelectorsIDs } from '../../../KYC/Views/SumSub/SumSubKyc';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
 
-// Hydrate, then the root stack resets onto the VBA onboarding navigator.
-const ONBOARDING_TIMEOUT_MS = 5000;
-
 const hydrateVbaOnboarding = Engine.context.RampsController
   .hydrateVbaOnboarding as jest.Mock;
 const defaultHydrateVbaOnboarding =
@@ -101,11 +98,7 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CTA_BUTTON),
     );
 
-    await findByTestId(
-      KycRejectedSelectorsIDs.RETRY_BUTTON,
-      {},
-      { timeout: ONBOARDING_TIMEOUT_MS },
-    );
+    await findByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON);
     expect(getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON)).toHaveTextContent(
       strings('kyc.kyc_rejected.retry_button'),
     );

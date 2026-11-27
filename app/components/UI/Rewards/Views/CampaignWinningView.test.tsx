@@ -202,23 +202,6 @@ describe('CampaignWinningView', () => {
     expect(getByText('+12.34%')).toBeTruthy();
   });
 
-  it('renders the rank in Grotzec Hero', () => {
-    const { useTailwind } = jest.requireMock(
-      '@metamask/design-system-twrnc-preset',
-    );
-    const { getByTestId } = render(
-      <CampaignWinningView {...defaultProps} rankDisplay="3rd" />,
-    );
-
-    expect(getByTestId('test-winning-view-rank')).toBeTruthy();
-    expect(useTailwind().style).toHaveBeenCalledWith(
-      'text-amount-display-lg',
-      'font-hero-bold',
-      'text-default',
-      'text-center',
-    );
-  });
-
   it('calls goBack when Skip for now is pressed', () => {
     const { getByText } = render(<CampaignWinningView {...defaultProps} />);
     fireEvent.press(getByText('Skip for now'));

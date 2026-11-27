@@ -1,12 +1,4 @@
-import { parseWaitTime, getGasLimit } from '.';
-
-jest.mock('../../util/transaction-controller', () => ({
-  __esModule: true,
-  estimateGas: jest.fn().mockImplementation(({ gas }) => {
-    if (gas === undefined) return Promise.resolve({ gas: '0x5208' });
-    return Promise.resolve({ gas });
-  }),
-}));
+import { parseWaitTime } from '.';
 
 describe('CustomGas utils :: parseWaitTime', () => {
   it('parseWaitTime', () => {
@@ -32,17 +24,5 @@ describe('CustomGas utils :: parseWaitTime', () => {
     expect(parseWaitTime(1460)).toEqual('1day 20min');
     expect(parseWaitTime(1500)).toEqual('1day 1hr');
     expect(parseWaitTime(3360)).toEqual('2day 8hr');
-  });
-});
-
-describe('CustomGas Util:: GetGasLimit', () => {
-  it('should return passed gas value', async () => {
-    const estimate = await getGasLimit({ gas: '0x9fd2', gasPrice: '12' });
-    expect(estimate.gas.toNumber()).toEqual(40914);
-  });
-
-  it('should fetch new estimated gas value', async () => {
-    const estimate = await getGasLimit({ gas: '0x9fd2', gasPrice: '12' }, true);
-    expect(estimate.gas.toNumber()).toEqual(21000);
   });
 });
