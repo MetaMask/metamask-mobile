@@ -1,3 +1,8 @@
+import { installVenueProfileFixture } from '../../../../../tests/helpers/predict/venueProfile';
+import {
+  TEST_VENUE_PROFILE_RAW,
+  TEST_VENUE_REVOKED_RAW,
+} from '../../../../../tests/fixtures/predict/venueProfiles';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import Logger from '../../../../util/Logger';
 import {
@@ -11,7 +16,17 @@ import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
-import { resetVenueProfile } from '../auth/venueSigningProfiles';
+import {
+  resolveVenueProfile,
+  VENUE_PROFILE_ID,
+  venueProfileSha256,
+} from '../auth/venueSigningProfiles';
+import { RemoteVenueProfileClient } from '../auth/RemoteVenueProfileClient';
+import { contentDigest } from '../auth/signing/deviceRequestSigner';
+import {
+  sendSigned,
+  VenueProfilePreviewExpiredError,
+} from '../adapters/remote/signedVenueCall';
 import { TemplateError } from '../auth/signing/profileTemplates';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -132,7 +147,32 @@ const deferred = <T>() => {
   return { promise, resolve };
 };
 
+const installRefreshableVenueProfileFixture = () => {
+  const client = new RemoteVenueProfileClient({
+    clientVersion: 'test',
+    fetch: jest.fn(),
+  });
+  const fetchRevoked = jest.spyOn(client, 'fetchRevoked').mockResolvedValue({
+    status: 'modified',
+    raw: TEST_VENUE_REVOKED_RAW,
+  });
+  const fetchProfile = jest
+    .spyOn(client, 'fetchProfile')
+    .mockImplementation(async ({ version }) =>
+      version === 1
+        ? TEST_VENUE_PROFILE_RAW
+        : JSON.stringify({ ...JSON.parse(TEST_VENUE_PROFILE_RAW), version }),
+    );
+  const getSigningProfile = jest.fn(async () => ({
+    id: VENUE_PROFILE_ID,
+    version: 1,
+  }));
+  const resolver = installVenueProfileFixture({ client, getSigningProfile });
+  return { resolver, fetchRevoked, fetchProfile, getSigningProfile };
+};
+
 beforeEach(() => {
+  installVenueProfileFixture();
   let ledger: string | null = null;
   mockGetDeviceKey.mockReset().mockReturnValue(DEVICE_PUBLIC_MATERIAL);
   mockSignDeviceKey.mockReset().mockResolvedValue(new Uint8Array(64).fill(7));
@@ -189,6 +229,17 @@ describe('PredictDeviceAuthService', () => {
 
     expect(mockEnsureDeviceKey).toHaveBeenCalledTimes(1);
     expect(mockGetA2t).toHaveBeenCalledTimes(1);
+  });
+
+  it('prepares authentication without an admitted venue signing profile', async () => {
+    installVenueProfileFixture({ cached: false });
+    const { service } = createService();
+    await expect(resolveVenueProfile()).resolves.toBeUndefined();
+
+    await expect(service.getA2t()).resolves.toBe('opaque-a2t');
+
+    expect(mockEnsureDeviceKey).toHaveBeenCalledTimes(1);
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
   });
 
   it('clears plaintext and skips issuance when disabled', async () => {
@@ -417,7 +468,6 @@ describe('PredictDeviceAuthService', () => {
 describe('PredictDeviceAuthService.signOperation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetVenueProfile();
     mockEnsureDeviceKey.mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
     mockGetA2t.mockResolvedValue('opaque-a2t');
   });
@@ -453,6 +503,135 @@ describe('PredictDeviceAuthService.signOperation', () => {
       self_trade_prevention_type: 'taker_at_cross',
       reduce_only: false,
     });
+    const envelope = JSON.parse(
+      Buffer.from(signed?.header.value ?? '', 'base64url').toString('utf8'),
+    );
+    expect(envelope).toMatchObject({
+      profile: {
+        id: VENUE_PROFILE_ID,
+        version: 1,
+        sha256: venueProfileSha256(TEST_VENUE_PROFILE_RAW),
+      },
+      credential: {
+        a2t: 'opaque-a2t',
+        deviceKey: DEVICE_PUBLIC_MATERIAL.publicKey,
+        salt: DEVICE_PUBLIC_MATERIAL.salt,
+      },
+      signatures: [
+        {
+          signature: `kalshi=:${Buffer.from(
+            new Uint8Array(64).fill(7),
+          ).toString('base64')}:`,
+        },
+      ],
+    });
+    const signingBase = Buffer.from(
+      mockSignDeviceKey.mock.calls[0][0],
+    ).toString('utf8');
+    expect(signingBase).toContain(
+      `"content-digest": ${contentDigest(signed?.body ?? '')}`,
+    );
+    expect(signingBase).toContain(
+      `"idempotency-key": ${signed?.idempotencyKey}`,
+    );
+  });
+
+  it('signs the snapshot the confirmation sheet previewed', async () => {
+    const { service } = createService();
+    const input = {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy' as const,
+        outcome: 'yes' as const,
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    };
+    const preview = await service.previewOperation('order.place', input);
+
+    await expect(
+      service.signOperation('order.place', {
+        ...input,
+        profile: preview?.profile,
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it('rejects a confirmed preview when a refresh replaces its profile', async () => {
+    const { getSigningProfile, fetchProfile } =
+      installRefreshableVenueProfileFixture();
+    const { service } = createService();
+    const input = {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy' as const,
+        outcome: 'yes' as const,
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    };
+    const preview = await service.previewOperation('order.place', input);
+    expect(preview?.profile.version).toBe(1);
+    const response = {
+      status: 409,
+      code: 'venue_profile_update_required',
+      outcome: 'not_placed',
+    };
+    const send = jest.fn(async () => {
+      getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 2 });
+      return response;
+    });
+
+    await expect(
+      sendSigned(
+        {
+          signOperation: service.signOperation.bind(service),
+          invalidateSigningSession: service.invalidateA2t.bind(service),
+        },
+        'order.place',
+        { ...input, profile: preview?.profile },
+        send,
+        (reply) => reply,
+      ),
+    ).rejects.toBeInstanceOf(VenueProfilePreviewExpiredError);
+
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(mockSignDeviceKey).toHaveBeenCalledTimes(1);
+    expect(fetchProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ version: 2 }),
+    );
+    await expect(resolveVenueProfile()).resolves.toMatchObject({ version: 2 });
+  });
+
+  it('refuses to sign figures from a different profile snapshot', async () => {
+    const { service } = createService();
+    const input = {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy' as const,
+        outcome: 'yes' as const,
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    };
+    const preview = await service.previewOperation('order.place', input);
+
+    await expect(
+      service.signOperation('order.place', {
+        ...input,
+        profile: {
+          version: (preview?.profile.version ?? 1) + 1,
+          sha256: preview?.profile.sha256 ?? '0'.repeat(64),
+        },
+      }),
+    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'confirmation' });
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
   });
 
   it('signs exactly the profile payload: no field the profile does not render', async () => {
@@ -524,6 +703,46 @@ describe('PredictDeviceAuthService.signOperation', () => {
     },
   );
 
+  it('keeps the read challenge, profile and signature consistent in the envelope', async () => {
+    const { service } = createService();
+    const requestId = 'a1b2c3d4-1111-4222-8333-444455556666';
+
+    const header = await service.signRead({
+      method: 'GET',
+      path: '/trade-api/v2/portfolio/orders',
+      query: 'limit=10',
+      requestId,
+    });
+
+    expect(header?.name).toBe('Venue-Authorization');
+    expect(
+      JSON.parse(
+        Buffer.from(header?.value ?? '', 'base64url').toString('utf8'),
+      ),
+    ).toMatchObject({
+      profile: {
+        id: VENUE_PROFILE_ID,
+        version: 1,
+        sha256: venueProfileSha256(TEST_VENUE_PROFILE_RAW),
+      },
+      signatures: [
+        {
+          requestId,
+          signatureInput: expect.stringContaining(`nonce="${requestId}"`),
+          signature: `kalshi=:${Buffer.from(
+            new Uint8Array(64).fill(7),
+          ).toString('base64')}:`,
+        },
+      ],
+    });
+    const signingBase = Buffer.from(
+      mockSignDeviceKey.mock.calls[0][0],
+    ).toString('utf8');
+    expect(signingBase).toContain('"@path": /trade-api/v2/portfolio/orders');
+    expect(signingBase).toContain('"@query": ?limit=10');
+    expect(signingBase).toContain(`nonce="${requestId}"`);
+  });
+
   it('returns undefined when signing is not available', async () => {
     const { service } = createService({ enabled: false });
 
@@ -552,7 +771,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
   it('keeps previewOperation rendering without an overlay', async () => {
     const { service } = createService();
 
-    const display = await service.previewOperation('order.place', {
+    const preview = await service.previewOperation('order.place', {
       inputs: {
         marketId: 'MKT-1',
         idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
@@ -564,12 +783,51 @@ describe('PredictDeviceAuthService.signOperation', () => {
       confirmed: true,
     });
 
-    expect(display).toEqual({
-      maxCost: '5.20',
-      minProceeds: '4.80',
-      payout: '10.00',
-      contracts: '10.00',
+    expect(preview).toEqual({
+      display: {
+        maxCost: '5.20',
+        minProceeds: '4.80',
+        payout: '10.00',
+        contracts: '10.00',
+      },
+      profile: {
+        version: 1,
+        sha256: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/u),
+      },
     });
+  });
+
+  it('acquires a cold signing profile before rendering the preview', async () => {
+    const getSigningProfile = jest.fn(async () => ({
+      id: VENUE_PROFILE_ID,
+      version: 1,
+    }));
+    installVenueProfileFixture({ cached: false, getSigningProfile });
+    const { service } = createService();
+    await expect(resolveVenueProfile()).resolves.toBeUndefined();
+
+    const preview = await service.previewOperation('order.place', {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy',
+        outcome: 'yes',
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+    });
+
+    expect(getSigningProfile).toHaveBeenCalledTimes(1);
+    expect(preview).toMatchObject({
+      display: { maxCost: '5.20', contracts: '10.00' },
+      profile: {
+        version: 1,
+        sha256: venueProfileSha256(TEST_VENUE_PROFILE_RAW),
+      },
+    });
+    expect(mockEnsureDeviceKey).not.toHaveBeenCalled();
+    expect(mockGetA2t).not.toHaveBeenCalled();
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
   });
 });
 
@@ -588,7 +846,6 @@ describe('PredictDeviceAuthService.signOperation availability guards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    resetVenueProfile();
     mockEnsureDeviceKey.mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
     mockGetA2t.mockResolvedValue('opaque-a2t');
   });
@@ -656,7 +913,6 @@ describe('PredictDeviceAuthService revocation races', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    resetVenueProfile();
     mockGetA2t.mockResolvedValue('opaque-a2t');
   });
 
@@ -671,10 +927,12 @@ describe('PredictDeviceAuthService revocation races', () => {
       mockSignDeviceKey.mockClear();
       const started = deferred<void>();
       const write = deferred<boolean>();
-      (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(() => {
-        started.resolve();
-        return write.promise;
-      });
+      (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(
+        async () => {
+          started.resolve();
+          return write.promise;
+        },
+      );
       const pending = service.signOperation('order.place', {
         ...order,
         confirmed: phase === 'first claim',
@@ -704,10 +962,12 @@ describe('PredictDeviceAuthService revocation races', () => {
     const { service } = createService();
     const started = deferred<void>();
     const write = deferred<boolean>();
-    (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(() => {
-      started.resolve();
-      return write.promise;
-    });
+    (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(
+      async () => {
+        started.resolve();
+        return write.promise;
+      },
+    );
     const pending = service.signOperation('order.place', order);
     await started.promise;
     // Capture the refusal before `reset`: the pending claim cannot settle
@@ -735,7 +995,7 @@ describe('PredictDeviceAuthService revocation races', () => {
     async (lane) => {
       const key = deferred<typeof DEVICE_PUBLIC_MATERIAL>();
       const started = deferred<void>();
-      mockEnsureDeviceKey.mockImplementationOnce(() => {
+      mockEnsureDeviceKey.mockImplementationOnce(async () => {
         started.resolve();
         return key.promise;
       });
@@ -759,7 +1019,7 @@ describe('PredictDeviceAuthService revocation races', () => {
     async (lane) => {
       const a2t = deferred<string>();
       const started = deferred<void>();
-      mockGetA2t.mockImplementationOnce(() => {
+      mockGetA2t.mockImplementationOnce(async () => {
         started.resolve();
         return a2t.promise;
       });
@@ -777,6 +1037,89 @@ describe('PredictDeviceAuthService revocation races', () => {
     },
   );
 
+  it.each(['operation', 'read'] as const)(
+    'refuses %s signing when the captured venue profile is revoked during A2T preparation',
+    async (lane) => {
+      const { resolver, fetchRevoked } =
+        installRefreshableVenueProfileFixture();
+      const a2t = deferred<string>();
+      const started = deferred<void>();
+      mockGetA2t.mockImplementationOnce(async () => {
+        started.resolve();
+        return a2t.promise;
+      });
+      const { service } = createService();
+      const pending =
+        lane === 'operation'
+          ? service.signOperation('order.place', order)
+          : service.signRead(read);
+      await started.promise;
+      fetchRevoked.mockResolvedValueOnce({
+        status: 'modified',
+        raw: JSON.stringify({ id: VENUE_PROFILE_ID, revokedVersions: [1] }),
+      });
+      await resolver.refresh();
+      a2t.resolve('opaque-a2t');
+
+      await expect(pending).resolves.toBeUndefined();
+      expect(mockSignDeviceKey).not.toHaveBeenCalled();
+      expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    },
+  );
+
+  it('refuses crypto when the captured venue profile is revoked during its approval write', async () => {
+    const { resolver, fetchRevoked } = installRefreshableVenueProfileFixture();
+    const started = deferred<void>();
+    const write = deferred<boolean>();
+    (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(
+      async () => {
+        started.resolve();
+        return write.promise;
+      },
+    );
+    const { service } = createService();
+    const pending = service.signOperation('order.place', order);
+    await started.promise;
+    fetchRevoked.mockResolvedValueOnce({
+      status: 'modified',
+      raw: JSON.stringify({ id: VENUE_PROFILE_ID, revokedVersions: [1] }),
+    });
+    await resolver.refresh();
+    write.resolve(true);
+
+    await expect(pending).resolves.toBeUndefined();
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
+  });
+
+  it.each(['operation', 'read'] as const)(
+    'drops the %s envelope when its captured venue profile is revoked during crypto',
+    async (lane) => {
+      const { resolver, fetchRevoked } =
+        installRefreshableVenueProfileFixture();
+      const signature = deferred<Uint8Array>();
+      const started = deferred<void>();
+      mockSignDeviceKey.mockImplementationOnce(async () => {
+        started.resolve();
+        return signature.promise;
+      });
+      const { service } = createService();
+      const pending =
+        lane === 'operation'
+          ? service.signOperation('order.place', order)
+          : service.signRead(read);
+      await started.promise;
+      fetchRevoked.mockResolvedValueOnce({
+        status: 'modified',
+        raw: JSON.stringify({ id: VENUE_PROFILE_ID, revokedVersions: [1] }),
+      });
+      await resolver.refresh();
+      signature.resolve(new Uint8Array(64).fill(7));
+
+      await expect(pending).resolves.toBeUndefined();
+      expect(mockSignDeviceKey).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it.each([
     ['operation', 'lock'],
     ['read', 'lock'],
@@ -787,7 +1130,7 @@ describe('PredictDeviceAuthService revocation races', () => {
     async (lane, boundary) => {
       const signature = deferred<Uint8Array>();
       const started = deferred<void>();
-      mockSignDeviceKey.mockImplementationOnce(() => {
+      mockSignDeviceKey.mockImplementationOnce(async () => {
         started.resolve();
         return signature.promise;
       });
@@ -820,7 +1163,7 @@ describe('PredictDeviceAuthService revocation races', () => {
       });
       const signature = deferred<Uint8Array>();
       const started = deferred<void>();
-      mockSignDeviceKey.mockImplementationOnce(() => {
+      mockSignDeviceKey.mockImplementationOnce(async () => {
         started.resolve();
         return signature.promise;
       });
@@ -845,7 +1188,7 @@ describe('PredictDeviceAuthService revocation races', () => {
   it('does not return a key from an ensure that predates reset', async () => {
     const key = deferred<typeof DEVICE_PUBLIC_MATERIAL>();
     const started = deferred<void>();
-    mockEnsureDeviceKey.mockImplementationOnce(() => {
+    mockEnsureDeviceKey.mockImplementationOnce(async () => {
       started.resolve();
       return key.promise;
     });

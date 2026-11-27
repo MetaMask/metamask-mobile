@@ -13,8 +13,10 @@ export const VENUE_AUTHORIZATION_VERSION = 1;
  * envelope version 2 on the same header name; the two never mix.
  */
 export const buildVenueAuthorization = (input: {
-  /** The verified profile document this signature was rendered from. */
-  profile: { id: string; version: number };
+  /** The resolved profile this signature was rendered from. `sha256` is the
+   * base64url digest of the exact registry bytes; predict-api compares it
+   * with its own copy. */
+  profile: { id: string; version: number; sha256: string };
   context: DeviceSigningContext;
   signatures: readonly DeviceSignature[];
   maxSignatures: number;
