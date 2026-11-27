@@ -31,7 +31,10 @@ const quantityOptions = ['1', '5', '10'];
 const maxOption = 'max';
 const minPackQuantity = 1;
 
-const hapticQuantities = [...quantityOptions.map(Number), mockMaxPackQuantity];
+const hapticQuantities = new Set([
+  ...quantityOptions.map(Number),
+  mockMaxPackQuantity,
+]);
 
 const toOption = (quantity: number) =>
   quantity === mockMaxPackQuantity ? maxOption : String(quantity);
@@ -53,7 +56,7 @@ const sliderMarks = Array.from(
     return {
       step: toTrackPercent(quantity),
       color: SliderMarkColor.IconDefault,
-      haptic: hapticQuantities.includes(quantity),
+      haptic: hapticQuantities.has(quantity),
     };
   },
 );
