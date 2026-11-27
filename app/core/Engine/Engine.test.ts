@@ -154,7 +154,10 @@ describe('Engine', () => {
   it('registers the stateless Collectibles services on the Engine messenger', async () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, {});
 
-    for (const name of ['PackPartnerDataService'] as const) {
+    for (const name of [
+      'PackPartnerDataService',
+      'CollectiblesApiDataService',
+    ] as const) {
       expect(engine.context[name].name).toBe(name);
       expect(DATA_SERVICES).toContain(name);
       expect(STATELESS_NON_CONTROLLER_NAMES).toContain(name);
@@ -1498,9 +1501,10 @@ describe('Engine', () => {
         engine.context.CollectiblesController,
         'clearState',
       );
-      const clearReads = [engine.context.PackPartnerDataService].map(
-        (service) => jest.spyOn(service, 'clearCache'),
-      );
+      const clearReads = [
+        engine.context.PackPartnerDataService,
+        engine.context.CollectiblesApiDataService,
+      ].map((service) => jest.spyOn(service, 'clearCache'));
 
       const reset = engine.resetState();
 

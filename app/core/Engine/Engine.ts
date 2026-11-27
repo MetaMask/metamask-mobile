@@ -115,7 +115,10 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { packPartnerDataServiceInit } from '../../components/UI/Collectibles/services/data/collectibles-data-services-init';
+import {
+  packPartnerDataServiceInit,
+  collectiblesApiDataServiceInit,
+} from '../../components/UI/Collectibles/services/data/collectibles-data-services-init';
 import { collectiblesControllerInit } from './controllers/collectibles-controller';
 import {
   predictLiveDataServiceInit,
@@ -358,6 +361,7 @@ export class Engine {
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PackPartnerDataService: packPartnerDataServiceInit,
+        CollectiblesApiDataService: collectiblesApiDataServiceInit,
         CollectiblesController: collectiblesControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
@@ -647,6 +651,8 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       PackPartnerDataService: messengerClientsByName.PackPartnerDataService,
+      CollectiblesApiDataService:
+        messengerClientsByName.CollectiblesApiDataService,
       CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
@@ -1356,12 +1362,16 @@ export class Engine {
   resetState = async () => {
     // Fence old-wallet transactions and reads before the first await. Finish all
     // cleanups before destroying the messengers, even if storage fails.
-    const [journal, storage, controllers] = await Promise.allSettled([
-      this.context.CollectiblesController.clearState(),
-      this.context.PackPartnerDataService.clearCache(),
-      this.#resetWalletControllers(),
-    ]);
-    for (const cleanup of [controllers, journal, storage]) {
+    const [journal, storage, controllers, ...otherCaches] =
+      await Promise.allSettled([
+        this.context.CollectiblesController.clearState(),
+        this.context.PackPartnerDataService.clearCache(),
+        this.#resetWalletControllers(),
+        ...[this.context.CollectiblesApiDataService].map(async (service) =>
+          service.clearCache(),
+        ),
+      ]);
+    for (const cleanup of [controllers, journal, storage, ...otherCaches]) {
       if (cleanup.status === 'rejected') {
         throw ensureError(cleanup.reason, 'Engine.resetState');
       }

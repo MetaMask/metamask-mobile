@@ -33,6 +33,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'QrSyncProvisioningService',
   'SocialService',
   'PackPartnerDataService',
+  'CollectiblesApiDataService',
   'SocialRealtimeService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',

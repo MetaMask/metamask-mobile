@@ -5,10 +5,17 @@ import {
   type MockAnyNamespace,
 } from '@metamask/messenger';
 import type {
+  CollectiblesApiDataServiceActions,
+  CollectiblesApiDataServiceEvents,
+} from '../../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import type {
   PackPartnerDataServiceActions,
   PackPartnerDataServiceEvents,
 } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
-import { getPackPartnerDataServiceMessenger } from './collectibles-data-services-messenger';
+import {
+  getCollectiblesApiDataServiceMessenger,
+  getPackPartnerDataServiceMessenger,
+} from './collectibles-data-services-messenger';
 
 /** Granular cache event of one PackPartner read, by query hash. */
 const CACHE_UPDATED_EVENT: `PackPartnerDataService:cacheUpdated:${string}` =
@@ -54,5 +61,29 @@ describe('getPackPartnerDataServiceMessenger', () => {
       type: 'removed',
       state: null,
     });
+  });
+});
+
+describe('getCollectiblesApiDataServiceMessenger', () => {
+  it('exposes Collectibles API cache invalidation to the root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      CollectiblesApiDataServiceActions,
+      CollectiblesApiDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const serviceMessenger =
+      getCollectiblesApiDataServiceMessenger(rootMessenger);
+    const invalidate = jest.fn().mockResolvedValue(undefined);
+    serviceMessenger.registerActionHandler(
+      'CollectiblesApiDataService:invalidateQueries',
+      invalidate,
+    );
+
+    await rootMessenger.call(
+      'CollectiblesApiDataService:invalidateQueries',
+      {},
+    );
+
+    expect(invalidate).toHaveBeenCalledWith({});
   });
 });
