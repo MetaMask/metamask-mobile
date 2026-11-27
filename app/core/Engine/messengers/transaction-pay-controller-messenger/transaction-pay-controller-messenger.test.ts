@@ -156,6 +156,40 @@ describe('getTransactionPayControllerMessenger', () => {
       'RampsController:transakGetBuyQuote',
     );
   });
+
+  it('delegates the actions Core needs to quote and sign a Solana Pay source', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
+          'ConfigRegistryController:getState',
+          'SnapController:getState',
+          'SnapController:handleRequest',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates the AccountTreeController actions Core needs to resolve the non-EVM source account', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:getAccountContext',
+          'AccountTreeController:getAccountGroupObject',
+        ]),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {
