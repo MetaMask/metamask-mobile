@@ -533,11 +533,8 @@ jobs:
         with:
           fetch-depth: 2
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
-        # (contents: read), no secrets, and the result of the knip dead-code check.
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
