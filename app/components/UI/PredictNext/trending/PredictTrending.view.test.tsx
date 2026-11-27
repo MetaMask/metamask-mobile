@@ -465,8 +465,10 @@ describeForPlatforms('Explore prediction sections', () => {
       expect(rows).toHaveLength(2);
       expect(within(rows[0]).getByText('Dodgers')).toBeOnTheScreen();
       expect(within(rows[0]).getByText('Leads')).toBeOnTheScreen();
+      expect(within(rows[0]).getByText('38%')).toBeOnTheScreen();
       expect(within(rows[1]).getByText('Yankees')).toBeOnTheScreen();
       expect(within(rows[1]).getByText('Second')).toBeOnTheScreen();
+      expect(within(rows[1]).getByText('24%')).toBeOnTheScreen();
       expect(within(card).queryByText('Field')).not.toBeOnTheScreen();
       expect(
         within(card).queryAllByTestId(/avatar/, {

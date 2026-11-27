@@ -33,6 +33,8 @@ const OVERVIEW_SECTION_RULE_TEST_ID = TokenDetailsIds.overview.sectionRule;
 const OVERVIEW_TAB_PERFORMANCE_TEST_ID = TokenDetailsIds.overview.performance;
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
+jest.mock('../sections/NonEvmActivityRows', () => () => null);
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));

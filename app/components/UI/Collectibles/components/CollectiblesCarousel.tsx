@@ -1,6 +1,17 @@
 import React from 'react';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import {
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
 import type { HomePack } from '../types/packs';
 import { PackTile, packTileWidth } from './PackTile';
@@ -15,7 +26,7 @@ function keyExtractor(pack: HomePack) {
   return pack.code;
 }
 
-function renderItem({ item }: { item: HomePack }) {
+function renderPackTile({ item }: { item: HomePack }) {
   return <PackTile pack={item} />;
 }
 
@@ -36,11 +47,44 @@ export function CollectiblesCarouselSkeleton() {
   );
 }
 
-interface Props {
-  packs: HomePack[];
+export function CollectiblesCarouselEmpty() {
+  return (
+    <View
+      className="items-center gap-2 px-6 py-10"
+      testID={collectiblesTestIds.empty}
+    >
+      <Icon
+        name={IconName.Info}
+        size={IconSize.Xl}
+        color={IconColor.IconAlternative}
+      />
+      <Text
+        variant={TextVariant.HeadingSm}
+        fontWeight={FontWeight.Bold}
+        className="text-center"
+      >
+        {strings('collectibles.home.empty')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        className="text-center"
+      >
+        {strings('collectibles.home.empty_description')}
+      </Text>
+    </View>
+  );
 }
 
-export function CollectiblesCarousel({ packs }: Props) {
+interface Props<T extends HomePack> {
+  packs: T[];
+  renderItem?: ListRenderItem<T>;
+}
+
+export function CollectiblesCarousel<T extends HomePack>({
+  packs,
+  renderItem = renderPackTile,
+}: Props<T>) {
   const tw = useTailwind();
   return (
     <FlashList

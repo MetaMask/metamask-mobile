@@ -184,6 +184,7 @@ function withRequest<ReturnValue>(
     .mockResolvedValue({
       uuid: stxUuid,
       txHash: transactionHash,
+      txHashes: [],
     });
 
   const request: SubmitSmartTransactionRequestMocked = {

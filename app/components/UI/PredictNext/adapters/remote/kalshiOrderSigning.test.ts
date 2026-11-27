@@ -9,6 +9,11 @@ import {
   kalshiOrderSigningInput,
   loadFeeCeilingCentsPerContract,
 } from './kalshiOrderSigning';
+import { installVenueProfileFixture } from '../../../../../../tests/helpers/predict/venueProfile';
+
+beforeEach(() => {
+  installVenueProfileFixture();
+});
 
 const FEE_CEILING_CENTS = 2;
 
@@ -115,7 +120,7 @@ describe('kalshiOrderSigningInput', () => {
     expect(result?.inputs).toMatchObject({ amountCents: 2000 });
   });
 
-  it('renders under the bundled profile invariant for an ordinary buy', async () => {
+  it('renders under the registry profile invariant for an ordinary buy', async () => {
     const feeCeiling = await loadFeeCeilingCentsPerContract();
     const profile = await loadVenueProfile();
     const payload = profile?.payloads.create_order;
@@ -148,6 +153,24 @@ describe('kalshiOrderSigningInput', () => {
 
     expect(feeCeiling).toBe(2);
     expect(rendered.display?.maxCost).toBe('19.60');
+  });
+
+  it('downloads the first profile before sizing a buy', async () => {
+    const getSigningProfile = jest.fn(async () => ({
+      id: 'kalshi-demo-signing',
+      version: 1,
+    }));
+    installVenueProfileFixture({ cached: false, getSigningProfile });
+
+    const feeCeiling = await loadFeeCeilingCentsPerContract();
+    const signing = kalshiOrderSigningInput(
+      buyParams(),
+      buyPreview(),
+      feeCeiling,
+    );
+
+    expect(signing?.values).toEqual({ count: '10.00', price: '0.4600' });
+    expect(getSigningProfile).toHaveBeenCalledTimes(1);
   });
 
   it('prices a NO buy against the NO limit when sizing', () => {

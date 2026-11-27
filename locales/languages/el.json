@@ -3936,7 +3936,6 @@
       "unavailable": "Δεν υπάρχουν διαθέσιμες αγορές αυτήν τη στιγμή."
     },
     "home_categories": {
-      "title": "Κατηγορίες",
       "politics": "Πολιτική",
       "sports": "Αθλητικά"
     },
@@ -10628,8 +10627,7 @@
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
       "predict_withdraw": "Ανάληψη",
-      "money_account_deposit_header": "Προσθήκη στο MetaMask Money",
-      "money_account_send": "Αποστολή"
+      "money_account_deposit_header": "Προσθήκη στο MetaMask Money"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -10786,7 +10784,6 @@
     "deposit_edit_amount_done": "Προσθήκη κεφαλαίων",
     "deposit_edit_amount_convert_token": "Μετατροπή {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Ανάληψη",
-    "deposit_edit_amount_money_account_send": "Αποστολή",
     "deposit_edit_amount_musd_conversion": "Μετατροπή σε mUSD",
     "preparing_order": "Προετοιμασία εντολής"
   },

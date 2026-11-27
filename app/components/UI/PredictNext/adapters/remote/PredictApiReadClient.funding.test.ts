@@ -9,6 +9,8 @@ import {
   PredictHttpError,
   PredictRequestNotSentError,
 } from './PredictApiReadClient';
+import { installVenueProfileFixture } from '../../../../../../tests/helpers/predict/venueProfile';
+import { setVenueProfileResolverForTesting } from '../../auth/venueSigningProfiles';
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -27,6 +29,7 @@ const SIGNED = {
   header: { name: 'Venue-Authorization', value: 'envelope' },
   body: SIGNED_BODY,
   idempotencyKey: DEPOSIT.clientOperationId,
+  profile: { version: 1, sha256: 'sha-v1' },
 };
 const SIGNING = {
   inputs: {
@@ -64,6 +67,7 @@ describe('PredictApiReadClient deposit routes', () => {
   let client: PredictApiReadClient;
 
   beforeEach(() => {
+    installVenueProfileFixture();
     fetchMock = jest.fn();
     signOperation = jest.fn().mockResolvedValue(SIGNED);
     invalidateSigningSession = jest.fn();
@@ -76,6 +80,8 @@ describe('PredictApiReadClient deposit routes', () => {
       invalidateSigningSession,
     });
   });
+
+  afterEach(() => setVenueProfileResolverForTesting(undefined));
 
   describe('startDeposit', () => {
     it('posts the amount and key bearer-only, with no signature', async () => {

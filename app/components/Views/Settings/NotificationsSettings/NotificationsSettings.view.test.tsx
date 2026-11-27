@@ -1,6 +1,7 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Switch } from 'react-native';
 
 import {
   renderComponentViewScreen,
@@ -209,6 +210,135 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
       });
     } finally {
       disableSpy.mockRestore();
+    }
+  });
+
+  it('turns the master toggle on and enables notification services', async () => {
+    const enableSpy = jest
+      .spyOn(
+        Engine.context.NotificationServicesController,
+        'enableMetamaskNotifications',
+      )
+      .mockResolvedValue(undefined);
+    const engineWithState = Engine as unknown as {
+      state: Record<string, unknown>;
+    };
+    const originalEngineState = engineWithState.state;
+
+    try {
+      const { getByTestId, findByText, getByText, UNSAFE_getByType, store } =
+        renderSettings({
+          notificationsEnabled: false,
+        });
+
+      const toggle = getByTestId(
+        NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
+      );
+      expect(toggle).toBeOnTheScreen();
+      expect(UNSAFE_getByType(Switch).props.value).toBe(false);
+
+      fireEvent(toggle, 'onValueChange', true);
+      await waitFor(() => {
+        expect(enableSpy).toHaveBeenCalled();
+      });
+
+      // Mirror the controller update reaching Redux after enabling succeeds.
+      act(() => {
+        engineWithState.state = {
+          ...originalEngineState,
+          NotificationServicesController: {
+            ...store.getState().engine.backgroundState
+              .NotificationServicesController,
+            isNotificationServicesEnabled: true,
+          },
+        };
+        store.dispatch(
+          updateBgState({ key: 'NotificationServicesController' }),
+        );
+      });
+
+      expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+      expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(UNSAFE_getByType(Switch).props.value).toBe(true);
+      });
+    } finally {
+      enableSpy.mockRestore();
+      engineWithState.state = originalEngineState;
+    }
+  });
+
+  it('keeps the master toggle usable and sections hidden when enabling fails', async () => {
+    const enableSpy = jest
+      .spyOn(
+        Engine.context.NotificationServicesController,
+        'enableMetamaskNotifications',
+      )
+      .mockRejectedValue(new Error('Enable notifications failed'));
+
+    try {
+      const { getByTestId, queryByText, UNSAFE_getByType } = renderSettings({
+        notificationsEnabled: false,
+      });
+
+      fireEvent(
+        getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+        'onValueChange',
+        true,
+      );
+      await waitFor(() => {
+        expect(enableSpy).toHaveBeenCalled();
+      });
+
+      // The enable hook swallows the rejection: the toggle must not stay
+      // stuck updating, keeps the optimistic on value until the controller
+      // update lands, and no section may render as if the enable succeeded.
+      await waitFor(() => {
+        expect(UNSAFE_getByType(Switch).props.disabled).toBe(false);
+      });
+      expect(UNSAFE_getByType(Switch).props.value).toBe(true);
+      await waitFor(() => {
+        expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
+      });
+      expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
+    } finally {
+      enableSpy.mockRestore();
+    }
+  });
+
+  it('carries the stored marketing consent into the notifications enable flow', async () => {
+    const enableSpy = jest
+      .spyOn(
+        Engine.context.NotificationServicesController,
+        'enableMetamaskNotifications',
+      )
+      .mockResolvedValue(undefined);
+
+    try {
+      const { getByTestId } = renderComponentViewScreen(
+        NotificationsSettings as unknown as React.ComponentType,
+        { name: 'NotificationsSettings' },
+        {
+          state: {
+            ...buildNotificationsState({ notificationsEnabled: false }),
+            security: { dataCollectionForMarketing: true },
+          },
+        },
+      );
+
+      fireEvent(
+        getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+        'onValueChange',
+        true,
+      );
+
+      await waitFor(() => {
+        expect(enableSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ hasMarketingConsent: true }),
+        );
+      });
+    } finally {
+      enableSpy.mockRestore();
     }
   });
 

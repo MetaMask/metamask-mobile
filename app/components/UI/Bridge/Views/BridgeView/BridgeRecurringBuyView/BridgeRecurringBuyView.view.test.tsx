@@ -1750,7 +1750,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('duplicates a completed order into a cleared recurring form', async () => {
+  it('duplicates a completed order into the recurring form', async () => {
     const renderResult = renderBridgeViewWithRecurringOrderDetails();
 
     await openRecurringTab(renderResult);
@@ -1849,11 +1849,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       renderResult.getByTestId(
         BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
       ),
-    ).toHaveDisplayValue('');
+    ).toHaveDisplayValue('0.0015');
     expect(
       renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
     ).toHaveTextContent(strings('bridge.recurring.price_range.not_set'));
-    expect(renderResult.store.getState().bridge.sourceAmount).toBeUndefined();
+    expect(renderResult.store.getState().bridge.sourceAmount).toBe('0.0015');
     expect(
       renderResult.store.getState().bridge.recurring.priceRange,
     ).toBeUndefined();

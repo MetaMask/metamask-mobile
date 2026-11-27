@@ -18,15 +18,16 @@ import {
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
 import {
-  loadVenueProfile,
+  ensureVenueProfile,
+  isVenueProfileSnapshotEligible,
   readAllowed,
+  resolveVenueProfile,
   VENUE_AUTHORIZATION_HEADER,
   type SigningProfile,
 } from '../auth/venueSigningProfiles';
 import {
   renderRequest,
   TemplateError,
-  type InvariantDisplay,
   type RenderedRequest,
   type RequestTemplate,
 } from '../auth/signing/profileTemplates';
@@ -39,6 +40,7 @@ import {
   type DeviceAuthHeader,
   type SignOperationInput,
   type SignedOperation,
+  type VenueOperationPreview,
 } from '../auth/signing/signOperationTypes';
 import type { ProposedRead } from '../adapters/remote/signedVenueCall';
 
@@ -68,7 +70,7 @@ export interface PredictDeviceAuthServicePreviewOperationAction {
   handler: (
     intent: string,
     input?: SignOperationInput,
-  ) => Promise<InvariantDisplay | undefined>;
+  ) => Promise<VenueOperationPreview | undefined>;
 }
 
 export interface PredictDeviceAuthServiceSignReadAction {
@@ -164,7 +166,7 @@ interface PredictDeviceAuthSnapshot {
  * Engine-owned authentication capability for Predict venues.
  *
  * The public surface is deliberately narrow: callers can prepare credentials
- * or obtain an A2T, or sign a request that a bundled, signed venue profile
+ * or obtain an A2T, or sign a request that the resolved venue profile
  * declares. They cannot ask the service to sign arbitrary bytes.
  */
 export class PredictDeviceAuthService {
@@ -251,32 +253,47 @@ export class PredictDeviceAuthService {
   /**
    * Renders the intent from the active signing profile exactly as
    * `signOperation` would, and returns the worst-case figures its invariant
-   * computed, for the confirmation sheet. Nothing is signed and nothing
-   * leaves the phone. Returns undefined when no signing profile is active or
-   * the intent carries no invariant. Throws `TemplateError` when the profile
-   * does not allow the request, which keeps Confirm disabled.
+   * computed, for the confirmation sheet. Nothing is signed. A cold cache
+   * first acquires the public profile within the resolver's deadline.
+   * Returns undefined when no signing profile is active or the intent
+   * carries no invariant. The returned `profile` identity must be
+   * passed back to `signOperation`, which refuses a different snapshot.
+   * Throws `TemplateError` when the profile does not allow the request, which
+   * keeps Confirm disabled.
    */
   async previewOperation(
     intent: string,
     input: SignOperationInput = {},
-  ): Promise<InvariantDisplay | undefined> {
+  ): Promise<VenueOperationPreview | undefined> {
     const snapshot = this.#captureSession();
-    const profile = snapshot ? await loadVenueProfile() : undefined;
+    const resolved = snapshot ? await ensureVenueProfile() : undefined;
+    const profile = resolved?.profile;
     if (
       !snapshot ||
+      !resolved ||
       !profile ||
       !this.#isCurrent(snapshot) ||
+      !isVenueProfileSnapshotEligible(resolved) ||
       (input.approvalGeneration !== undefined &&
         input.approvalGeneration !== this.#approvalGeneration)
     ) {
       return undefined;
     }
     const requests = this.#renderIntent(profile, intent, input);
-    return requests.find((request) => request.display !== undefined)?.display;
+    const display = requests.find(
+      (request) => request.display !== undefined,
+    )?.display;
+    if (!display) {
+      return undefined;
+    }
+    return {
+      display,
+      profile: { version: resolved.version, sha256: resolved.sha256 },
+    };
   }
 
   /**
-   * Renders the intent's requests from the bundled signing profile, the
+   * Renders the intent's requests from the captured signing profile, the
    * caller's inputs and the server values, then signs them and returns the
    * envelope header plus the EXACT rendered body bytes the signature covers
    * (ADR-0004): the caller sends these bytes verbatim. The authority,
@@ -297,9 +314,25 @@ export class PredictDeviceAuthService {
     ) {
       return undefined;
     }
-    const profile = snapshot ? await loadVenueProfile() : undefined;
-    if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
+    const resolved = snapshot ? await resolveVenueProfile() : undefined;
+    const profile = resolved?.profile;
+    if (
+      !snapshot ||
+      !resolved ||
+      !profile ||
+      !this.#isCurrent(snapshot) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
+    }
+    if (
+      input.profile &&
+      (input.profile.version !== resolved.version ||
+        input.profile.sha256 !== resolved.sha256)
+    ) {
+      // The confirmation sheet's figures were rendered from another
+      // snapshot; signing this body would approve figures the user never saw.
+      throw new TemplateError('confirmation', intent);
     }
     const nowMs = this.#deps.nowMs();
     const requests = this.#renderIntent(profile, intent, input);
@@ -308,11 +341,19 @@ export class PredictDeviceAuthService {
       throw new TemplateError('max_signatures', intent);
     }
     const key = await this.#ensureDeviceKey(snapshot);
-    if (!key || !this.#canSign(snapshot, key)) {
+    if (
+      !key ||
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     const a2t = await snapshot.binding.session.ensureA2T();
-    if (!a2t || !this.#canSign(snapshot, key)) {
+    if (
+      !a2t ||
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     // The Engine may learn the canonical identity during first issuance.
@@ -339,7 +380,10 @@ export class PredictDeviceAuthService {
         confirmed: input.confirmed === true,
       });
     }
-    if (!this.#canSign(snapshot, key)) {
+    if (
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     const context: DeviceSigningContext = {
@@ -354,7 +398,10 @@ export class PredictDeviceAuthService {
             requests.map((request) =>
               signDeviceRequest(profile, request, context, {
                 sign: (bytes) => {
-                  if (!this.#canSign(snapshot, key)) {
+                  if (
+                    !this.#canSign(snapshot, key) ||
+                    !isVenueProfileSnapshotEligible(resolved)
+                  ) {
                     throw new TemplateError('confirmation', intent);
                   }
                   return snapshot.binding.deviceKey.sign(bytes);
@@ -364,13 +411,20 @@ export class PredictDeviceAuthService {
               }),
             ),
           );
-    if (!this.#canSign(snapshot, key)) {
+    if (
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     const header: DeviceAuthHeader = {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
-        profile: { id: profile.id, version: profile.version },
+        profile: {
+          id: profile.id,
+          version: profile.version,
+          sha256: resolved.sha256,
+        },
         context,
         signatures,
         maxSignatures,
@@ -385,6 +439,7 @@ export class PredictDeviceAuthService {
       header,
       body: mutation?.body ?? '',
       idempotencyKey: mutation?.idempotencyKey,
+      profile: { version: resolved.version, sha256: resolved.sha256 },
     };
   }
 
@@ -399,8 +454,15 @@ export class PredictDeviceAuthService {
     proposed: ProposedRead,
   ): Promise<DeviceAuthHeader | undefined> {
     const snapshot = this.#captureSession();
-    const profile = snapshot ? await loadVenueProfile() : undefined;
-    if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
+    const resolved = snapshot ? await resolveVenueProfile() : undefined;
+    const profile = resolved?.profile;
+    if (
+      !snapshot ||
+      !resolved ||
+      !profile ||
+      !this.#isCurrent(snapshot) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     if (!readAllowed(profile, proposed)) {
@@ -427,11 +489,19 @@ export class PredictDeviceAuthService {
       throw new TemplateError('max_signatures', 'read');
     }
     const key = await this.#ensureDeviceKey(snapshot);
-    if (!key || !this.#canSign(snapshot, key)) {
+    if (
+      !key ||
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     const a2t = await snapshot.binding.session.ensureA2T();
-    if (!a2t || !this.#canSign(snapshot, key)) {
+    if (
+      !a2t ||
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     snapshot.canonicalProfileId = this.#deps.getCanonicalProfileId();
@@ -442,7 +512,10 @@ export class PredictDeviceAuthService {
     };
     const signature = await signDeviceRequest(profile, request, context, {
       sign: (bytes) => {
-        if (!this.#canSign(snapshot, key)) {
+        if (
+          !this.#canSign(snapshot, key) ||
+          !isVenueProfileSnapshotEligible(resolved)
+        ) {
           throw new TemplateError('confirmation', 'read');
         }
         return snapshot.binding.deviceKey.sign(bytes);
@@ -450,13 +523,20 @@ export class PredictDeviceAuthService {
       requestId: () => proposed.requestId ?? uuidv4(),
       now: this.#deps.now,
     });
-    if (!this.#canSign(snapshot, key)) {
+    if (
+      !this.#canSign(snapshot, key) ||
+      !isVenueProfileSnapshotEligible(resolved)
+    ) {
       return undefined;
     }
     return {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
-        profile: { id: profile.id, version: profile.version },
+        profile: {
+          id: profile.id,
+          version: profile.version,
+          sha256: resolved.sha256,
+        },
         context,
         signatures: [signature],
         maxSignatures,
