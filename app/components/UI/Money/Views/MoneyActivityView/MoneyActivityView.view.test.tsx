@@ -6,10 +6,12 @@ import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
+  cardTransaction,
+  cashbackTransaction,
   clearAccountsTransactionsApiMocks,
   setupMoneyActivityApiMock,
-  type MockMoneyActivityTransaction,
 } from '../../../../../../tests/component-view/api-mocking/accounts-transactions';
+import { setupMoneyAccountVaultApiMock } from '../../../../../../tests/component-view/api-mocking/moneyAccountVaults';
 import { renderMoneyActivityView } from '../../../../../../tests/component-view/renderers/moneyActivity';
 import {
   MONEY_ACTIVITY_ACCOUNT,
@@ -18,81 +20,14 @@ import {
 } from '../../../../../../tests/component-view/presets/moneyActivity';
 import { MoneyActivityItemTestIds } from '../../components/MoneyActivityItem/MoneyActivityItem.testIds';
 import {
-  CARD_BLOCK_NUMBER,
   CARD_TX_HASH as CARD_HASH,
   CASHBACK_TX_HASH as CASHBACK_HASH,
   cardValuation,
   vaultShareValuationResponse,
 } from '../../__fixtures__/vaultShareValuations';
 
-const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
-const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
-
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const engineCall = Engine.controllerMessenger.call as unknown as jest.Mock;
-const defaultEngineCall = engineCall.getMockImplementation() as
-  | ((action: string, ...args: unknown[]) => unknown)
-  | undefined;
-
-function cardTransaction(): MockMoneyActivityTransaction {
-  return {
-    hash: CARD_HASH,
-    timestamp: '2026-09-29T07:17:22Z',
-    chainId: 143,
-    blockNumber: CARD_BLOCK_NUMBER,
-    from: MONEY_ACTIVITY_ACCOUNT,
-    to: SETTLEMENT_ADDRESS,
-    transactionType: 'METAMASK_CARD_PAYMENT',
-    valueTransfers: [
-      {
-        from: MONEY_ACTIVITY_ACCOUNT,
-        to: SETTLEMENT_ADDRESS,
-        amount: '951755696',
-        decimal: 6,
-        contractAddress: MONEY_STANDARD_VAULT.boringVault,
-        symbol: 'vmUSD',
-      },
-    ],
-  };
-}
-
-function cashbackTransaction(): MockMoneyActivityTransaction {
-  return {
-    hash: CASHBACK_HASH,
-    timestamp: '2026-09-25T13:13:36Z',
-    chainId: 143,
-    blockNumber: 107901997,
-    from: REWARDER_ADDRESS,
-    to: MONEY_ACTIVITY_ACCOUNT,
-    transactionType: 'METAMASK_CARD_CASHBACK',
-    valueTransfers: [
-      {
-        from: REWARDER_ADDRESS,
-        to: MONEY_ACTIVITY_ACCOUNT,
-        amount: '524978000',
-        decimal: 6,
-        contractAddress: MONEY_PREMIUM_VAULT.boringVault,
-        symbol: 'pvmUSD',
-      },
-    ],
-  };
-}
-
-function installMoneyApi({
-  valuationReply,
-}: {
-  valuationReply: () => Promise<unknown>;
-}): void {
-  engineCall.mockImplementation((action: string, ...args: unknown[]) => {
-    if (action === 'MoneyAccountApiDataService:fetchVaultShareValuations') {
-      return valuationReply();
-    }
-    if (action === 'MoneyAccountApiDataService:fetchVaultRate') {
-      return Promise.resolve({ rate: '1.017488' });
-    }
-    return defaultEngineCall?.(action, ...args) ?? Promise.resolve(undefined);
-  });
-}
 
 function valuationCallCount(): number {
   return engineCall.mock.calls.filter(
@@ -117,7 +52,7 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
   });
 
   it('shows cached historical dollar amounts for vmUSD and pvmUSD rows, then opens details', async () => {
-    installMoneyApi({
+    setupMoneyAccountVaultApiMock({
       valuationReply: () =>
         Promise.resolve(
           vaultShareValuationResponse(
@@ -185,7 +120,7 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
   });
 
   it("keeps today's display and makes no valuation request with the flag off", async () => {
-    installMoneyApi({
+    setupMoneyAccountVaultApiMock({
       valuationReply: () =>
         Promise.resolve(
           vaultShareValuationResponse(
@@ -220,7 +155,7 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     const pendingValuation = new Promise<unknown>((resolve) => {
       resolveValuation = resolve;
     });
-    installMoneyApi({ valuationReply: () => pendingValuation });
+    setupMoneyAccountVaultApiMock({ valuationReply: () => pendingValuation });
 
     const { findByText, getByTestId } = renderMoneyActivityView({
       historicalValuationsEnabled: true,

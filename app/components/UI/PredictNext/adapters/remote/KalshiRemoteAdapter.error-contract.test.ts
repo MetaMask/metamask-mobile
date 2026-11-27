@@ -16,6 +16,8 @@ import {
   VenueReadBudgetExhaustedError,
   VenueSigningUnavailableError,
 } from './signedVenueCall';
+import { installVenueProfileFixture } from '../../../../../../tests/helpers/predict/venueProfile';
+import { setVenueProfileResolverForTesting } from '../../auth/venueSigningProfiles';
 
 // Deliberate consumer decisions, not a second emitted-code inventory: the API
 // artifact supplies every case, and an unrecognized addition fails this table.
@@ -165,10 +167,13 @@ const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
   const adapter = new KalshiRemoteAdapter(client, {
     getApprovalGeneration: () => 0,
     previewOperation: async () => ({
-      maxCost: '1.00',
-      contracts: '1.00',
-      payout: '1.00',
-      minProceeds: '0',
+      display: {
+        maxCost: '1.00',
+        contracts: '1.00',
+        payout: '1.00',
+        minProceeds: '0',
+      },
+      profile: { version: 1, sha256: 'sha-1' },
     }),
   });
   switch (phase) {
@@ -202,6 +207,11 @@ const cases = Object.entries(contract.codes).flatMap(([code, definition]) =>
 );
 
 describe('API emitted error contract at the mobile adapter boundary', () => {
+  beforeEach(() => {
+    installVenueProfileFixture();
+  });
+  afterEach(() => setVenueProfileResolverForTesting(undefined));
+
   it.each(cases)(
     '$phase maps $code on $route',
     async ({ code, phase, definition, depositCall }) => {

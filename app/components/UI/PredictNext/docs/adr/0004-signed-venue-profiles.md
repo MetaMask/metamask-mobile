@@ -2,7 +2,7 @@
 
 The phone signs every Venue request with its device key, under a signing profile that ships with the app. For trading reads, the Predict API proposes the one venue GET a route needs; the phone checks it against its profile copy, signs, and re-calls the route naming the GET it signed; the API checks, verifies and relays. Reconciliation persists operation-bound scan progress; ordinary portfolio reads are stateless. For mutations, the phone renders the request from its profile and signs the rendered bytes; the Predict API never builds a Venue request body.
 
-Status: accepted, 2026-11-09. Implements the trading half of PRED-1372. Replaces the trading portions of [ADR-0003](./0003-backend-driven-venue-authentication.md); onboarding keeps ADR-0003's backend-built request model until Universal KYC replaces those temporary, demo-only flows.
+Status: accepted, 2026-11-09; partly superseded by [ADR-0005](./0005-remote-venue-profiles.md) (2026-11-20), which replaces the signed, bundled document and its keys with readable JSON from mm-config-registry. The read/mutation model, envelope, invalidity and reconciliation rules below still stand. Implements the trading half of PRED-1372. Replaces the trading portions of [ADR-0003](./0003-backend-driven-venue-authentication.md); onboarding keeps ADR-0003's backend-built request model until Universal KYC replaces those temporary, demo-only flows.
 
 ## Context
 
@@ -26,7 +26,9 @@ The conflict ADR-0003 resolved — the signature must prove what the phone _mean
    `reviewPreview(venueId, previewId)` returns canonical `PredictOrderReview`
    fields: `{ previewId, maxCost, contracts, payout, proceedsIfFullyFilled }`.
    The view renders these fields, then calls `commitPreview` with explicit
-   `{ kind: 'user-approved' }` only at the approval event. Neither interface
+   `{ kind: 'user-approved' }` only at the approval event. A buy approval
+   shows only the signed maximum cost (`maxCost`) on the amount entry before
+   the Buy tap; Cash Out still opens the full review step. Neither interface
    accepts Kalshi template inputs, YES-leg pricing or Engine access through a
    generic view helper.
 

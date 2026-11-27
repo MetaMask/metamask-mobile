@@ -774,6 +774,7 @@
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null,
+    "cashbackClaim": null,
     "signInLink": null,
     "cardLinks": null,
     "cardLinksFetchedAt": null,

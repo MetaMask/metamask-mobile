@@ -15,6 +15,7 @@ import {
   selectPerpsProvider,
 } from '../../../app/components/UI/Perps/selectors/perpsController';
 import { PerpsConnectionManager } from '../../../app/components/UI/Perps/services/PerpsConnectionManager';
+import { PerpsCacheInvalidator } from '../../../app/components/UI/Perps/services/PerpsCacheInvalidator';
 import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
 import { PerpsTradeSheetSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
@@ -113,6 +114,8 @@ const testConnectionValue: PerpsConnectionContextValue = {
   reconnectWithNewContext: async (): Promise<void> => undefined,
 };
 
+let restorePerpsConnectionManagerState: (() => void) | undefined;
+
 function setTestMarketContext(
   state: DeepPartial<RootState>,
   isInitialized: boolean,
@@ -122,6 +125,22 @@ function setTestMarketContext(
     initializedConnectionGeneration: number | null;
     connectionGeneration: number;
   };
+  // Snapshot the manager singleton once per test, before the first
+  // mutation, so the afterEach below can put it back exactly as it was.
+  restorePerpsConnectionManagerState ??= (() => {
+    const snapshot = {
+      initializedMarketContextKey: manager.initializedMarketContextKey,
+      initializedConnectionGeneration: manager.initializedConnectionGeneration,
+      connectionGeneration: manager.connectionGeneration,
+    };
+    return (): void => {
+      manager.initializedMarketContextKey =
+        snapshot.initializedMarketContextKey;
+      manager.initializedConnectionGeneration =
+        snapshot.initializedConnectionGeneration;
+      manager.connectionGeneration = snapshot.connectionGeneration;
+    };
+  })();
   const rootState = state as RootState;
   manager.initializedMarketContextKey = isInitialized
     ? buildPerpsMarketContextKey(
@@ -134,6 +153,28 @@ function setTestMarketContext(
     ? manager.connectionGeneration
     : null;
 }
+
+/**
+ * Restores the Perps singletons the renderer mutates: the
+ * `PerpsConnectionManager` market-context bookkeeping (snapshotted before
+ * each test's first render) and the `PerpsCacheInvalidator` stream-cache
+ * subscribers accumulated across renders.
+ *
+ * Registered automatically below, including when a test throws. Safe to
+ * call again: a second call is a no-op.
+ */
+export function restorePerpsViewTestState(): void {
+  restorePerpsConnectionManagerState?.();
+  restorePerpsConnectionManagerState = undefined;
+  PerpsCacheInvalidator._clearAllSubscribers();
+}
+
+// Jest evaluates this module once per test file. Registering here covers
+// every spec that imports the renderer, so a caller cannot forget the
+// restore (same pattern as renderers/moneyHome).
+afterEach(() => {
+  restorePerpsViewTestState();
+});
 
 const testHardwareWalletValue: HardwareWalletContextValue = {
   walletType: null,
@@ -581,6 +622,12 @@ export interface PerpsStreamOverrides {
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
+/** Fixed order timestamps, distinct per builder so any time-ordered view
+ * stays deterministic (Perps views render these opaquely; none compare
+ * order timestamps to the wall clock). */
+const FIXED_ORDER_TIMESTAMP_MS = 1_735_689_600_000;
+const FIXED_ORDER_TIMESTAMP_MS_2 = 1_735_689_600_001;
+
 export function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): TestStreamManagerBundle {
@@ -1348,9 +1395,9 @@ export const defaultOrderDetailsOrder = {
   triggerDirection: undefined,
   timeInForce: 'Gtc' as const,
   status: 'open' as const,
-  timestamp: Date.now(),
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  timestamp: FIXED_ORDER_TIMESTAMP_MS,
+  createdAt: FIXED_ORDER_TIMESTAMP_MS,
+  updatedAt: FIXED_ORDER_TIMESTAMP_MS,
   fee: '0',
   averageFillPrice: undefined,
   filledSize: '0',
@@ -1584,9 +1631,9 @@ export const defaultOrderForViews: Order = {
   triggerDirection: undefined,
   timeInForce: 'Gtc' as const,
   status: 'open' as const,
-  timestamp: Date.now(),
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  timestamp: FIXED_ORDER_TIMESTAMP_MS_2,
+  createdAt: FIXED_ORDER_TIMESTAMP_MS_2,
+  updatedAt: FIXED_ORDER_TIMESTAMP_MS_2,
   fee: '0',
   averageFillPrice: undefined,
   filledSize: '0',

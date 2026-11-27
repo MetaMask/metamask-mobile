@@ -123,21 +123,64 @@ describe('useMMPayHardwareAccountAlert', () => {
     expect(isHardwareAccountMock).toHaveBeenCalledWith(OVERRIDE_ADDRESS);
   });
 
-  it('returns no alert on withdraw when account override is hardware account', () => {
-    isHardwareAccountMock.mockImplementation(
-      (address) => address === OVERRIDE_ADDRESS,
-    );
-    useTransactionAccountOverrideMock.mockReturnValue(OVERRIDE_ADDRESS);
+  it.each([
+    {
+      address: '0x3333333333333333333333333333333333333333' as const,
+      isQr: false,
+      label: 'Ledger',
+    },
+    {
+      address: '0x4444444444444444444444444444444444444444' as const,
+      isQr: true,
+      label: 'QR',
+    },
+    {
+      address: '0x5555555555555555555555555555555555555555' as const,
+      isQr: true,
+      label: 'OneKey',
+    },
+  ])(
+    'returns no alert on money account withdraw when account override is a $label hardware recipient',
+    ({ address, isQr }) => {
+      const moneyAccountAddress = '0x1111111111111111111111111111111111111111';
+      isHardwareAccountMock.mockImplementation((addr) => addr === address);
+      isQRHardwareAccountMock.mockImplementation(
+        (addr) => isQr && addr === address,
+      );
+      useTransactionAccountOverrideMock.mockReturnValue(address);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountWithdraw,
+        txParams: {
+          from: moneyAccountAddress,
+        },
+      } as TransactionMeta);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+      expect(isHardwareAccountMock).toHaveBeenCalledWith(moneyAccountAddress);
+      expect(isHardwareAccountMock).not.toHaveBeenCalledWith(address);
+      expect(isQRHardwareAccountMock).toHaveBeenCalledWith(moneyAccountAddress);
+      expect(isQRHardwareAccountMock).not.toHaveBeenCalledWith(address);
+    },
+  );
+
+  it('returns no alert on money account withdraw when account override is a non-hardware recipient', () => {
+    const moneyAccountAddress = '0x1111111111111111111111111111111111111111';
+    const softwareRecipient = '0x2222222222222222222222222222222222222222';
+    isHardwareAccountMock.mockReturnValue(false);
+    useTransactionAccountOverrideMock.mockReturnValue(softwareRecipient);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountWithdraw,
       txParams: {
-        from: '0x123',
+        from: moneyAccountAddress,
       },
     } as TransactionMeta);
 
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith(moneyAccountAddress);
   });
 
   it('returns no alert when fiat payment method is selected', () => {

@@ -10,6 +10,8 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/fetchStub';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { lightTheme } from '@metamask/design-tokens';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
@@ -18,6 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { formatGameStartShort } from '../../events/game';
 import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
+import { PredictVenueSelectorTestIds } from '../../venueSelection';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
@@ -85,6 +88,8 @@ const {
   ncaaGames: NCAA_GAMES_FEED_ID,
   politicsTrump: POLITICS_TRUMP_FEED_ID,
 } = PREDICT_NEXT_FEED_IDS;
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 /** The pagination dots are hidden from screen readers. */
 const HIDDEN = { includeHiddenElements: true };
@@ -238,36 +243,198 @@ describe('PredictHome', () => {
     }
   });
 
-  it('floats the header over the content when the Predict brand refresh is on', async () => {
-    const view = renderPredictNext(false, {
-      remoteFeatureFlags: {
-        predictBrandRefresh: { enabled: true, minimumVersion: '0.0.0' },
+  describe('glass header', () => {
+    const BRAND_REFRESH = {
+      predictBrandRefresh: { enabled: true, minimumVersion: '0.0.0' },
+    };
+    const BOTH_VENUES = {
+      predictConfig: {
+        enabled: true,
+        venues: {
+          polymarket: { enabled: true },
+          kalshi: { enabled: true },
+        },
+        venueSelection: { enabled: true },
       },
+    };
+    const headerActions = (view: ReturnType<typeof renderPredictNext>) =>
+      within(view.getByTestId(PredictHomeTestIds.HEADER_ACTIONS));
+
+    beforeEach(() => {
+      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     });
-    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
-    expect(view.getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
-    expect(
-      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
-        .paddingTop,
-    ).toBeGreaterThan(0);
+    afterEach(() => {
+      netInfoMock.__resetMockNetInfo();
+    });
 
-    fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
+    it('floats the header over the content when the Predict brand refresh is on', async () => {
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: BRAND_REFRESH,
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
-    expect(
-      await view.findByTestId(PredictSearchScreenTestIds.VIEW),
-    ).toBeOnTheScreen();
-  });
+      expect(view.getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
+          .paddingTop,
+      ).toBeGreaterThan(0);
 
-  it('keeps the solid header when the Predict brand refresh is off', async () => {
-    const view = renderPredictNext();
-    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
 
-    expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
-    expect(
-      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
-        .paddingTop,
-    ).toBe(0);
+      expect(
+        await view.findByTestId(PredictSearchScreenTestIds.VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    it('groups the venue selector, Search and debug in one capsule, in that order', async () => {
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: { ...BRAND_REFRESH, ...BOTH_VENUES },
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(
+        headerActions(view)
+          .getAllByRole('button')
+          .map((button) => button.props.testID),
+      ).toEqual([
+        PredictVenueSelectorTestIds.BUTTON,
+        PredictHomeTestIds.SEARCH,
+        KalshiDebugTestIds.OPEN,
+      ]);
+      expect(
+        headerActions(view).getByLabelText(
+          strings('predict_next.venue_selector.button_label'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        headerActions(view).getByLabelText(
+          strings('predict_next.search.placeholder'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps each grouped icon its own tap target', async () => {
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: { ...BRAND_REFRESH, ...BOTH_VENUES },
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      fireEvent.press(
+        headerActions(view).getByTestId(PredictVenueSelectorTestIds.BUTTON),
+      );
+
+      expect(
+        await view.findByTestId(PredictVenueSelectorTestIds.SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictSearchScreenTestIds.VIEW),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        view.getByTestId(PredictVenueSelectorTestIds.CLOSE_BUTTON),
+      );
+      await waitFor(() =>
+        expect(
+          view.queryByTestId(PredictVenueSelectorTestIds.SHEET),
+        ).not.toBeOnTheScreen(),
+      );
+      fireEvent.press(
+        headerActions(view).getByTestId(PredictHomeTestIds.SEARCH),
+      );
+
+      expect(
+        await view.findByTestId(PredictSearchScreenTestIds.VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the capsule around the venue selector alone when the Venue has no search', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        searchSupported: false,
+      });
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: { ...BRAND_REFRESH, ...BOTH_VENUES },
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(
+        headerActions(view)
+          .getAllByRole('button')
+          .map((button) => button.props.testID),
+      ).toEqual([PredictVenueSelectorTestIds.BUTTON, KalshiDebugTestIds.OPEN]);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('seats the debug trigger in its own capsule when nothing else is grouped', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        searchSupported: false,
+      });
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: BRAND_REFRESH,
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HEADER_ACTIONS),
+      ).not.toBeOnTheScreen();
+      expect(view.getByTestId(KalshiDebugTestIds.OPEN)).toBeOnTheScreen();
+    });
+
+    it('keeps the plain header while the device is offline', async () => {
+      netInfoMock.__resetMockNetInfo();
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: { ...BRAND_REFRESH, ...BOTH_VENUES },
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HEADER_ACTIONS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictVenueSelectorTestIds.BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the glass header while the network is unknown', async () => {
+      netInfoMock.__setMockNetInfo({
+        type: 'unknown',
+        isInternetReachable: null,
+      });
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: BRAND_REFRESH,
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(view.getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictHomeTestIds.HEADER_ACTIONS),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the solid header with plain icons when the Predict brand refresh is off', async () => {
+      const view = renderPredictNext(false, {
+        remoteFeatureFlags: BOTH_VENUES,
+      });
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(
+        view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
+          .paddingTop,
+      ).toBe(0);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HEADER_ACTIONS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictVenueSelectorTestIds.BUTTON),
+      ).toBeOnTheScreen();
+      expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+    });
   });
 
   it('keeps the compact header title and feed mounted after scrolling past the title section', async () => {
@@ -1784,12 +1951,12 @@ describe('PredictHome', () => {
         within(card).getByTestId(
           PredictHomeTestIds.outcome('politics-1', 'yes'),
         ),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('42%');
       expect(
         within(card).getByTestId(
           PredictHomeTestIds.outcome('politics-1', 'no'),
         ),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('58%');
       expect(
         within(card).queryByTestId(PredictHomeTestIds.category('politics-1')),
       ).not.toBeOnTheScreen();

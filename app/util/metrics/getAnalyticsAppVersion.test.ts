@@ -7,6 +7,13 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
 }));
 
+const mockOta = { OTA_VERSION: 'vX.XX.X' };
+jest.mock('../../constants/ota', () => ({
+  get OTA_VERSION() {
+    return mockOta.OTA_VERSION;
+  },
+}));
+
 const mockGetVersion = getVersion as jest.MockedFunction<typeof getVersion>;
 
 describe('formatAnalyticsAppVersion', () => {
@@ -119,6 +126,37 @@ describe('formatAnalyticsAppVersion', () => {
 describe('getAnalyticsAppVersion', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    mockOta.OTA_VERSION = 'vX.XX.X';
+  });
+
+  it('uses the OTA version when an OTA hotfix is applied on top of the native version', () => {
+    mockGetVersion.mockReturnValue('8.21.0');
+    mockOta.OTA_VERSION = 'v8.21.2';
+
+    const result = getAnalyticsAppVersion();
+
+    expect(result).toBe(
+      formatAnalyticsAppVersion(
+        '8.21.2',
+        process.env.METAMASK_ENVIRONMENT,
+        process.env.METAMASK_BUILD_ATTRIBUTION,
+      ),
+    );
+  });
+
+  it('keeps the native version when OTA_VERSION is stale', () => {
+    mockGetVersion.mockReturnValue('8.22.0');
+    mockOta.OTA_VERSION = 'v8.21.2';
+
+    const result = getAnalyticsAppVersion();
+
+    expect(result).toBe(
+      formatAnalyticsAppVersion(
+        '8.22.0',
+        process.env.METAMASK_ENVIRONMENT,
+        process.env.METAMASK_BUILD_ATTRIBUTION,
+      ),
+    );
   });
 
   // METAMASK_ENVIRONMENT and METAMASK_BUILD_ATTRIBUTION are inlined by babel at
