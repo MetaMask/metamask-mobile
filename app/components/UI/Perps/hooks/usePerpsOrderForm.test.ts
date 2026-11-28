@@ -1736,6 +1736,39 @@ describe('usePerpsOrderForm', () => {
       expect(deposit).toBeLessThanOrEqual(paymentBalance);
     });
 
+    it('fits the mark-priced deposit in the payment balance when mark is above mid', () => {
+      const midPrice = 50000;
+      const markPrice = 50500;
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: String(midPrice),
+          markPrice: String(markPrice),
+          timestamp: Date.now(),
+          symbol: 'BTC',
+          isTradable: true,
+        },
+      });
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ effectiveAvailableBalance: paymentBalance }),
+        { wrapper: createWrapper() },
+      );
+      const feeRate = 0.0045;
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      const markMargin = ((notional / midPrice) * markPrice) / leverage;
+      const deposit =
+        markMargin * (1 + defaultSlippageRate) + notional * feeRate;
+      expect(notional).toBeGreaterThan(0);
+      expect(deposit).toBeLessThanOrEqual(paymentBalance);
+    });
+
     it('does not reserve slippage when paying from the Perps balance', () => {
       const { result: perpsBalance } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),

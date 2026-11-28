@@ -452,6 +452,24 @@ export function usePerpsOrderForm(
       });
     }
 
+    // The pay-with-token deposit prices margin at the mark, so a mark above
+    // mid must cap the size too or 100% still exceeds the token balance.
+    const markPrice = Number.parseFloat(currentPrice?.markPrice ?? '') || 0;
+    if (
+      hasPaymentBalance &&
+      isMarketOrder &&
+      markPrice > effectiveAssetPrice &&
+      effectiveAssetPrice > 0
+    ) {
+      return getMaxAllowedAmountAtExecutionPrice({
+        spendableBalance: feeAdjustedBalance,
+        sizePrice: effectiveAssetPrice,
+        executionPrice: markPrice,
+        assetSzDecimals: sizeDecimals,
+        leverage: orderForm.leverage,
+      });
+    }
+
     return getMaxAllowedAmount({
       spendableBalance: feeAdjustedBalance,
       assetPrice: effectiveAssetPrice,
@@ -463,6 +481,7 @@ export function usePerpsOrderForm(
     hasPaymentBalance,
     estimatedFeeRate,
     currentPrice?.price,
+    currentPrice?.markPrice,
     orderForm.type,
     orderForm.direction,
     orderForm.limitPrice,
