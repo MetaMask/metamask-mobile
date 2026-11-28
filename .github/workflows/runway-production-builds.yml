@@ -123,7 +123,7 @@ jobs:
   # attestations: write. Artifacts are digest-checked on download, so the subjects are
   # the exact files the build job produced.
   attest-release:
-    name: Attest release binaries and SBOM
+    name: Attest release binaries
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -131,13 +131,6 @@ jobs:
       id-token: write # Sigstore signing for the attestations
       attestations: write
     steps:
-      - name: Checkout built commit
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.build.outputs.built_commit_sha }}
-          fetch-depth: 1
-          persist-credentials: false
-
       - name: Download iOS IPA
         uses: actions/download-artifact@v7
         with:
@@ -167,23 +160,6 @@ jobs:
             ${{ runner.temp }}/release/android/*.aab
           predicate-type: https://github.com/MetaMask/metamask-mobile/attestations/release-build/v1
           predicate: '{"commit":"${{ needs.build.outputs.built_commit_sha }}"}'
-
-      # Catalogs the lockfiles in the source tree (yarn.lock, Podfile.lock, Gemfile.lock).
-      - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
-        with:
-          path: .
-          format: cyclonedx-json
-          output-file: ${{ runner.temp }}/sbom-main-prod.cdx.json
-          artifact-name: sbom-main-prod.cdx.json
-
-      - name: Attest SBOM
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
-        with:
-          subject-path: |
-            ${{ runner.temp }}/release/ios/*.ipa
-            ${{ runner.temp }}/release/android/*.aab
-          sbom-path: ${{ runner.temp }}/sbom-main-prod.cdx.json
 
   slack-notification:
     name: Slack Production Notification

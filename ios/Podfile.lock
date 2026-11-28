@@ -3610,7 +3610,7 @@ PODS:
   - segment-analytics-react-native (2.23.0):
     - React-Core
     - sovran-react-native
-  - sovran-react-native (1.1.3):
+  - sovran-react-native (1.1.5):
     - React-Core
   - SwiftUIIntrospect (1.3.0)
   - VeriffSDK (8.12.0)
@@ -4423,7 +4423,7 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   segment-analytics-react-native: 5df85065a7cf2c07311ec5a4832d5d3092015c98
-  sovran-react-native: a3ad3f8ff90c2002b2aa9790001a78b0b0a38594
+  sovran-react-native: adab7580e38f67c0e8679df1cf277d1075b83ed8
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   VeriffSDK: 4323cc7d0152c107f40795881c92a41cf5a80f29
   VisionCamera: 7187b3dac1ff3071234ead959ce311875748e14f

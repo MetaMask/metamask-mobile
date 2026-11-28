@@ -7,7 +7,7 @@ import {
   renderExploreSearchScreenWithRoutes,
 } from '../../../../../../tests/component-view/renderers/trending';
 import {
-  getRouteParamsProbeTestId,
+  findRouteParams,
   getRouteProbeTestId,
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -584,12 +584,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
     ).toBeOnTheScreen();
-    expect(
-      JSON.parse(
-        (await findByTestId(getRouteParamsProbeTestId(Routes.BROWSER.HOME)))
-          .props.children,
-      ),
-    ).toEqual(
+    expect(await findRouteParams(findByTestId, Routes.BROWSER.HOME)).toEqual(
       expect.objectContaining({
         showTabsView: true,
         fromExploreSearch: true,

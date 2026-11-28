@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import type { RenderResult } from '@testing-library/react-native';
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
@@ -14,6 +15,7 @@ import renderWithProvider, {
 } from '../../app/util/test/renderWithProvider';
 import Engine from '../../app/core/Engine';
 import { DATA_SERVICES } from '../../app/constants/data-services';
+import Routes from '../../app/constants/navigation/Routes';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
@@ -203,4 +205,50 @@ export function renderScreenWithRoutes(
     frame ? frame(stackTree) : stackTree,
     providerValues,
   );
+}
+
+/** Entry route for screens rendered only to navigate into the browser home probe. */
+const BROWSER_HOME_PROBE_ENTRY_ROUTE = 'BrowserHomeProbeEntry';
+
+/**
+ * Renders `Component` on a stack whose browser-home route is a params probe.
+ * `state` is the Redux fixture for that screen (any preset's built state).
+ */
+export function renderWithBrowserHomeProbe(
+  Component: React.ComponentType,
+  state: ProviderValues['state'],
+): ReturnType<typeof renderScreenWithRoutes> {
+  return renderScreenWithRoutes(
+    Component,
+    { name: BROWSER_HOME_PROBE_ENTRY_ROUTE },
+    [
+      {
+        name: Routes.BROWSER.HOME,
+        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
+      },
+    ],
+    { state },
+  );
+}
+
+/**
+ * Waits for the params probe registered for `routeName`, asserts it is on
+ * screen, and returns the navigation params that screen received.
+ */
+export async function findRouteParams(
+  findByTestId: RenderResult['findByTestId'],
+  routeName: string,
+): Promise<unknown> {
+  const routeParams = await findByTestId(getRouteParamsProbeTestId(routeName));
+
+  expect(routeParams).toBeOnTheScreen();
+
+  const { children } = routeParams.props;
+  if (typeof children !== 'string') {
+    throw new Error(
+      `Route params probe for "${routeName}" did not render JSON params`,
+    );
+  }
+
+  return JSON.parse(children);
 }
