@@ -325,6 +325,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
+const mockUseNftMaliciousNftScan = jest.fn();
+jest.mock('../../hooks/useNftMaliciousNftScan/useNftMaliciousNftScan', () => ({
+  useNftMaliciousNftScan: (...args: unknown[]) =>
+    mockUseNftMaliciousNftScan(...args),
+}));
+
 describe('NftGrid', () => {
   const mockNft: Nft = {
     address: '0x123',
@@ -597,6 +603,25 @@ describe('NftGrid', () => {
       expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
       expect(queryByTestId('collectible-Test NFT-789')).toBeNull();
     });
+  });
+
+  it('scans only the NFTs it renders', () => {
+    const owned = Array.from({ length: 20 }, (__, i) => ({
+      ...mockNft,
+      address: `0x${i}`,
+      tokenId: `${i}`,
+    }));
+    setupSelectorMocks({ collectibles: { '0x1': owned } });
+    const store = mockStore(initialState);
+
+    render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    // Homepage mode renders at most 18
+    expect(mockUseNftMaliciousNftScan).toHaveBeenCalledWith(owned.slice(0, 18));
   });
 
   it('navigates to AddAsset when add collectible button is pressed', async () => {
