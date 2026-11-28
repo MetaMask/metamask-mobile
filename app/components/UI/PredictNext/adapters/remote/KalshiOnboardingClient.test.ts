@@ -95,6 +95,20 @@ const envelope = (fetchImpl: jest.Mock, index: number) =>
   };
 
 describe('KalshiOnboardingClient', () => {
+  it('reports the device key as the client identity', async () => {
+    const { client } = clientWith(jest.fn());
+
+    await expect(client.getIdentity()).resolves.toBe(CONTEXT.deviceKey);
+  });
+
+  it('reports no identity without a device key', async () => {
+    const { client } = clientWith(jest.fn(), {
+      getDeviceKey: async () => null,
+    });
+
+    await expect(client.getIdentity()).resolves.toBeUndefined();
+  });
+
   it('sends the onboarded probe device-signed with an envelope', async () => {
     const fetchImpl = jest
       .fn()

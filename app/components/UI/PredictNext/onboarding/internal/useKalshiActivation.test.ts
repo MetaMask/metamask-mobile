@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 
+import Logger from '../../../../../util/Logger';
 import { KalshiOnboardingHttpError } from '../../adapters/remote/KalshiOnboardingClient';
 import type {
   KalshiOnboardingStatus,
@@ -18,10 +19,13 @@ const statusOf = (state: KalshiOnboardingState): KalshiOnboardingStatus => ({
   state,
 });
 
+let identities = 0;
+
 const build = (overrides: Partial<UseKalshiActivationOptions> = {}) => {
-  const client: KalshiActivationApi = {
+  const client: KalshiActivationApi = overrides.client ?? {
     getStatus: jest.fn(async () => statusOf('approved')),
     activate: jest.fn(async () => ({}) as never),
+    getIdentity: jest.fn(async () => `device-${identities++}`),
   };
   const onActivated = jest.fn();
   let keys = 0;
@@ -499,5 +503,122 @@ describe('useKalshiActivation', () => {
 
     expect(result.current.registerAccepted).toBe(false);
     expect(result.current.failure).toBeUndefined();
+  });
+
+  it('logs the report behind a failed register', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    const { result, client } = build();
+    (client.activate as jest.Mock).mockRejectedValue(
+      new KalshiOnboardingHttpError(400, 'onboarding_wallet_invalid'),
+    );
+
+    act(() => result.current.activate());
+    await flush();
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Kalshi demo onboarding failed: onboarding_wallet_invalid',
+      }),
+      'PredictNext: Kalshi activation register failed',
+    );
+    expect(result.current.failure).toEqual(
+      expect.objectContaining({ message: 'wallet_invalid', action: 'none' }),
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('does not write again after the screen remounts', async () => {
+    const identity = 'device-remount';
+    const firstClient: KalshiActivationApi = {
+      getStatus: jest.fn(async () => statusOf('approved')),
+      activate: jest.fn(async () => ({}) as never),
+      getIdentity: jest.fn(async () => identity),
+    };
+    const first = build({ client: firstClient });
+    await flush();
+    act(() => first.result.current.activate());
+    await flush();
+    expect(firstClient.activate).toHaveBeenCalledTimes(1);
+    first.unmount();
+
+    const secondClient: KalshiActivationApi = {
+      getStatus: jest.fn(async () => statusOf('approved')),
+      activate: jest.fn(async () => ({}) as never),
+      getIdentity: jest.fn(async () => identity),
+    };
+    const second = build({ client: secondClient });
+    await flush();
+    expect(second.result.current.registerAccepted).toBe(true);
+
+    act(() => second.result.current.activate());
+    await flush();
+
+    expect(secondClient.activate).not.toHaveBeenCalled();
+  });
+
+  it('reuses the pending key after the screen remounts', async () => {
+    const identity = 'device-pending-key';
+    const firstClient: KalshiActivationApi = {
+      getStatus: jest.fn(async () => statusOf('approved')),
+      activate: jest.fn(
+        async () => new Promise<never>(() => undefined),
+      ) as never,
+      getIdentity: jest.fn(async () => identity),
+    };
+    const first = build({ client: firstClient, newKey: () => 'key-first' });
+    await flush();
+    act(() => first.result.current.activate());
+    await flush();
+    expect(firstClient.activate).toHaveBeenCalledWith(
+      WALLET,
+      'base',
+      'key-first',
+    );
+    first.unmount();
+
+    const secondClient: KalshiActivationApi = {
+      getStatus: jest.fn(async () => statusOf('approved')),
+      activate: jest.fn(async () => ({}) as never),
+      getIdentity: jest.fn(async () => identity),
+    };
+    const second = build({ client: secondClient, newKey: () => 'key-second' });
+    await flush();
+    act(() => second.result.current.activate());
+    await flush();
+
+    expect(secondClient.activate).toHaveBeenCalledWith(
+      WALLET,
+      'base',
+      'key-first',
+    );
+  });
+
+  it('offers the write again when the device identity changes', async () => {
+    const firstClient: KalshiActivationApi = {
+      getStatus: jest.fn(async () => statusOf('approved')),
+      activate: jest.fn(async () => ({}) as never),
+      getIdentity: jest.fn(async () => 'device-old'),
+    };
+    const first = build({ client: firstClient });
+    await flush();
+    act(() => first.result.current.activate());
+    await flush();
+    first.unmount();
+
+    const secondClient: KalshiActivationApi = {
+      getStatus: jest.fn(async () => statusOf('approved')),
+      activate: jest.fn(async () => ({}) as never),
+      getIdentity: jest.fn(async () => 'device-new'),
+    };
+    const second = build({ client: secondClient });
+    await flush();
+    expect(second.result.current.registerAccepted).toBe(false);
+
+    act(() => second.result.current.activate());
+    await flush();
+
+    expect(secondClient.activate).toHaveBeenCalledTimes(1);
   });
 });

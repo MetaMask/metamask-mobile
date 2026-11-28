@@ -14,9 +14,11 @@ const mockState = {
   isFocused: true,
 };
 
+let identities = 0;
 const mockClient: KalshiActivationApi = {
   getStatus: jest.fn(async () => ({ state: 'approved' as const })),
   activate: jest.fn(async () => ({}) as never),
+  getIdentity: jest.fn(async () => `device-${identities++}`),
 };
 const mockCreateClient = jest.fn(() => mockClient);
 const mockInvalidateQueries = jest.fn(async (_arg: unknown) => undefined);
@@ -82,13 +84,17 @@ const flush = async () => {
 
 describe('KalshiActivationPrompt', () => {
   let announceForAccessibility: jest.SpyInstance | undefined;
+  let originalApiEnv: string | undefined;
 
   afterEach(() => {
     jest.useRealTimers();
+    process.env.MM_API_ENV = originalApiEnv;
     announceForAccessibility?.mockRestore();
   });
 
   beforeEach(() => {
+    originalApiEnv = process.env.MM_API_ENV;
+    process.env.MM_API_ENV = 'uat';
     AppState.currentState = 'active';
     mockState.signedIn = true;
     mockState.walletUnlocked = true;
@@ -321,5 +327,48 @@ describe('KalshiActivationPrompt', () => {
 
     expect(screen.queryByTestId(KalshiDemoOnboardingTestIds.SHEET)).toBeNull();
     expect(mockInvalidateQueries).toHaveBeenCalled();
+  });
+
+  it('keeps the sheet open when the poll reports an unsupported state', async () => {
+    jest.useFakeTimers();
+    (mockClient.getStatus as jest.Mock)
+      .mockResolvedValueOnce({ state: 'approved' })
+      .mockResolvedValueOnce({ state: 'unsupported' });
+    (mockClient.activate as jest.Mock).mockResolvedValue({});
+
+    renderPrompt();
+    await act(async () => {
+      await jest.runAllTimersAsync();
+    });
+    fireEvent.press(screen.getByTestId(KalshiDemoOnboardingTestIds.ACTIVATE));
+    await act(async () => {
+      await jest.runAllTimersAsync();
+    });
+
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(KalshiDemoOnboardingTestIds.MESSAGE),
+    ).toHaveTextContent("This account can't be linked in the demo flow.");
+  });
+
+  it('stays closed in a production environment', async () => {
+    const devGlobal = globalThis as unknown as Record<string, unknown>;
+    const originalDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = false;
+    process.env.MM_API_ENV = 'prod';
+
+    try {
+      renderPrompt();
+      await flush();
+
+      expect(mockCreateClient).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(KalshiDemoOnboardingTestIds.SHEET),
+      ).toBeNull();
+    } finally {
+      devGlobal.__DEV__ = originalDev;
+    }
   });
 });

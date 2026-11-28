@@ -17,6 +17,7 @@ import { selectPredictConfig } from '../selectors/predictConfig';
 import type { PredictVenueId } from '../types';
 import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
 import {
+  isKalshiDemoEnvironment,
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
 } from './internal/demoOnboardingConfig';
@@ -68,6 +69,7 @@ export const KalshiActivationPrompt = ({
   const enabled =
     venueId === KALSHI_VENUE_ID &&
     resolveVenueAuthProfile(config) !== undefined &&
+    isKalshiDemoEnvironment() &&
     signedIn &&
     walletUnlocked &&
     kycApproved;
@@ -108,7 +110,12 @@ export const KalshiActivationPrompt = ({
   if (
     !isFocused ||
     dismissed ||
-    (!activation.requiresActivation && !activation.completed)
+    // A failure can move the server off `approved` (or the read may report a
+    // state activation cannot handle). Keep the sheet up so the reason and
+    // its action stay visible instead of vanishing.
+    (!activation.requiresActivation &&
+      !activation.completed &&
+      activation.failure === undefined)
   ) {
     return null;
   }

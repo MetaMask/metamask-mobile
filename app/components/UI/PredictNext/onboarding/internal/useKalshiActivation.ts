@@ -17,8 +17,28 @@ export const ACTIVATION_POLL_LIMIT_MS = 60_000;
 
 export type KalshiActivationApi = Pick<
   KalshiOnboardingClient,
-  'getStatus' | 'activate'
+  'getStatus' | 'activate' | 'getIdentity'
 >;
+
+interface RegisterAttempt {
+  /** The key of a register that may already be on the wire. */
+  key?: string;
+  accepted: boolean;
+}
+
+/**
+ * Outlives the screen. Home unmounts on navigation and lock while the
+ * register may still be landing, so a fresh mount must neither mint a second
+ * key nor offer the write again. Keyed by the device identity the A2T is
+ * issued to, which wallet reset deletes, and the register target.
+ */
+const registerAttempts = new Map<string, RegisterAttempt>();
+
+const attemptKey = (
+  identity: string,
+  walletAddress: string,
+  network: string,
+): string => `${identity}:${network}:${walletAddress.toLowerCase()}`;
 
 /**
  * What the user can do after a failure. `none` means the failure is final for
@@ -103,7 +123,9 @@ const toActivationFailure = (
  *
  * The register is idempotent through one key per attempt. Once Kalshi accepts
  * it, a retry only re-reads status: minting a second key would conflict with
- * the register that may already have landed.
+ * the register that may already have landed. The attempt, pending or accepted,
+ * is remembered across unmounts by the A2T device identity and the register
+ * target, so leaving and re-entering Home cannot write twice.
  */
 export const useKalshiActivation = (
   options: UseKalshiActivationOptions,
@@ -125,6 +147,8 @@ export const useKalshiActivation = (
   const pendingRead = useRef<Promise<KalshiOnboardingState | undefined> | null>(
     null,
   );
+  const identityRef = useRef<string | undefined>(undefined);
+  const identityFlight = useRef<Promise<string | undefined> | null>(null);
 
   useEffect(
     () => () => {
@@ -134,6 +158,61 @@ export const useKalshiActivation = (
     },
     [],
   );
+
+  /** The A2T device identity, read once per enabled visit. */
+  const resolveIdentity = useCallback(async (): Promise<string | undefined> => {
+    if (identityRef.current) {
+      return identityRef.current;
+    }
+    identityFlight.current ??= (async () => {
+      const { client } = latest.current;
+      if (!client) {
+        return undefined;
+      }
+      try {
+        const identity = await client.getIdentity();
+        identityRef.current = identity;
+        return identity;
+      } catch (error) {
+        Logger.error(
+          ensureError(error, 'KalshiActivation.resolveIdentity'),
+          'PredictNext: Kalshi activation identity read failed',
+        );
+        return undefined;
+      }
+    })().finally(() => {
+      identityFlight.current = null;
+    });
+    return identityFlight.current;
+  }, []);
+
+  /** Records the attempt once the device identity is known. */
+  const rememberAttempt = useCallback(
+    (walletAddress: string, network: string, attempt: RegisterAttempt) => {
+      void resolveIdentity().then((identity) => {
+        if (identity) {
+          registerAttempts.set(
+            attemptKey(identity, walletAddress, network),
+            attempt,
+          );
+        }
+      });
+    },
+    [resolveIdentity],
+  );
+
+  /** The register landed or the account is active: nothing left to remember. */
+  const forgetAttempt = useCallback(() => {
+    const { walletAddress, network } = latest.current;
+    if (!walletAddress) {
+      return;
+    }
+    void resolveIdentity().then((identity) => {
+      if (identity) {
+        registerAttempts.delete(attemptKey(identity, walletAddress, network));
+      }
+    });
+  }, [resolveIdentity]);
 
   const readStatus = useCallback(async (): Promise<
     KalshiOnboardingState | undefined
@@ -154,6 +233,9 @@ export const useKalshiActivation = (
         }
         statusRef.current = next.state;
         setStatus(next.state);
+        if (next.state === 'active') {
+          forgetAttempt();
+        }
         return next.state;
       } catch (error) {
         if (run !== runRef.current || !latest.current.enabled) {
@@ -172,7 +254,7 @@ export const useKalshiActivation = (
     });
     pendingRead.current = read;
     return read;
-  }, []);
+  }, [forgetAttempt]);
 
   const refresh = useCallback(() => {
     if (busyRef.current) {
@@ -193,6 +275,8 @@ export const useKalshiActivation = (
       keyRef.current = undefined;
       busyRef.current = false;
       pendingRead.current = null;
+      identityRef.current = undefined;
+      identityFlight.current = null;
       setStatus(undefined);
       setCompleted(false);
       setRegisterAccepted(false);
@@ -200,6 +284,36 @@ export const useKalshiActivation = (
       setBusy(false);
     }
   }, [enabled]);
+
+  // A fresh mount rebuilds the attempt the previous screen may have left.
+  const {
+    client: seedClient,
+    walletAddress: seedWallet,
+    network: seedNetwork,
+  } = options;
+  useEffect(() => {
+    if (!enabled || !seedClient || !seedWallet) {
+      return undefined;
+    }
+    let cancelled = false;
+    void (async () => {
+      const identity = await resolveIdentity();
+      if (cancelled || !identity) {
+        return;
+      }
+      const remembered = registerAttempts.get(
+        attemptKey(identity, seedWallet, seedNetwork),
+      );
+      if (!remembered) {
+        return;
+      }
+      setRegisterAccepted(remembered.accepted);
+      keyRef.current ??= remembered.key;
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, resolveIdentity, seedClient, seedWallet, seedNetwork]);
 
   const wait = async (ms: number): Promise<void> => {
     await new Promise<void>((resolve) => {
@@ -239,6 +353,7 @@ export const useKalshiActivation = (
             state: next.state,
           });
           if (next.state === 'active') {
+            forgetAttempt();
             return true;
           }
           if (next.state !== 'approved') {
@@ -266,7 +381,7 @@ export const useKalshiActivation = (
       }
       return false;
     },
-    [],
+    [forgetAttempt],
   );
 
   const activate = useCallback(async () => {
@@ -290,9 +405,22 @@ export const useKalshiActivation = (
     busyRef.current = true;
     setBusy(true);
     setFailure(undefined);
-    keyRef.current ??= newKey();
-    const key = keyRef.current;
     const run = runRef.current;
+
+    const identity = identityRef.current;
+    const remembered = identity
+      ? registerAttempts.get(attemptKey(identity, walletAddress, network))
+      : undefined;
+    if (remembered?.accepted) {
+      // An earlier screen's register landed; only a re-read is safe.
+      setRegisterAccepted(true);
+      busyRef.current = false;
+      setBusy(false);
+      return;
+    }
+    keyRef.current ??= remembered?.key ?? newKey();
+    const key = keyRef.current;
+    rememberAttempt(walletAddress, network, { key, accepted: false });
 
     try {
       await client.activate(walletAddress, network, key);
@@ -300,7 +428,14 @@ export const useKalshiActivation = (
       if (run !== runRef.current) {
         return;
       }
-      setFailure(toActivationFailure(describeOnboardingFailure(error)));
+      const registerFailure = describeOnboardingFailure(error);
+      if (registerFailure.report) {
+        Logger.error(
+          new Error(`Kalshi demo onboarding failed: ${registerFailure.report}`),
+          'PredictNext: Kalshi activation register failed',
+        );
+      }
+      setFailure(toActivationFailure(registerFailure));
       busyRef.current = false;
       setBusy(false);
       return;
@@ -314,6 +449,7 @@ export const useKalshiActivation = (
     // landed so a later visit only re-reads status.
     keyRef.current = undefined;
     setRegisterAccepted(true);
+    rememberAttempt(walletAddress, network, { accepted: true });
     let active = false;
     try {
       active = await pollForActivation(run);
@@ -336,7 +472,7 @@ export const useKalshiActivation = (
       (current) =>
         current ?? { message: 'activation_timeout', action: 'checkAgain' },
     );
-  }, [pollForActivation]);
+  }, [pollForActivation, rememberAttempt]);
 
   const checkAgain = useCallback(async () => {
     if (busyRef.current) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Platform } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
@@ -35,8 +35,10 @@ const renderModal = (activation: KalshiActivation) =>
 
 describe('KalshiActivationModal', () => {
   let announceForAccessibility: jest.SpyInstance;
+  let originalPlatform: typeof Platform.OS;
 
   beforeEach(() => {
+    originalPlatform = Platform.OS;
     announceForAccessibility = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined);
@@ -44,6 +46,7 @@ describe('KalshiActivationModal', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    Platform.OS = originalPlatform;
     announceForAccessibility.mockRestore();
   });
 
@@ -68,6 +71,27 @@ describe('KalshiActivationModal', () => {
     expect(announceForAccessibility).toHaveBeenLastCalledWith(
       'Something went wrong.',
     );
+  });
+
+  it('leaves the failure to the Android live region', () => {
+    Platform.OS = 'android';
+    const { rerender } = renderModal(buildActivation());
+
+    rerender(
+      <KalshiActivationModal
+        activation={buildActivation({
+          failure: { message: 'generic', action: 'activate' },
+        })}
+        walletAddress={WALLET}
+        network="base"
+        onDismiss={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId(TestIds.MESSAGE)).toHaveTextContent(
+      'Something went wrong.',
+    );
+    expect(announceForAccessibility).not.toHaveBeenCalled();
   });
 
   it('announces when activation completes', () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AccessibilityInfo, Modal } from 'react-native';
+import { AccessibilityInfo, Modal, Platform } from 'react-native';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -83,8 +83,10 @@ export const KalshiActivationModal = ({
     : undefined;
 
   // iOS has no live region, so each new failure is announced explicitly.
+  // Android reads the `accessibilityLiveRegion` on the message instead; an
+  // announce here would speak it twice.
   useEffect(() => {
-    if (activation.failure) {
+    if (Platform.OS === 'ios' && activation.failure) {
       AccessibilityInfo.announceForAccessibility(
         KALSHI_ONBOARDING_MESSAGES[activation.failure.message],
       );
