@@ -377,6 +377,9 @@ export type PerpsStackParamList = {
     marketData?: PerpsMarketData;
   };
 
+  // Settings shell for More links. Preferences land in TAT-4388.
+  PerpsSettings: undefined;
+
   // Activity view - Stack-based for proper back navigation
   // Uses the same redirect params as the tab-based TRANSACTIONS_VIEW
   PerpsActivity: {

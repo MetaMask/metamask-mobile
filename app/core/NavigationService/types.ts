@@ -1006,6 +1006,7 @@ export type RootStackParamList = {
   PerpsPnlHeroCard: PerpsNavigationParamList['PerpsPnlHeroCard'];
   PerpsActivity: PerpsNavigationParamList['PerpsActivity'];
   PerpsOrderBook: PerpsNavigationParamList['PerpsOrderBook'];
+  PerpsSettings: PerpsNavigationParamList['PerpsSettings'];
   PerpsModals: PerpsNavigationParamList['PerpsModals'];
   PerpsClosePositionModals: PerpsNavigationParamList['PerpsClosePositionModals'];
   PerpsQuoteExpiredModal: undefined;

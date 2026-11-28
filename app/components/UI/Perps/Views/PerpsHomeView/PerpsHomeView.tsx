@@ -53,7 +53,6 @@ import {
   formatPerpsBalance,
   formatCrossMarginRatio,
 } from '../../utils/formatUtils';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   useBottomSafeAreaInset,
   usePerpsHomeData,
@@ -70,13 +69,9 @@ import { BigNumber } from 'bignumber.js';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import {
   HOME_SCREEN_CONFIG,
-  LEARN_MORE_CONFIG,
-  SUPPORT_CONFIG,
-  FEEDBACK_CONFIG,
   PERPS_LIVE_TRADES_CONFIG,
 } from '../../constants/perpsConfig';
 import {
-  selectPerpsFeedbackEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
@@ -123,7 +118,6 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import Reanimated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import styleSheet from './PerpsHomeView.styles';
@@ -141,6 +135,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMoreItems } from '../../hooks/usePerpsMoreItems';
 import { usePerpsOutreachCampaign } from '../../hooks/usePerpsOutreachCampaign';
 import {
   PerpsHomeViewSelectorsIDs,
@@ -148,9 +143,7 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import PerpsMoreSection, {
-  type PerpsMoreItem,
-} from '../../components/PerpsMoreSection';
+import PerpsMoreSection from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
@@ -188,10 +181,9 @@ const PerpsHomeView = () => {
     route.params as NavigationAnalyticsRouteParams | undefined
   )?.analyticsContext;
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { openSupportWithConsent } = useSupportConsent();
+  const moreItems = usePerpsMoreItems();
 
   // Feature flags
-  const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
@@ -770,115 +762,6 @@ const PerpsHomeView = () => {
       ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
   }, [perpsNavigation, transactionActiveAbTests]);
-
-  const navigtateToTutorial = useCallback(() => {
-    // Track tutorial button click
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
-        .addProperties({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.TUTORIAL,
-          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-        })
-        .build(),
-    );
-    navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-    });
-  }, [navigation, trackEvent, createEventBuilder]);
-
-  const navigateToContactSupport = useCallback(() => {
-    openSupportWithConsent(
-      (url) =>
-        navigation.navigate(Routes.WEBVIEW.MAIN, {
-          screen: Routes.WEBVIEW.SIMPLE,
-          params: {
-            url,
-            title: strings(SUPPORT_CONFIG.TitleKey),
-          },
-        }),
-      SUPPORT_CONFIG.Url,
-      () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
-          ).build(),
-        );
-      },
-    );
-    // Track contact support interaction for Perps analytics
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
-        .addProperties({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.CONTACT_SUPPORT,
-          [PERPS_EVENT_PROPERTY.LOCATION]:
-            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-        })
-        .build(),
-    );
-  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
-
-  const handleGiveFeedback = useCallback(() => {
-    // Track feedback button click
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
-        .addProperties({
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.GIVE_FEEDBACK,
-          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-        })
-        .build(),
-    );
-    // Open survey in in-app browser (same pattern as Contact Support)
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: FEEDBACK_CONFIG.Url,
-        title: strings(FEEDBACK_CONFIG.TitleKey),
-      },
-    });
-  }, [trackEvent, createEventBuilder, navigation]);
-
-  const moreItems: PerpsMoreItem[] = useMemo(() => {
-    const items: PerpsMoreItem[] = [
-      {
-        label: strings(SUPPORT_CONFIG.TitleKey),
-        startIconName: IconName.Sms,
-        onPress: () => navigateToContactSupport(),
-        testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
-      },
-    ];
-
-    if (isFeedbackEnabled) {
-      items.push({
-        label: strings(FEEDBACK_CONFIG.TitleKey),
-        startIconName: IconName.Mail,
-        onPress: handleGiveFeedback,
-        testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
-      });
-    }
-
-    items.push({
-      label: strings(LEARN_MORE_CONFIG.TitleKey),
-      startIconName: IconName.Book,
-      onPress: () => navigtateToTutorial(),
-      testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-    });
-
-    return items;
-  }, [
-    navigateToContactSupport,
-    navigtateToTutorial,
-    isFeedbackEnabled,
-    handleGiveFeedback,
-  ]);
 
   // Bottom sheet handlers - open sheets directly with geo-restriction check
   const handleCloseAllPress = useCallback(() => {

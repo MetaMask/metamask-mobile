@@ -3529,6 +3529,9 @@
       "description": "Discover how perpetual trading works and how to get started",
       "cta": "Learn more"
     },
+    "settings": {
+      "title": "Settings"
+    },
     "support": {
       "title": "Contact support",
       "description": "Contact MetaMask Support for assistance"

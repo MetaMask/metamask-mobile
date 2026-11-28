@@ -451,6 +451,7 @@ const Routes = {
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
     PRICE_ALERTS: 'PerpsPriceAlerts',
     CREATE_PRICE_ALERT: 'PerpsCreatePriceAlert',
+    SETTINGS: 'PerpsSettings',
   },
   MARKET_INSIGHTS: {
     ROOT: 'MarketInsights',

@@ -19,6 +19,7 @@ import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
+import PerpsSettingsView from '../Views/PerpsSettingsView';
 import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
 import PerpsBalanceOrderView from '../Views/PerpsBalanceOrderView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
@@ -505,6 +506,15 @@ const PerpsScreenStack = () => {
                 name={Routes.PERPS.PERPS_HOME}
                 component={PerpsHomeView}
                 options={getPerpsHomeScreenOptions}
+              />
+
+              <Stack.Screen
+                name={Routes.PERPS.SETTINGS}
+                component={PerpsSettingsView}
+                options={{
+                  title: strings('perps.settings.title'),
+                  headerShown: false,
+                }}
               />
 
               <Stack.Screen
