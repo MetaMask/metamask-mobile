@@ -304,7 +304,7 @@ function RecurringSwapDetailsView() {
       style={tw.style('flex-1 bg-default')}
       testID={RecurringSwapDetailsViewSelectorsIDs.SCREEN}
     >
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}

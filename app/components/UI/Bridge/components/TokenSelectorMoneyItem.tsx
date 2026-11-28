@@ -35,11 +35,11 @@ const TokenSelectorMoneyItemInner = ({
   }, [onPress, token]);
 
   return (
-    <Box twClassName="mx-4 mb-2 border-b border-muted pb-2">
+    <Box className="mx-4 mb-2 border-b border-muted pb-2">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={[
+        className={[
           'relative min-h-18 -mx-4 py-1 pl-4 pr-3',
           isSelected ? 'bg-primary-muted' : '',
         ]
@@ -49,7 +49,7 @@ const TokenSelectorMoneyItemInner = ({
         {isSelected ? (
           <Box
             testID="money-token-selected-indicator"
-            twClassName="absolute bottom-1 left-1 top-1 w-1 rounded-lg bg-primary-default"
+            className="absolute inset-y-1 left-1 w-1 rounded-lg bg-primary-default"
           />
         ) : null}
         <TouchableOpacity
@@ -73,11 +73,11 @@ const TokenSelectorMoneyItemInner = ({
             <Box
               testID="money-token-text"
               flexDirection={BoxFlexDirection.Row}
-              twClassName={`min-w-0 flex-1 shrink ${
+              className={`min-w-0 flex-1 shrink ${
                 moneyBalance ? 'items-start' : 'items-center'
               }`}
             >
-              <Box twClassName="mr-2 min-w-0 flex-1">
+              <Box className="mr-2 min-w-0 flex-1">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -118,7 +118,7 @@ const TokenSelectorMoneyItemInner = ({
             </Box>
           </Box>
         </TouchableOpacity>
-        {children ? <Box twClassName="ml-3">{children}</Box> : null}
+        {children ? <Box className="ml-3">{children}</Box> : null}
       </Box>
     </Box>
   );

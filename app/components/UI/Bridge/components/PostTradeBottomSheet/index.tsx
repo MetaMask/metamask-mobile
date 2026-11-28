@@ -136,7 +136,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       backgroundColor={BoxBackgroundColor.PrimaryMuted}
-      twClassName="h-12 w-12 rounded-full"
+      className="size-12 rounded-full"
     >
       <Spinner
         color={IconColor.PrimaryDefault}
@@ -522,7 +522,7 @@ export const PostTradeBottomSheet = () => {
       {isCreatePostVisible ? (
         // Same layout as PostTradeShareBottomSheet: Create post is the filled
         // primary action on top, and View activity is a text-only button below.
-        <Box twClassName="px-4 pb-6">
+        <Box className="px-4 pb-6">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

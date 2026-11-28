@@ -437,9 +437,9 @@ const BridgeRecurringBuyViewContent = ({
   }, [dismissInputAndKeypad, navigation]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <Box
-        twClassName="flex-1 min-h-0"
+        className="min-h-0 flex-1"
         testID={BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER}
       >
         <ScrollView
@@ -458,7 +458,7 @@ const BridgeRecurringBuyViewContent = ({
           }
         >
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             testID={BridgeViewSelectorsIDs.RECURRING_BUY_DISMISS_AREA}
             onStartShouldSetResponder={() => true}
             onResponderRelease={dismissInputAndKeypad}
@@ -492,7 +492,7 @@ const BridgeRecurringBuyViewContent = ({
               }
             />
 
-            <Box twClassName="-mt-1">
+            <Box className="-mt-1">
               <RecurringScheduleFields
                 ref={scheduleFieldsRef}
                 onEveryPress={focusEvery}
@@ -505,7 +505,7 @@ const BridgeRecurringBuyViewContent = ({
               <Box
                 testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
                 onLayout={handleBannersLayout}
-                twClassName={hasVisibleBanner ? 'mt-2' : undefined}
+                className={hasVisibleBanner ? 'mt-2' : undefined}
                 onTouchEnd={dismissInputAndKeypad}
               >
                 <SwapsBanners
@@ -548,7 +548,7 @@ const BridgeRecurringBuyViewContent = ({
               maxLabel={priceRangeMaxLabel}
               onPress={handlePriceRangePress}
             />
-            <Box twClassName="pb-4">
+            <Box className="pb-4">
               <CostToleranceRow
                 value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
                 onPress={handlePriceTolerancePress}

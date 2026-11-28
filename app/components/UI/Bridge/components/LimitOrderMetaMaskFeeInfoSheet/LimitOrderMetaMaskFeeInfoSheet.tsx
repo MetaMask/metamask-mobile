@@ -67,7 +67,7 @@ const LimitOrderMetaMaskFeeInfoSheet = ({
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={LimitOrderMetaMaskFeeInfoSheetSelectorsIDs.BODY}
         >
           {strings('bridge.limit.metamask_fee_info_body', {

@@ -44,14 +44,14 @@ function QuoteDetailsRow({
       gap={2}
       paddingHorizontal={4}
       paddingVertical={2}
-      twClassName="w-full"
+      className="w-full"
     >
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
         numberOfLines={1}
-        twClassName="min-w-0 flex-1"
+        className="min-w-0 flex-1"
       >
         {strings('bridge.batch_sell_quote_details_row', {
           tokenSymbol: tokenData.tokenSymbol,
@@ -104,20 +104,20 @@ export function TotalReceivedSummaryRow({
       testID={BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_ROW}
       paddingVertical={2}
       gap={1}
-      twClassName="w-full"
+      className="w-full"
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         gap={2}
-        twClassName="w-full"
+        className="w-full"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -175,7 +175,7 @@ export function TotalReceivedSummaryRow({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.End}
         gap={1}
-        twClassName="w-full"
+        className="w-full"
       >
         <Text
           variant={TextVariant.BodySm}
@@ -218,7 +218,7 @@ export function BatchSellQuoteDetails({
   onMinimumReceivedInfoPress,
 }: BatchSellQuoteDetailsProps) {
   return (
-    <Box twClassName="pb-4">
+    <Box className="pb-4">
       {isTokenDetailsExpanded ? (
         <Box paddingTop={2} paddingBottom={2}>
           {tokenData.map((token) => (
@@ -230,7 +230,7 @@ export function BatchSellQuoteDetails({
         </Box>
       ) : null}
       <Box paddingHorizontal={4}>
-        <Box twClassName="border-t border-muted pt-2">
+        <Box className="border-t border-muted pt-2">
           <TotalReceivedSummaryRow
             totalReceived={totalReceived}
             minimumReceived={minimumReceived}

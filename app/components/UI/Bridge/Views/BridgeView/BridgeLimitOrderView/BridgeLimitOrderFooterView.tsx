@@ -43,7 +43,7 @@ export const BridgeLimitOrderFooterView = ({
       paddingTop={3}
       paddingLeft={4}
       paddingRight={4}
-      twClassName="w-full shrink-0 bg-default"
+      className="w-full shrink-0 bg-default"
       style={{ paddingBottom: bottomInset }}
     >
       <SwapsLimitOrderConfirmButton

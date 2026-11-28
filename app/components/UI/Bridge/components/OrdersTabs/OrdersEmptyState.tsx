@@ -33,7 +33,7 @@ export function OrdersEmptyState({
   );
 
   return (
-    <Box alignItems={BoxAlignItems.Center} twClassName="grow pt-12">
+    <Box alignItems={BoxAlignItems.Center} className="grow pt-12">
       <TabEmptyState
         testID={testID}
         icon={

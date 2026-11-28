@@ -594,9 +594,9 @@ const BridgeLimitOrderViewContent = ({
   }, [dispatch, marketComparison]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <Box
-        twClassName="flex-1 min-h-0"
+        className="min-h-0 flex-1"
         testID={BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER}
       >
         <ScrollView
@@ -620,7 +620,7 @@ const BridgeLimitOrderViewContent = ({
           }
         >
           <Box
-            twClassName="flex-1"
+            className="flex-1"
             testID={BridgeViewSelectorsIDs.LIMIT_ORDER_DISMISS_AREA}
             onStartShouldSetResponder={() => true}
             onResponderRelease={dismissInputAndKeypad}
@@ -687,7 +687,7 @@ const BridgeLimitOrderViewContent = ({
             />
 
             <Box
-              twClassName="flex-grow-0 pb-3"
+              className="flex-grow-0 pb-3"
               onTouchEnd={dismissInputAndKeypad}
             >
               <Box onLayout={handleBannersLayout}>
@@ -722,7 +722,7 @@ const BridgeLimitOrderViewContent = ({
               </Box>
             </Box>
 
-            <Box twClassName="flex-grow-0" onTouchEnd={dismissInputAndKeypad}>
+            <Box className="flex-grow-0" onTouchEnd={dismissInputAndKeypad}>
               <LimitOrderDetails
                 expiration={expiration}
                 onExpirationPress={handleExpirationPress}
@@ -732,7 +732,7 @@ const BridgeLimitOrderViewContent = ({
             </Box>
 
             <Box
-              twClassName="grow"
+              className="grow"
               onTouchEnd={dismissInputAndKeypad}
               paddingBottom={3}
             >

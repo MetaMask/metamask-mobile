@@ -692,7 +692,7 @@ export function BatchSellTokenSelect() {
       style={tw.style('flex-1 bg-default')}
       edges={['bottom', 'left', 'right']}
     >
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <HeaderStandardGlass
           isGlass={isGlassHeader}
           isFloating={false}
@@ -706,7 +706,7 @@ export function BatchSellTokenSelect() {
           />
         ) : (
           <>
-            <Box twClassName="px-4 pt-3">
+            <Box className="px-4 pt-3">
               <Text
                 variant={TextVariant.HeadingLg}
                 color={TextColor.TextDefault}
@@ -716,12 +716,12 @@ export function BatchSellTokenSelect() {
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                twClassName="mt-1"
+                className="mt-1"
               >
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box twClassName="pt-3 pb-4 pl-4">
+            <Box className="pb-4 pl-4 pt-3">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -741,7 +741,7 @@ export function BatchSellTokenSelect() {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="px-4 py-2"
+              className="px-4 py-2"
             >
               <Pressable
                 accessibilityRole="button"
@@ -779,7 +779,7 @@ export function BatchSellTokenSelect() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={tw.style('pb-4')}
             />
-            <Box twClassName="border-t border-muted px-4 pb-4 pt-3">
+            <Box className="border-t border-muted px-4 pb-4 pt-3">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}

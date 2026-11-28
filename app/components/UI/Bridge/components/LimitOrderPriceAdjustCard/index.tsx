@@ -49,15 +49,15 @@ export const LimitOrderPriceAdjustCard = ({
 }: LimitOrderPriceAdjustCardProps) => (
   <Box
     testID={LimitOrderPriceAdjustCardSelectorsIDs.CONTAINER}
-    twClassName={
+    className={
       hasVisibleBanner
-        ? 'px-4 flex-grow-0 pb-3 -mt-1'
-        : 'px-4 flex-grow-0 -mt-1'
+        ? '-mt-1 flex-grow-0 px-4 pb-3'
+        : '-mt-1 flex-grow-0 px-4'
     }
     onStartShouldSetResponder={() => true}
     onResponderRelease={onDismissKeypad}
   >
-    <Box twClassName="relative flex-grow-0 rounded-2xl bg-section p-3">
+    <Box className="relative flex-grow-0 rounded-2xl bg-section p-3">
       <InputSection
         ref={limitPriceInputRef}
         executionType={orderSide}
@@ -104,7 +104,7 @@ export const LimitOrderPriceAdjustCard = ({
           variant: TextVariant.BodySm,
           color: TextColor.TextDefault,
         }}
-        twClassName="mt-3"
+        className="mt-3"
       />
     ) : null}
   </Box>

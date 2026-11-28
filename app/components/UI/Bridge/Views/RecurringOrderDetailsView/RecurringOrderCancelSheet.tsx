@@ -79,7 +79,7 @@ export function RecurringOrderCancelSheet({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('bridge.recurring.cancel_confirmation_body')}
         </Text>

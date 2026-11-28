@@ -99,7 +99,7 @@ export const BridgeRecurringBuyFooterView = ({
       paddingTop={3}
       paddingLeft={4}
       paddingRight={4}
-      twClassName="w-full shrink-0 bg-default"
+      className="w-full shrink-0 bg-default"
       style={{ paddingBottom: bottomInset }}
     >
       <SwapsRecurringBuyConfirmButton
@@ -113,7 +113,7 @@ export const BridgeRecurringBuyFooterView = ({
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
           testID={BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY}
         >
           {strings('bridge.recurring.spend_summary.swapping')}{' '}

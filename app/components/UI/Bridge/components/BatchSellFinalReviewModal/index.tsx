@@ -214,7 +214,7 @@ function NetworkFeeRow({
 
   return (
     <>
-      <Box twClassName="border-t border-muted mx-4" />
+      <Box className="mx-4 border-t border-muted" />
       <Box
         testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
         flexDirection={BoxFlexDirection.Row}
@@ -253,7 +253,7 @@ function NetworkFeeRow({
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.End}
           gap={2}
-          twClassName="min-w-0 flex-1"
+          className="min-w-0 flex-1"
         >
           {isLoading ? (
             <Skeleton
@@ -482,7 +482,7 @@ export function BatchSellFinalReviewModal() {
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={
               BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE
             }
