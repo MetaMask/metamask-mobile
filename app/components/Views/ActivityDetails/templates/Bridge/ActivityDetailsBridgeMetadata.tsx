@@ -6,19 +6,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
-import { strings } from '../../../../../locales/i18n';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
-import { formatTimestampToDateTime } from '../../../../util/date';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-import { useActivityNetworkName } from '../hooks/useActivityNetworkName';
-import { ActivityDetailsStatus } from './ActivityDetailsStatus';
+import { strings } from '../../../../../../locales/i18n';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
+import { formatTimestampToDateTime } from '../../../../../util/date';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { useActivityNetworkName } from '../../hooks/useActivityNetworkName';
+import { ActivityDetailsStatus } from '../../components/ActivityDetailsStatus';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
-} from './ActivityDetailsLayout';
-import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
-import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
-import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
+} from '../../components/ActivityDetailsLayout';
+import { ActivityDetailsAccountValue } from '../../components/ActivityDetailsAccountValue';
+import { ActivityDetailsNetworkValue } from '../../components/ActivityDetailsNetworkValue';
+import { ActivityDetailsTransactionId } from '../../components/ActivityDetailsTransactionId';
 
 function BridgeNetworkValue({
   sourceChainId,

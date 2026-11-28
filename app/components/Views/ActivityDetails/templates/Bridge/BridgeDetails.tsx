@@ -1,9 +1,9 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
-import { ActivityListItem } from '../../../../util/activity-adapters';
+import { strings } from '../../../../../../locales/i18n';
+import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
+import { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   ActivityDetailsBridgeMetadata,
   ActivityDetailsBridgeExplorerButtons,
@@ -11,13 +11,13 @@ import {
   ActivityDetailsDualAmountHeader,
   ActivityDetailsFeesAndTotal,
   ActivityDetailsFooter,
-} from '../components';
+} from '../../components';
 import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
-} from '../hooks/useActivityDetailsDoItAgain';
-import { useLocalTransactionMeta } from '../hooks/useLocalTransactionMeta';
-import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
+} from '../../hooks/useActivityDetailsDoItAgain';
+import { useLocalTransactionMeta } from '../../hooks/useLocalTransactionMeta';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../../selectors/multichain/multichain';
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
