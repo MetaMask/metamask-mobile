@@ -295,6 +295,8 @@ export type PerpsStackParamList = {
     transaction: PerpsTransaction;
   };
 
+  PerpsSettings: undefined;
+
   PerpsTutorial:
     | {
         isFromDeeplink?: boolean;

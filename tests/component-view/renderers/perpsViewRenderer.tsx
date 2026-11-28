@@ -48,6 +48,7 @@ import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/
 import PerpsSelectProviderView from '../../../app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView';
 import PerpsPositionsView from '../../../app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView';
 import PerpsHomeView from '../../../app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView';
+import PerpsSettingsView from '../../../app/components/UI/Perps/Views/PerpsSettingsView/PerpsSettingsView';
 import PerpsClosePositionView from '../../../app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView';
 import PerpsClosePositionRouter from '../../../app/components/UI/Perps/Views/PerpsClosePositionRouter/PerpsClosePositionRouter';
 import PerpsOrderBookView from '../../../app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView';
@@ -1203,6 +1204,15 @@ export function renderPerpsHomeView(options: RenderPerpsViewOptions = {}) {
     Routes.PERPS.PERPS_HOME,
     options,
   );
+}
+
+/**
+ * Renders PerpsSettingsView. Use in PerpsSettingsView.view.test.tsx.
+ */
+export function renderPerpsSettingsView(
+  options: RenderPerpsViewOptions = {},
+): ReturnType<typeof renderPerpsView> {
+  return renderPerpsView(PerpsSettingsView, Routes.PERPS.SETTINGS, options);
 }
 
 /**

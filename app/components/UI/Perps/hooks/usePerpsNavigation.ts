@@ -15,7 +15,10 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
-import { selectPerpsProvider } from '../selectors/perpsController';
+import {
+  selectPerpsDefaultProvider,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -275,6 +278,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const { depositWithOrder } = usePerpsTrading();
   const { switchProvider } = usePerpsProvider();
   const activeProvider = useSelector(selectPerpsProvider);
+  const defaultProvider = useSelector(selectPerpsDefaultProvider);
   const selectedAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
@@ -329,7 +333,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
         return;
       }
-      const depositProvider = resolveDepositOrderProvider(activeProvider);
+      const depositProvider = resolveDepositOrderProvider(
+        activeProvider,
+        defaultProvider,
+      );
       let createOrder = depositWithOrder;
       if (
         params.providerId !== undefined &&
@@ -400,6 +407,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       depositWithOrder,
       switchProvider,
       activeProvider,
+      defaultProvider,
       selectedAccountAddress,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,

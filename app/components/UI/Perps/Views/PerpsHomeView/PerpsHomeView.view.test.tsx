@@ -19,17 +19,11 @@ import {
 import {
   MarketCategory,
   PERPS_EVENT_VALUE,
-  PerpsMode,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import type { Json } from '@metamask/utils';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import { clearTrackedABTestExposureForTests } from '../../../../../hooks/useABTest';
-import { analytics } from '../../../../../util/analytics/analytics';
-import { PERPS_MODE_SELECTION_COMPLETED } from '../../../../../constants/storage';
-import StorageWrapper from '../../../../../store/storage-wrapper';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
@@ -59,10 +53,8 @@ import {
 import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exploreSessionTab';
 import { EXPLORE_WATCHLIST_TAB_ID } from '../../components/PerpsExploreSection/PerpsExploreSection.types';
 import {
-  PERPS_HEADER_AB_TEST_KEY,
   PERPS_HOME_EXPLORE_AB_TEST_KEY,
   PERPS_LIVE_TRADES_AB_TEST_KEY,
-  PerpsHeaderNavVariant,
   PerpsHomeExploreVariant,
   PerpsLiveTradesVariant,
 } from '../../abTestConfig';
@@ -2421,77 +2413,10 @@ describe('PerpsHomeView', () => {
     });
   });
 
-  describe('Lite pill treatment reset', () => {
-    const marketListProbe = createRouteParamsProbe(Routes.PERPS.MARKET_LIST);
-    const marketDetailsProbe = createRouteParamsProbe(
-      Routes.PERPS.MARKET_DETAILS,
-    );
-    const modeSelectionProbe = createRouteParamsProbe(Routes.PERPS.MODALS.ROOT);
-    let trackEventSpy: jest.SpyInstance;
-
-    beforeEach(async () => {
-      clearTrackedABTestExposureForTests();
-      trackEventSpy = jest.spyOn(analytics, 'trackEvent');
-      await StorageWrapper.setItem(PERPS_MODE_SELECTION_COMPLETED, 'true');
-    });
-
-    afterEach(async () => {
-      trackEventSpy.mockRestore();
-      clearTrackedABTestExposureForTests();
-      await StorageWrapper.removeItem(PERPS_MODE_SELECTION_COMPLETED);
-    });
-
-    const renderLiteHome = (
-      watchlistSymbols: string[],
-      options: {
-        headerFlag?: 'treatment' | 'control' | 'absent';
-        lastViewedSymbol?: string;
-      } = {},
-    ) => {
-      const headerFlag = options.headerFlag ?? 'treatment';
-      const remoteFeatureFlags: Record<string, Json> = {
-        perpsProModeEnabled: {
-          enabled: true,
-          minimumVersion: '0.0.0',
-        },
-      };
-      if (headerFlag === 'treatment') {
-        remoteFeatureFlags[PERPS_HEADER_AB_TEST_KEY] =
-          PerpsHeaderNavVariant.Treatment;
-      } else if (headerFlag === 'control') {
-        remoteFeatureFlags[PERPS_HEADER_AB_TEST_KEY] =
-          PerpsHeaderNavVariant.Control;
-      }
-
-      return renderPerpsHomeView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              ...eligibleOverrides.engine.backgroundState,
-              PerpsController: {
-                ...eligibleOverrides.engine.backgroundState.PerpsController,
-                mode: PerpsMode.Lite,
-                watchlistMarkets: { testnet: [], mainnet: watchlistSymbols },
-                ...(options.lastViewedSymbol
-                  ? {
-                      recentlyViewedMarkets: {
-                        testnet: [],
-                        mainnet: [
-                          {
-                            symbol: options.lastViewedSymbol,
-                            viewedAt: Date.now(),
-                          },
-                        ],
-                      },
-                    }
-                  : {}),
-              },
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags,
-              },
-            },
-          },
-        },
+  describe('settings gear', () => {
+    it('opens settings from the header gear instead of the mode toggle', async () => {
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
         streamOverrides: {
           account: createFundedAccountForViews('100'),
           positions: [],
@@ -2500,167 +2425,30 @@ describe('PerpsHomeView', () => {
         },
         extraRoutes: [
           {
-            name: Routes.PERPS.MARKET_LIST,
-            Component: marketListProbe as ComponentType<unknown>,
-          },
-          {
-            name: Routes.PERPS.MARKET_DETAILS,
-            Component: marketDetailsProbe as ComponentType<unknown>,
-          },
-          {
-            name: Routes.PERPS.MODALS.ROOT,
-            Component: modeSelectionProbe as ComponentType<unknown>,
+            name: Routes.PERPS.SETTINGS,
+            Component: createRouteParamsProbe(
+              Routes.PERPS.SETTINGS,
+            ) as ComponentType<unknown>,
           },
         ],
       });
-    };
 
-    const openProFromLitePill = async () => {
+      expect(
+        await screen.findByTestId(PerpsHomeViewSelectorsIDs.SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
+      ).toBeNull();
+
       fireEvent.press(
-        await screen.findByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
-      );
-    };
-
-    const readRouteParams = async (routeName: string) => {
-      const probe = await screen.findByTestId(
-        getRouteParamsProbeTestId(routeName),
+        screen.getByTestId(PerpsHomeViewSelectorsIDs.SETTINGS_BUTTON),
       );
 
-      return JSON.parse(String(probe.props.children)) as Record<
-        string,
-        unknown
-      >;
-    };
-
-    const headerExposureEvents = () =>
-      trackEventSpy.mock.calls
-        .map(
-          ([event]) =>
-            event as {
-              name?: string;
-              properties?: Record<string, unknown>;
-            },
-        )
-        .filter(
-          (event) =>
-            event.name === MetaMetricsEvents.EXPERIMENT_VIEWED.category &&
-            event.properties?.experiment_id === PERPS_HEADER_AB_TEST_KEY,
-        );
-
-    const expectPerpsHomeGone = () => {
       expect(
-        screen.queryByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING, {
-          includeHiddenElements: true,
-        }),
-      ).toBeNull();
-    };
-
-    it('resets onto Watchlist when the watchlist has a symbol', async () => {
-      renderLiteHome(['ETH']);
-
-      await openProFromLitePill();
-
-      expect(await readRouteParams(Routes.PERPS.MARKET_LIST)).toEqual(
-        expect.objectContaining({
-          showWatchlistOnly: true,
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-          homeDroppedFromHistory: true,
-        }),
-      );
-      expectPerpsHomeGone();
-      expect(headerExposureEvents()).toEqual([
-        expect.objectContaining({
-          properties: expect.objectContaining({
-            experiment_id: PERPS_HEADER_AB_TEST_KEY,
-            variation_id: PerpsHeaderNavVariant.Treatment,
-          }),
-        }),
-      ]);
-    });
-
-    it('resets onto All when the watchlist is empty', async () => {
-      renderLiteHome([]);
-
-      await openProFromLitePill();
-
-      expect(await readRouteParams(Routes.PERPS.MARKET_LIST)).toEqual(
-        expect.objectContaining({
-          showWatchlistOnly: false,
-          defaultMarketTypeFilter: 'all',
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-          homeDroppedFromHistory: true,
-        }),
-      );
-      expectPerpsHomeGone();
-    });
-
-    it('resets onto the last-viewed market in control and emits Experiment Viewed', async () => {
-      renderLiteHome([], {
-        headerFlag: 'control',
-        lastViewedSymbol: 'ETH',
-      });
-
-      await openProFromLitePill();
-
-      expect(await readRouteParams(Routes.PERPS.MARKET_DETAILS)).toEqual(
-        expect.objectContaining({
-          market: expect.objectContaining({ symbol: 'ETH' }),
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-          homeDroppedFromHistory: true,
-        }),
-      );
-      expectPerpsHomeGone();
-      expect(headerExposureEvents()).toEqual([
-        expect.objectContaining({
-          properties: expect.objectContaining({
-            experiment_id: PERPS_HEADER_AB_TEST_KEY,
-            variation_id: PerpsHeaderNavVariant.Control,
-          }),
-        }),
-      ]);
-    });
-
-    it('falls back to the last-viewed market when the flag is absent and does not emit Experiment Viewed', async () => {
-      renderLiteHome([], {
-        headerFlag: 'absent',
-        lastViewedSymbol: 'ETH',
-      });
-
-      await openProFromLitePill();
-
-      expect(await readRouteParams(Routes.PERPS.MARKET_DETAILS)).toEqual(
-        expect.objectContaining({
-          market: expect.objectContaining({ symbol: 'ETH' }),
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-          homeDroppedFromHistory: true,
-        }),
-      );
-      expectPerpsHomeGone();
-      expect(headerExposureEvents()).toEqual([]);
-    });
-
-    it('does not emit Experiment Viewed when the chooser opens and the user stays on Lite', async () => {
-      await StorageWrapper.removeItem(PERPS_MODE_SELECTION_COMPLETED);
-      renderLiteHome(['ETH']);
-
-      await openProFromLitePill();
-
-      expect(await readRouteParams(Routes.PERPS.MODALS.ROOT)).toEqual(
-        expect.objectContaining({
-          screen: Routes.PERPS.MODALS.MODE_SELECTION,
-        }),
-      );
-      expect(
-        screen.getByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING, {
-          includeHiddenElements: true,
-        }),
-      ).toBeTruthy();
-      expect(
-        screen.queryByTestId(
-          getRouteParamsProbeTestId(Routes.PERPS.MARKET_LIST),
+        await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.PERPS.SETTINGS),
         ),
-      ).toBeNull();
-      expect(headerExposureEvents()).toEqual([]);
+      ).toBeOnTheScreen();
     });
   });
 });

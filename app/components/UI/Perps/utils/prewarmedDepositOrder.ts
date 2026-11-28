@@ -13,21 +13,26 @@ import {
 } from './unclaimedPrewarmTransactionMetrics';
 
 /**
- * The provider a deposit-with-order transaction is prepared against. Aggregated
- * mode has no deposit route of its own, so it falls back to the default
- * provider. Prewarm and consumption must agree on this or the prewarm is
- * rejected as belonging to another provider.
+ * The provider a deposit or withdrawal is prepared against when the active
+ * mode has no venue of its own. Aggregated mode uses the saved default, then
+ * Hyperliquid when the user has never chosen one. A concrete active provider
+ * is kept.
  *
  * @param activeProvider - `PerpsController.activeProvider`.
- * @returns The provider the deposit will be prepared for.
+ * @param defaultProvider - Saved `PerpsController.defaultProvider`.
+ * @returns The provider the deposit or withdrawal will be prepared for.
  */
 export function resolveDepositOrderProvider(
   activeProvider: string | undefined,
+  defaultProvider?: string | null,
 ): string {
-  return activeProvider === undefined ||
-    activeProvider === PROVIDER_CONFIG.AggregatedProvider
-    ? PROVIDER_CONFIG.DefaultProvider
-    : activeProvider;
+  if (
+    activeProvider !== undefined &&
+    activeProvider !== PROVIDER_CONFIG.AggregatedProvider
+  ) {
+    return activeProvider;
+  }
+  return defaultProvider ?? PROVIDER_CONFIG.DefaultProvider;
 }
 
 /**

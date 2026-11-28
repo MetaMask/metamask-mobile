@@ -418,6 +418,7 @@ const Routes = {
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
+    SETTINGS: 'PerpsSettings',
     MARKET_DETAILS: 'PerpsMarketDetails',
     MARKET_LIST: 'PerpsTrendingView',
     TUTORIAL: 'PerpsTutorial',

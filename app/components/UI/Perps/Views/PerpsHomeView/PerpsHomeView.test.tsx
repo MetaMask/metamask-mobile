@@ -23,10 +23,8 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
-  selectPerpsProModeEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
-import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -829,140 +827,16 @@ describe('PerpsHomeView', () => {
     );
   });
 
-  it('enables mode-toggle haptics for the Lite mode header', () => {
-    // Arrange
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
-    );
-
-    // Act
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Assert - back/search remain and the active-mode pill sits in endAccessory
-    expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
-    expect(
-      getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
-      variant: 'active',
-      enableHaptics: true,
-    });
-  });
-
-  it('enables mode-toggle haptics for the Pro mode header', () => {
-    // Arrange
-    mockPerpsModeValue = PerpsMode.Pro;
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
-    );
-
-    // Act
-    render(<PerpsHomeView />);
-
-    // Assert
-    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
-      variant: 'active',
-      enableHaptics: true,
-    });
-  });
-
-  it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
-    // Arrange
-    mockUseSelector.mockReturnValue(false);
-
-    // Act
+  it('opens settings from the header gear', () => {
     const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
 
-    // Assert
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SETTINGS_BUTTON)).toBeTruthy();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
-  });
 
-  it('opens the mode selection sheet when the header toggle is pressed', async () => {
-    // Arrange
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
-    );
-    const { getByTestId } = render(<PerpsHomeView />);
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SETTINGS_BUTTON));
 
-    // Act
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
-
-    // Assert — chooser opens once while selection is incomplete
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.MODE_SELECTION,
-        params: {
-          entry: 'home',
-          source: 'perps_home',
-        },
-      });
-    });
-    expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockReset).not.toHaveBeenCalled();
-  });
-
-  it('does not open the mode selection sheet when the user has already completed it', async () => {
-    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
-    );
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
-
-    await waitFor(() => {
-      expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    });
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MODALS.ROOT,
-      expect.objectContaining({
-        screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      }),
-    );
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        expect.objectContaining({
-          name: Routes.PERPS.MARKET_DETAILS,
-          params: expect.objectContaining({
-            market: expect.objectContaining({ symbol: 'BTC' }),
-          }),
-        }),
-      ],
-    });
-  });
-
-  it('opens the mode selection sheet for first-time users from the header toggle', async () => {
-    // Arrange
-    mockUseSelector.mockImplementation(
-      (selector: unknown) =>
-        selector === selectPerpsProModeEnabledFlag ||
-        selector === selectIsFirstTimePerpsUser,
-    );
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Act
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
-
-    // Assert — first-time tutorial continues from the chooser after select
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.MODE_SELECTION,
-        params: {
-          entry: 'home',
-          source: 'perps_home',
-        },
-      });
-    });
-    expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.TUTORIAL,
-      expect.anything(),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.SETTINGS);
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

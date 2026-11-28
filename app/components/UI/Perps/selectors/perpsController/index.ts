@@ -68,6 +68,17 @@ const selectPerpsDefaultProvider = createSelector(
   },
 );
 
+/**
+ * True after the user saves a default exchange. An automatically persisted
+ * `defaultProvider` stays false so the settings row can still preselect
+ * Hyperliquid.
+ */
+const selectPerpsHasExplicitDefaultProviderSelection = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): boolean =>
+    perpsControllerState?.hasExplicitDefaultProviderSelection ?? false,
+);
+
 const selectPerpsAccountState = createSelector(
   selectPerpsControllerState,
   (perpsControllerState) => perpsControllerState?.accountState || null,
@@ -420,6 +431,7 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
 export {
   selectPerpsProvider,
   selectPerpsDefaultProvider,
+  selectPerpsHasExplicitDefaultProviderSelection,
   selectPerpsOrderProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
