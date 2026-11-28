@@ -1,0 +1,134 @@
+import React, { useCallback, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+
+import Engine from '../../../../core/Engine';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { selectIsSignedIn } from '../../../../selectors/identity';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { ensureError } from '../../../../util/errorUtils';
+import Logger from '../../../../util/Logger';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+import { resolveVenueAuthProfile } from '../config/predictConfig';
+import { portfolioQueryFamilies } from '../queries/portfolioQueries';
+import { selectPredictConfig } from '../selectors/predictConfig';
+import type { PredictVenueId } from '../types';
+import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
+import {
+  isKalshiDemoEnvironment,
+  kalshiDemoPayoutNetwork,
+  kalshiDemoPayoutWallet,
+} from './internal/demoOnboardingConfig';
+import { KalshiActivationModal } from './internal/KalshiActivationModal';
+import { selectIsKalshiKycApproved } from './internal/kalshiActivationStatus';
+import { useKalshiActivation } from './internal/useKalshiActivation';
+
+const POLL_INTERVAL_MS = 2_000;
+/** Slow or absent links poll less. Unknown (`null`) keeps the default. */
+const CONSTRAINED_POLL_INTERVAL_MS = 5_000;
+
+const invalidatePortfolioReads = (): void => {
+  for (const queryKey of portfolioQueryFamilies(KALSHI_VENUE_ID)) {
+    Engine.context.PredictPortfolioService.invalidateQueries({
+      queryKey,
+    }).catch((error: unknown) => {
+      Logger.error(
+        ensureError(error, 'KalshiActivationPrompt.invalidatePortfolioReads'),
+        'PredictNext: failed to refresh portfolio reads after activation',
+      );
+    });
+  }
+};
+
+interface KalshiActivationPromptProps {
+  venueId: PredictVenueId;
+}
+
+/**
+ * Home's automatic activation trigger. The last Kalshi demo onboarding step
+ * registers the withdrawal address; this opens its sheet once kyc-api says
+ * approved and predict-api still reports `approved`.
+ *
+ * This component owns only the auto-open policy. A card-triggered variant
+ * uses `useKalshiActivation` and `KalshiActivationModal` directly, so the
+ * status read, write and polling stay unchanged.
+ */
+export const KalshiActivationPrompt = ({
+  venueId,
+}: KalshiActivationPromptProps): React.ReactElement | null => {
+  const config = useSelector(selectPredictConfig);
+  const signedIn = useSelector(selectIsSignedIn);
+  const walletUnlocked = useSelector(selectIsUnlocked);
+  const evmAddress = useSelector(selectEvmAddress);
+  const kycApproved = useSelector(selectIsKalshiKycApproved);
+  const networkTier = useNetworkTier();
+  const hardwareTier = getHardwareTier();
+
+  const enabled =
+    venueId === KALSHI_VENUE_ID &&
+    resolveVenueAuthProfile(config) !== undefined &&
+    isKalshiDemoEnvironment() &&
+    signedIn &&
+    walletUnlocked &&
+    kycApproved;
+  const client = useMemo(
+    () => (enabled ? createKalshiOnboardingClient() : undefined),
+    [enabled],
+  );
+  const canPoll = useCallback(() => networkTier !== 'NONE', [networkTier]);
+
+  const activation = useKalshiActivation({
+    client,
+    enabled,
+    walletAddress: kalshiDemoPayoutWallet(evmAddress),
+    network: kalshiDemoPayoutNetwork(),
+    pollIntervalMs:
+      hardwareTier === 'LOW' ||
+      networkTier === 'SLOW_CELLULAR' ||
+      networkTier === 'NONE'
+        ? CONSTRAINED_POLL_INTERVAL_MS
+        : POLL_INTERVAL_MS,
+    canPoll,
+    onActivated: invalidatePortfolioReads,
+  });
+  const { refresh } = activation;
+  const isFocused = useIsFocused();
+  const [dismissed, setDismissed] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setDismissed(false);
+      if (enabled) {
+        refresh();
+      }
+      return undefined;
+    }, [enabled, refresh]),
+  );
+
+  if (
+    !isFocused ||
+    dismissed ||
+    // A failure can move the server off `approved` (or the read may report a
+    // state activation cannot handle). Keep the sheet up so the reason and
+    // its action stay visible instead of vanishing.
+    (!activation.requiresActivation &&
+      !activation.completed &&
+      activation.failure === undefined)
+  ) {
+    return null;
+  }
+
+  return (
+    <KalshiActivationModal
+      activation={activation}
+      walletAddress={kalshiDemoPayoutWallet(evmAddress)}
+      network={kalshiDemoPayoutNetwork()}
+      onDismiss={() => {
+        activation.dismiss();
+        setDismissed(true);
+      }}
+    />
+  );
+};

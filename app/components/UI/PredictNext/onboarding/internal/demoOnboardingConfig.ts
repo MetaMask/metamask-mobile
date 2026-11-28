@@ -1,5 +1,15 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
+import { ApiEnv, getApiEnv } from '../../../../../core/apiEnv';
+
+/**
+ * The register writes a Stripe sandbox payout address, so it may only run in
+ * a demo environment: a local dev build, or a dev/UAT API cluster. This holds
+ * even if a production predict-api host is added later.
+ */
+export const isKalshiDemoEnvironment = (): boolean =>
+  __DEV__ || getApiEnv() !== ApiEnv.Prod;
+
 /** Networks the demo activation offers. predict-api accepts the same list. */
 export const KALSHI_WALLET_NETWORKS = ['base', 'polygon'] as const;
 export type KalshiWalletNetwork = (typeof KALSHI_WALLET_NETWORKS)[number];

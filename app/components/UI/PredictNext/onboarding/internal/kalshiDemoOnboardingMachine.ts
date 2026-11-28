@@ -30,6 +30,7 @@ export type OnboardingMessage =
   | 'rate_limited'
   | 'unsupported'
   | 'review_timeout'
+  | 'activation_timeout'
   | 'demo_unavailable';
 
 /**

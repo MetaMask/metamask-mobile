@@ -260,6 +260,16 @@ export class KalshiOnboardingClient {
     return parseKalshiActivate(value);
   }
 
+  /**
+   * The device key the A2T session is issued to: stable for this install and
+   * deleted on wallet reset. Client-side register memory keys on it so it
+   * cannot outlive the identity it was written under.
+   */
+  async getIdentity(): Promise<string | undefined> {
+    const key = await this.#options.getDeviceKey();
+    return key?.publicKey;
+  }
+
   async #resolveContext(): Promise<OnboardingSigningContext> {
     const [a2t, key] = await Promise.all([
       this.#options.getA2t(),

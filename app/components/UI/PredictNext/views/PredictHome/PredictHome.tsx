@@ -73,6 +73,7 @@ import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { GetStartedBanner } from './internal/GetStartedBanner';
+import { KalshiActivationPrompt } from '../../onboarding/KalshiActivationPrompt';
 
 const NO_SECTIONS: readonly PredictHomeSection[] = [];
 
@@ -465,6 +466,7 @@ const PredictHomeView = ({
           ))}
         </Box>
       </Reanimated.ScrollView>
+      <KalshiActivationPrompt venueId={venueId} />
     </Box>
   );
 };
