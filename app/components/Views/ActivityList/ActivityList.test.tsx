@@ -2,7 +2,6 @@ import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
@@ -37,10 +36,6 @@ jest.mock(
     useFloatingTabBarInset: jest.fn(() => 0),
   }),
 );
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 34, left: 0 }),
-}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -135,7 +130,6 @@ jest.mock('@shopify/flash-list', () => {
     FlashList: ReactActual.forwardRef(
       (
         {
-          contentContainerStyle,
           data,
           keyExtractor,
           ListEmptyComponent,
@@ -145,10 +139,8 @@ jest.mock('@shopify/flash-list', () => {
           onViewableItemsChanged,
           refreshControl,
           renderItem,
-          style,
           testID,
         }: {
-          contentContainerStyle?: unknown;
           data: unknown[];
           keyExtractor: (item: unknown, index: number) => string;
           ListEmptyComponent?: React.ReactElement | (() => React.ReactElement);
@@ -161,7 +153,6 @@ jest.mock('@shopify/flash-list', () => {
             item: unknown;
             index: number;
           }) => React.ReactNode;
-          style?: unknown;
           testID?: string;
         },
         ref: React.Ref<{ scrollToOffset: jest.Mock }>,
@@ -176,7 +167,7 @@ jest.mock('@shopify/flash-list', () => {
             ListEmptyComponent
           );
         return (
-          <View testID={testID} style={[style, contentContainerStyle]}>
+          <View testID={testID}>
             {ListHeaderComponent}
             {data.length
               ? data.map((item, index) => (
@@ -808,18 +799,6 @@ describe('ActivityList', () => {
         url: 'https://configured.explorer/address/0xevm',
       }),
     );
-  });
-
-  it('pads list content for the bottom tab bar height when available', () => {
-    render(
-      <BottomTabBarHeightContext.Provider value={50}>
-        <ActivityList header={<></>} />
-      </BottomTabBarHeightContext.Provider>,
-    );
-
-    expect(screen.getByTestId(ActivityListSelectorsIDs.CONTAINER)).toHaveStyle({
-      paddingBottom: 50,
-    });
   });
 
   it('keeps the typed local staking row over the generic confirmed copy', () => {
