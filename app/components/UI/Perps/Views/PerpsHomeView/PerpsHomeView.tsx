@@ -953,11 +953,7 @@ const PerpsHomeView = () => {
                   position={position}
                   source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
                   source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS}
-                  testID={
-                    position.providerId
-                      ? `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${position.providerId}`
-                      : `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`
-                  }
+                  testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
                 />
               ))}
             </View>

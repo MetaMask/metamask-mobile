@@ -46,7 +46,10 @@ import {
 } from '../../utils/formatUtils';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsInlineInfoScreen } from '../PerpsInlineInfoScreen/PerpsInlineInfoScreen';
-import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsBalanceBottomSheetSelectorsIDs,
+  getPerpsBalanceVenueSelector,
+} from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import PerpsCrossMarginSummary, {
@@ -60,9 +63,6 @@ const isExchangeId = (
 ): providerId is 'hyperliquid' | 'lighter' =>
   providerId === 'hyperliquid' || providerId === 'lighter';
 
-const venueRowTestId = (providerId: string) =>
-  `perps-balance-venue-row-${providerId}`;
-
 const PerpsVenueBalanceRow: React.FC<{
   venue: PerpsVenueBalance;
   isDefault: boolean;
@@ -75,7 +75,7 @@ const PerpsVenueBalanceRow: React.FC<{
     return null;
   }
   const name = PROVIDER_DISPLAY_INFO[providerId].name;
-  const rowTestId = venueRowTestId(providerId);
+  const rowTestId = getPerpsBalanceVenueSelector.row(providerId);
   const canMoveFunds = venue.status === 'available';
 
   return (
@@ -101,7 +101,7 @@ const PerpsVenueBalanceRow: React.FC<{
             {name}
           </Text>
           {isDefault ? (
-            <Tag testID={`perps-balance-venue-default-${providerId}`}>
+            <Tag testID={getPerpsBalanceVenueSelector.defaultTag(providerId)}>
               {strings('perps.trade_on.default_tag')}
             </Tag>
           ) : null}
@@ -112,7 +112,7 @@ const PerpsVenueBalanceRow: React.FC<{
             color={TextColor.TextAlternative}
             isHidden={isHidden}
             length={SensitiveTextLength.Short}
-            testID={`perps-balance-venue-balance-${providerId}`}
+            testID={getPerpsBalanceVenueSelector.balance(providerId)}
           >
             {formatPerpsBalance(venue.state.spendableBalance)}
           </SensitiveText>
@@ -126,7 +126,7 @@ const PerpsVenueBalanceRow: React.FC<{
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            testID={`perps-balance-venue-error-${providerId}`}
+            testID={getPerpsBalanceVenueSelector.error(providerId)}
           >
             {strings('perps.balance_bottom_sheet.venue_unavailable')}
           </Text>
@@ -139,14 +139,14 @@ const PerpsVenueBalanceRow: React.FC<{
             iconName={IconName.Minus}
             onPress={() => onWithdraw(providerId)}
             accessibilityLabel={`${strings('perps.withdraw')} ${name}`}
-            testID={`perps-balance-venue-withdraw-${providerId}`}
+            testID={getPerpsBalanceVenueSelector.withdraw(providerId)}
           />
           <ButtonIcon
             size={ButtonIconSize.Md}
             iconName={IconName.Add}
             onPress={() => onDeposit(providerId)}
             accessibilityLabel={`${strings('perps.add_funds')} ${name}`}
-            testID={`perps-balance-venue-deposit-${providerId}`}
+            testID={getPerpsBalanceVenueSelector.deposit(providerId)}
           />
         </Box>
       ) : null}
@@ -188,7 +188,6 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
         }),
     [defaultProvider, venues],
   );
-  const showVenueRows = isMultiProviderEnabled && orderedVenues.length > 0;
   const showVenueBreakdown = isMultiProviderEnabled && orderedVenues.length > 1;
   const {
     hasCrossExposure,
@@ -399,7 +398,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
               </Box>
             </Box>
 
-            {showVenueRows ? (
+            {showVenueBreakdown ? (
               <Box twClassName="w-full gap-2 px-4 pb-4">
                 {orderedVenues.map((venue) => (
                   <PerpsVenueBalanceRow

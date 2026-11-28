@@ -568,6 +568,20 @@ describe('usePerpsHomeActions', () => {
       });
     });
 
+    it('withdraws from the chosen venue via confirmation instead of the legacy screen', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdrawFromProvider('lighter');
+      });
+
+      expect(mockWithdrawWithConfirmation).toHaveBeenCalledWith('lighter');
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        { screen: Routes.PERPS.WITHDRAW },
+      );
+    });
+
     it('triggers onWithdrawSuccess callback', async () => {
       const onWithdrawSuccess = jest.fn();
       const { result } = renderHook(() =>

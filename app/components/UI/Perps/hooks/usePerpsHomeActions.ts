@@ -332,7 +332,9 @@ export const usePerpsHomeActions = (
       });
 
       try {
-        if (perpsWithdrawConfig.enabled) {
+        // The legacy screen cannot target a venue, so a venue-row withdraw
+        // always takes the confirmation flow.
+        if (perpsWithdrawConfig.enabled || providerId) {
           await withdrawWithConfirmation(providerId);
           DevLogger.log(
             '[usePerpsHomeActions] Started withdraw-to-any-token flow',

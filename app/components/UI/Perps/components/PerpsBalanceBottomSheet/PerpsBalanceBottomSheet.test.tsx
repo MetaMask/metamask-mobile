@@ -4,6 +4,7 @@ import { BottomSheet } from '@metamask/design-system-react-native';
 import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
+  getPerpsBalanceVenueSelector,
   getPerpsCrossMarginSummaryLabelSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
@@ -418,23 +419,27 @@ describe('PerpsBalanceBottomSheet', () => {
     const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
-      getByTestId('perps-balance-venue-row-hyperliquid'),
+      getByTestId(getPerpsBalanceVenueSelector.row('hyperliquid')),
     ).toBeOnTheScreen();
     expect(
-      getByTestId('perps-balance-venue-default-hyperliquid'),
+      getByTestId(getPerpsBalanceVenueSelector.defaultTag('hyperliquid')),
     ).toHaveTextContent('Default');
     expect(
-      getByTestId('perps-balance-venue-error-hyperliquid'),
+      getByTestId(getPerpsBalanceVenueSelector.error('hyperliquid')),
     ).toHaveTextContent("Couldn't load this balance");
-    expect(queryByTestId('perps-balance-venue-balance-hyperliquid')).toBeNull();
     expect(
-      getByTestId('perps-balance-venue-balance-lighter'),
+      queryByTestId(getPerpsBalanceVenueSelector.balance('hyperliquid')),
+    ).toBeNull();
+    expect(
+      getByTestId(getPerpsBalanceVenueSelector.balance('lighter')),
     ).toHaveTextContent('$50');
     expect(
       queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
     ).toBeNull();
 
-    fireEvent.press(getByTestId('perps-balance-venue-deposit-lighter'));
+    fireEvent.press(
+      getByTestId(getPerpsBalanceVenueSelector.deposit('lighter')),
+    );
     expect(mockHandleDepositToProvider).toHaveBeenCalledWith('lighter');
   });
 });

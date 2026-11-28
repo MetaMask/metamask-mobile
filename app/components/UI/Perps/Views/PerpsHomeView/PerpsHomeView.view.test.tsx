@@ -47,6 +47,8 @@ import { renderPerpsHomeView } from '../../../../../../tests/component-view/rend
 import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import {
   getPerpsCrossMarginSummaryLabelSelector,
+  getPerpsBalanceVenueSelector,
+  getPerpsHomePositionCardVenueBadgeSelector,
   getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
@@ -531,22 +533,28 @@ describe('PerpsHomeView', () => {
       await openBreakdown();
 
       expect(
-        await screen.findByTestId('perps-balance-venue-row-hyperliquid'),
+        await screen.findByTestId(
+          getPerpsBalanceVenueSelector.row('hyperliquid'),
+        ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-balance-venue-default-hyperliquid'),
+        screen.getByTestId(
+          getPerpsBalanceVenueSelector.defaultTag('hyperliquid'),
+        ),
       ).toHaveTextContent(strings('perps.trade_on.default_tag'));
       expect(
-        screen.getByTestId('perps-balance-venue-balance-hyperliquid'),
+        screen.getByTestId(getPerpsBalanceVenueSelector.balance('hyperliquid')),
       ).toHaveTextContent(formatPerpsBalance('100'));
       expect(
-        screen.getByTestId('perps-balance-venue-balance-lighter'),
+        screen.getByTestId(getPerpsBalanceVenueSelector.balance('lighter')),
       ).toHaveTextContent(formatPerpsBalance('50'));
       expect(
-        screen.getByTestId('perps-balance-venue-withdraw-hyperliquid'),
+        screen.getByTestId(
+          getPerpsBalanceVenueSelector.withdraw('hyperliquid'),
+        ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-balance-venue-deposit-lighter'),
+        screen.getByTestId(getPerpsBalanceVenueSelector.deposit('lighter')),
       ).toBeOnTheScreen();
     });
 
@@ -555,10 +563,12 @@ describe('PerpsHomeView', () => {
       await openBreakdown();
 
       expect(
-        await screen.findByTestId('perps-balance-venue-balance-lighter'),
+        await screen.findByTestId(
+          getPerpsBalanceVenueSelector.balance('lighter'),
+        ),
       ).toHaveTextContent(formatPerpsBalance('0'));
       expect(
-        screen.queryByTestId('perps-balance-venue-error-lighter'),
+        screen.queryByTestId(getPerpsBalanceVenueSelector.error('lighter')),
       ).toBeNull();
     });
 
@@ -574,15 +584,17 @@ describe('PerpsHomeView', () => {
       await openBreakdown();
 
       expect(
-        await screen.findByTestId('perps-balance-venue-balance-hyperliquid'),
+        await screen.findByTestId(
+          getPerpsBalanceVenueSelector.balance('hyperliquid'),
+        ),
       ).toHaveTextContent(formatPerpsBalance('100'));
       expect(
-        screen.getByTestId('perps-balance-venue-error-lighter'),
+        screen.getByTestId(getPerpsBalanceVenueSelector.error('lighter')),
       ).toHaveTextContent(
         strings('perps.balance_bottom_sheet.venue_unavailable'),
       );
       expect(
-        screen.queryByTestId('perps-balance-venue-balance-lighter'),
+        screen.queryByTestId(getPerpsBalanceVenueSelector.balance('lighter')),
       ).toBeNull();
     });
 
@@ -604,13 +616,11 @@ describe('PerpsHomeView', () => {
 
       expect(
         await screen.findByTestId(
-          'perps-home-position-card-lighter-logo-venue-badge',
+          getPerpsHomePositionCardVenueBadgeSelector(0),
         ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          'perps-home-position-card-hyperliquid-logo-venue-badge',
-        ),
+        screen.getByTestId(getPerpsHomePositionCardVenueBadgeSelector(1)),
       ).toBeOnTheScreen();
     });
 
@@ -638,12 +648,10 @@ describe('PerpsHomeView', () => {
         screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
       ).toBeNull();
       expect(
-        screen.queryByTestId('perps-balance-venue-row-hyperliquid'),
+        screen.queryByTestId(getPerpsBalanceVenueSelector.row('hyperliquid')),
       ).toBeNull();
       expect(
-        screen.queryByTestId(
-          'perps-home-position-card-hyperliquid-logo-venue-badge',
-        ),
+        screen.queryByTestId(getPerpsHomePositionCardVenueBadgeSelector(0)),
       ).toBeNull();
     });
   });

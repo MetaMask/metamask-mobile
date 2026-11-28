@@ -1033,6 +1033,22 @@ export const PerpsBalanceBottomSheetSelectorsIDs = {
     'perps-balance-bottom-sheet-cross-margin-usage-value',
 };
 
+/** Per-exchange row of the balance breakdown sheet, keyed by provider id. */
+export const getPerpsBalanceVenueSelector = {
+  row: (providerId: string) => `perps-balance-venue-row-${providerId}`,
+  defaultTag: (providerId: string) =>
+    `perps-balance-venue-default-${providerId}`,
+  balance: (providerId: string) => `perps-balance-venue-balance-${providerId}`,
+  error: (providerId: string) => `perps-balance-venue-error-${providerId}`,
+  withdraw: (providerId: string) =>
+    `perps-balance-venue-withdraw-${providerId}`,
+  deposit: (providerId: string) => `perps-balance-venue-deposit-${providerId}`,
+};
+
+/** Venue badge on the Perps home position card at `index`. */
+export const getPerpsHomePositionCardVenueBadgeSelector = (index: number) =>
+  `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}-logo-venue-badge`;
+
 /** Tappable label of a cross margin summary row, keyed by its tooltip key. */
 export const getPerpsCrossMarginSummaryLabelSelector = (tooltipKey: string) =>
   `perps-balance-bottom-sheet-${tooltipKey}-label`;
