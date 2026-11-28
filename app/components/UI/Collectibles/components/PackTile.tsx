@@ -31,6 +31,14 @@ export function PackTile({
 }: Props) {
   const { formatCurrency } = useFormatters();
 
+  const detailLink = useLinkProps<CollectiblesParamList>({
+    screen: collectiblesRoutes.root,
+    params: {
+      screen: collectiblesRoutes.packDetail,
+      params: { packCode: pack.code },
+    },
+  });
+
   const buySheetLink = useLinkProps<CollectiblesParamList>({
     screen: collectiblesRoutes.buySheet,
     params: { packCode: pack.code, name: pack.name, priceUsd: pack.priceUsd },
@@ -42,13 +50,22 @@ export function PackTile({
       style={{ width }}
       testID={collectiblesTestIds.tile(pack.code)}
     >
-      <PackArt
-        code={pack.code}
-        openedCount={pack.openedCount}
-        className="p-3"
-        artClassName="h-[276px]"
-        badge={badge}
-      />
+      <Pressable
+        {...detailLink}
+        role="button"
+        accessibilityRole="button"
+        accessibilityLabel={pack.name}
+        pressedClassName="opacity-70"
+        testID={collectiblesTestIds.tileDetail(pack.code)}
+      >
+        <PackArt
+          code={pack.code}
+          openedCount={pack.openedCount}
+          className="p-3"
+          artClassName="h-[276px]"
+          badge={badge}
+        />
+      </Pressable>
       <View>
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
           {pack.name}

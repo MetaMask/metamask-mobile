@@ -10,6 +10,10 @@ import {
 } from '#app/components/UI/Collectibles/mocks/packsCatalog';
 import { buildPacksCatalog } from '#app/components/UI/Collectibles/utils/packsCatalog';
 import { PackListingsView } from '#app/components/UI/Collectibles/views/PackListingsView';
+import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
+import { useRoute } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Text } from '@metamask/design-system-react-native';
 
 let mockCatalog: ReturnType<typeof buildPacksCatalog> & { isPending: boolean };
 
@@ -41,6 +45,13 @@ function shownPackCodes() {
   return within(grid)
     .queryAllByTestId(/^collectibles-packs-tile-pack-\d+$/)
     .map((tile) => tile.props.testID.replace('collectibles-packs-tile-', ''));
+}
+
+const Stack = createNativeStackNavigator();
+
+function PackDetailStub() {
+  const { params } = useRoute();
+  return <Text>{`pack detail: ${JSON.stringify(params)}`}</Text>;
 }
 
 describe('PackListingsView', () => {
@@ -171,6 +182,28 @@ describe('PackListingsView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('collectibles.packs.empty')),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the pack detail when a tile is pressed', async () => {
+    renderWithProvider(
+      <Stack.Navigator>
+        <Stack.Screen name="Packs" component={PackListingsView} />
+        <Stack.Screen
+          name={collectiblesRoutes.packDetail}
+          component={PackDetailStub}
+        />
+      </Stack.Navigator>,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(collectiblesTestIds.packsTileDetail('pack-1')),
+    );
+
+    expect(
+      await screen.findByText(
+        `pack detail: ${JSON.stringify({ packCode: 'pack-1' })}`,
+      ),
     ).toBeOnTheScreen();
   });
 });

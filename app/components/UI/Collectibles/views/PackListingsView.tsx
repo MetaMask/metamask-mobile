@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import {
   ButtonIcon,
@@ -15,6 +16,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { View } from '../../primitives/View';
 import { collectiblesTestIds } from '../Collectibles.testIds';
+import {
+  collectiblesRoutes,
+  type CollectiblesStackParamList,
+} from '../routeNames';
 import type { ListedPack } from '../types/packs';
 import { usePacksCatalog } from '../hooks/usePacksCatalog';
 import { useAnnounce } from '../hooks/useAnnounce';
@@ -26,6 +31,10 @@ const keyExtractor = (pack: ListedPack) => pack.code;
 
 export function PackListingsView() {
   const tw = useTailwind();
+
+  const navigation =
+    useNavigation<NavigationProp<CollectiblesStackParamList>>();
+
   const { packs, categories, isPending } = usePacksCatalog();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>();
@@ -46,7 +55,14 @@ export function PackListingsView() {
 
   const renderItem = ({ item }: { item: ListedPack }) => (
     <View className="flex-1 px-2 pb-6">
-      <PackListingTile pack={item} />
+      <PackListingTile
+        pack={item}
+        onOpenDetail={(pack) =>
+          navigation.navigate(collectiblesRoutes.packDetail, {
+            packCode: pack.code,
+          })
+        }
+      />
     </View>
   );
 

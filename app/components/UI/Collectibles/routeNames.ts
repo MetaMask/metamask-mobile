@@ -4,6 +4,7 @@ export const collectiblesRoutes = {
   root: 'Collectibles',
   home: 'CollectiblesHome',
   buySheet: 'CollectiblesBuySheet',
+  packDetail: 'CollectiblesPackDetail',
 } as const;
 
 export const collectiblesTabs = [
@@ -19,10 +20,15 @@ export interface CollectiblesHomeParams {
   tab?: CollectiblesTab;
 }
 
+export interface PackDetailParams {
+  packCode: string;
+}
+
 export type CollectiblesStackParamList = Record<
   typeof collectiblesRoutes.home,
   CollectiblesHomeParams | undefined
->;
+> &
+  Record<typeof collectiblesRoutes.packDetail, PackDetailParams>;
 
 export interface BuySheetParams {
   packCode: string;
