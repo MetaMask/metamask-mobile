@@ -402,8 +402,17 @@ export function usePerpsOrderForm(
       return 0;
     }
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
+    // Pay-with-token market orders also deposit margin plus the max slippage
+    // (see `getPayWithTokenDepositAmount`), so that reserve must fit the
+    // balance too or 100% always reads as insufficient funds.
+    const isMarketOrder =
+      !isLimitExecutionOrderType(orderForm.type) &&
+      !isTriggerOrderType(orderForm.type);
+    const slippageReserveRate =
+      hasPaymentBalance && isMarketOrder ? effectiveMaxSlippageBps / 10_000 : 0;
     const feeAdjustedBalance =
-      balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
+      balanceForMax /
+      (1 + estimatedFeeRate * orderForm.leverage + slippageReserveRate);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
@@ -443,6 +452,24 @@ export function usePerpsOrderForm(
       });
     }
 
+    // The pay-with-token deposit prices margin at the mark, so a mark above
+    // mid must cap the size too or 100% still exceeds the token balance.
+    const markPrice = Number.parseFloat(currentPrice?.markPrice ?? '') || 0;
+    if (
+      hasPaymentBalance &&
+      isMarketOrder &&
+      markPrice > effectiveAssetPrice &&
+      effectiveAssetPrice > 0
+    ) {
+      return getMaxAllowedAmountAtExecutionPrice({
+        spendableBalance: feeAdjustedBalance,
+        sizePrice: effectiveAssetPrice,
+        executionPrice: markPrice,
+        assetSzDecimals: sizeDecimals,
+        leverage: orderForm.leverage,
+      });
+    }
+
     return getMaxAllowedAmount({
       spendableBalance: feeAdjustedBalance,
       assetPrice: effectiveAssetPrice,
@@ -451,8 +478,10 @@ export function usePerpsOrderForm(
     });
   }, [
     balanceForMax,
+    hasPaymentBalance,
     estimatedFeeRate,
     currentPrice?.price,
+    currentPrice?.markPrice,
     orderForm.type,
     orderForm.direction,
     orderForm.limitPrice,
