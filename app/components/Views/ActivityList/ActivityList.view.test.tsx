@@ -21,7 +21,7 @@ import {
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import {
   renderActivityListView,
-  renderActivityListViewWithTabBarHeight,
+  renderActivityListViewWithFloatingTabBarInset,
   renderActivityListViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
@@ -108,10 +108,13 @@ describeForPlatforms('ActivityList', () => {
     ).toBeOnTheScreen();
   });
 
-  it('applies bottom tab bar height as list padding', async () => {
+  it('applies floating tab bar inset as list padding', async () => {
     const state = initialStateActivityWithAccountsApi().build();
     const { findByTestId, queryByTestId } =
-      renderActivityListViewWithTabBarHeight({ state, tabBarHeight: 50 });
+      renderActivityListViewWithFloatingTabBarInset({
+        state,
+        floatingTabBarInset: 50,
+      });
 
     await waitFor(
       () => {

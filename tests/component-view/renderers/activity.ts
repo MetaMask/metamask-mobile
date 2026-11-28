@@ -1,6 +1,5 @@
 import '../mocks';
 import React from 'react';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import renderWithProvider, {
   type DeepPartial,
@@ -33,6 +32,7 @@ import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data
 import Engine from '../../../app/core/Engine';
 import { DATA_SERVICES } from '../../../app/constants/data-services';
 import { Text } from 'react-native';
+import { FloatingTabBarInsetContext } from '../../../app/component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
@@ -88,9 +88,9 @@ interface RenderActivityListViewOptions {
   state?: DeepPartial<RootState>;
 }
 
-interface RenderActivityListViewWithTabBarHeightOptions
+interface RenderActivityListViewWithFloatingTabBarInsetOptions
   extends RenderActivityListViewOptions {
-  tabBarHeight: number;
+  floatingTabBarInset: number;
 }
 
 interface RenderActivityListViewWithRoutesOptions
@@ -121,11 +121,13 @@ function ActivityListWithProviders() {
   );
 }
 
-function buildActivityListWithProvidersAndTabBarHeight(tabBarHeight: number) {
-  return function ActivityListWithProvidersAndTabBarHeight() {
+function buildActivityListWithProvidersAndFloatingTabBarInset(
+  floatingTabBarInset: number,
+) {
+  return function ActivityListWithProvidersAndFloatingTabBarInset() {
     return React.createElement(
-      BottomTabBarHeightContext.Provider,
-      { value: tabBarHeight },
+      FloatingTabBarInsetContext.Provider,
+      { value: floatingTabBarInset },
       React.createElement(
         HardwareWalletProvider,
         null,
@@ -264,12 +266,12 @@ export function renderActivityListView(
   );
 }
 
-export function renderActivityListViewWithTabBarHeight(
-  options: RenderActivityListViewWithTabBarHeightOptions,
+export function renderActivityListViewWithFloatingTabBarInset(
+  options: RenderActivityListViewWithFloatingTabBarInsetOptions,
 ): ReturnType<typeof renderComponentViewScreen> {
   const state = buildActivityState(options);
-  const Component = buildActivityListWithProvidersAndTabBarHeight(
-    options.tabBarHeight,
+  const Component = buildActivityListWithProvidersAndFloatingTabBarInset(
+    options.floatingTabBarInset,
   );
 
   return renderComponentViewScreen(

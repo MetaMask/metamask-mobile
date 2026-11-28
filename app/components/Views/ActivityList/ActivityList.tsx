@@ -5,7 +5,6 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -590,7 +589,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       return hasConfiguredEvmChains
         ? popularListBlockExplorer.getBlockExplorerUrl(
             selectedAccountGroupEvmAddress,
-          ) || undefined
+          ) ?? undefined
         : undefined;
     }, [
       configBlockExplorerUrl,
@@ -953,14 +952,22 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
 
     const { bottom: bottomInset } = useSafeAreaInsets();
-    const tabBarHeight = useContext(BottomTabBarHeightContext);
     const floatingTabBarInset = useFloatingTabBarInset();
+
+    const listPaddingBottom = useMemo(() => {
+      if (floatingTabBarInset > 0) {
+        return floatingTabBarInset;
+      }
+
+      return bottomInset;
+    }, [bottomInset, floatingTabBarInset]);
+
     const listContentStyle = useMemo(
       () => ({
         paddingTop: contentTopInset,
-        paddingBottom: floatingTabBarInset || tabBarHeight || bottomInset,
+        paddingBottom: listPaddingBottom,
       }),
-      [contentTopInset, floatingTabBarInset, tabBarHeight, bottomInset],
+      [contentTopInset, listPaddingBottom],
     );
 
     const isPerpsLoading = perps.isLoading;
