@@ -192,7 +192,6 @@ export type ImportPrivateKeyStackParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyTabStackParamList = {
   MoneyHome: NavigationAnalyticsRouteParams | undefined;
-  MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
 

@@ -9,7 +9,6 @@ import {
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
-import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
@@ -64,10 +63,6 @@ const MoneyTabScreenStack = () => {
             }
           },
         }}
-      />
-      <TabStack.Screen
-        name={Routes.MONEY.ACTIVITY}
-        component={MoneyActivityView}
       />
       <TabStack.Screen
         name={Routes.MONEY.HOW_IT_WORKS}

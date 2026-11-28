@@ -77,7 +77,6 @@ export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyScreensStackParamList = {
   MoneyHome: MoneyHomeParams | undefined;
-  MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
 
@@ -151,6 +150,11 @@ export interface MoneyMusdRescueRecipientSelection {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
+    /**
+     * Registered on the root stack (outside HomeTabs) so it does not render the
+     * bottom floating navbar.
+     */
+    MoneyActivity: undefined;
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
