@@ -131,8 +131,18 @@ describe('useLighterDepositMinimumAlert', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({
       key: AlertKeys.FiatBuyAmountLimit,
+      message: 'Minimum deposit is $1.00 after fees. Enter a higher amount.',
       isBlocking: true,
     });
+  });
+
+  it('uses the entered amount message when both amounts are below the minimum', () => {
+    const { result } = runHook({
+      contextPendingFiatAmount: '0.5',
+      receivedUsd: '0.47',
+    });
+
+    expect(result.current[0].message).toBe('Minimum deposit is $1.00');
   });
 
   it('returns no alert when the amount received meets the minimum', () => {

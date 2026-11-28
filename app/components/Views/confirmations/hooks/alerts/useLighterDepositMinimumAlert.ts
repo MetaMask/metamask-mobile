@@ -55,29 +55,42 @@ export function useLighterDepositMinimumAlert({
     pendingAmount === undefined && !isQuoteLoading
       ? Number(totals?.targetAmount?.usd ?? '0')
       : 0;
-  const isBelowMinimum = [amount, receivedAmount].some(
-    (value) =>
-      Number.isFinite(value) && value > 0 && value < LIGHTER_MINIMUM_DEPOSIT,
-  );
+  const isBelow = (value: number) =>
+    Number.isFinite(value) && value > 0 && value < LIGHTER_MINIMUM_DEPOSIT;
+  const isAmountBelowMinimum = isBelow(amount);
+  const isReceivedBelowMinimum =
+    !isAmountBelowMinimum && isBelow(receivedAmount);
 
   return useMemo(() => {
-    if (!isLighterDeposit || !isBelowMinimum) {
+    if (
+      !isLighterDeposit ||
+      (!isAmountBelowMinimum && !isReceivedBelowMinimum)
+    ) {
       return NO_ALERTS;
     }
+
+    const minimum = formatCurrency(LIGHTER_MINIMUM_DEPOSIT, 'USD', {
+      currencyDisplay: 'narrowSymbol',
+    });
 
     return [
       {
         key: AlertKeys.FiatBuyAmountLimit,
         field: RowAlertKey.Amount,
         title: strings('alert_system.fiat_buy_amount_limit.title'),
-        message: strings('fiat_on_ramp.min_deposit_limit', {
-          amount: formatCurrency(LIGHTER_MINIMUM_DEPOSIT, 'USD', {
-            currencyDisplay: 'narrowSymbol',
-          }),
-        }),
+        message: isReceivedBelowMinimum
+          ? strings('alert_system.lighter_deposit_minimum_after_fees.message', {
+              amount: minimum,
+            })
+          : strings('fiat_on_ramp.min_deposit_limit', { amount: minimum }),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isLighterDeposit, isBelowMinimum, formatCurrency]);
+  }, [
+    isLighterDeposit,
+    isAmountBelowMinimum,
+    isReceivedBelowMinimum,
+    formatCurrency,
+  ]);
 }
