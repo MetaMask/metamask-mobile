@@ -47,6 +47,20 @@ export function isCollectiblesBuildEnabled(): boolean {
 }
 
 /**
+ * Local fallback for Money MFA (`isMoneyMfaEnabled`) and social-login MFA
+ * recovery (`mfaRecovery`). A valid remote flag always wins, including a
+ * disabled one; this is read only when the remote flag is missing or invalid,
+ * or `OVERRIDE_REMOTE_FEATURE_FLAGS=true`.
+ *
+ * The variable is inlined from `.js.env` at build time; restart Metro after
+ * changing it. Read it through this function so callers stay testable: an
+ * inlined `process.env` lookup cannot be changed at runtime.
+ */
+export function isMoneyMfaBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MFA_ENABLED === 'true';
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/

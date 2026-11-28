@@ -55,20 +55,76 @@ describe.each([
       }),
     ).toBe(false);
   });
+});
+
+describe('selectMfaUiKitEnabled fallback', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
+  });
 
   it.each([
     ['missing', {}],
-    ['invalid', { [flagName]: { enabled: true } }],
+    ['invalid', { [FeatureFlagNames.mfaUiKit]: { enabled: true } }],
   ])('falls back to the build check when the flag is %s', (_case, flags) => {
     jest.mocked(isMfaDevBuild).mockReturnValue(true);
 
-    expect(selector.resultFunc(flags)).toBe(true);
+    expect(selectMfaUiKitEnabled.resultFunc(flags)).toBe(true);
   });
 
   it('hides the surface on non-dev builds when the flag is missing', () => {
     jest.mocked(isMfaDevBuild).mockReturnValue(false);
 
-    expect(selector.resultFunc({})).toBe(false);
+    expect(selectMfaUiKitEnabled.resultFunc({})).toBe(false);
+  });
+});
+
+describe('selectMfaRecoveryEnabled fallback', () => {
+  const originalFlag = process.env.MM_MONEY_MFA_ENABLED;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
+    // rc, exp, dev, e2e, and test are dev builds. That must not turn recovery on.
+    jest.mocked(isMfaDevBuild).mockReturnValue(true);
+    delete process.env.MM_MONEY_MFA_ENABLED;
+  });
+
+  afterEach(() => {
+    if (originalFlag === undefined) {
+      delete process.env.MM_MONEY_MFA_ENABLED;
+    } else {
+      process.env.MM_MONEY_MFA_ENABLED = originalFlag;
+    }
+  });
+
+  it.each([
+    ['missing', {}],
+    ['invalid', { [FeatureFlagNames.mfaRecovery]: { enabled: true } }],
+  ])(
+    'stays off when the flag is %s and the local switch is unset',
+    (_case, flags) => {
+      expect(selectMfaRecoveryEnabled.resultFunc(flags)).toBe(false);
+    },
+  );
+
+  it('turns on from MM_MONEY_MFA_ENABLED when the remote flag is missing', () => {
+    process.env.MM_MONEY_MFA_ENABLED = 'true';
+
+    expect(selectMfaRecoveryEnabled.resultFunc({})).toBe(true);
+  });
+
+  it('keeps the remote disabled value when MM_MONEY_MFA_ENABLED is true', () => {
+    process.env.MM_MONEY_MFA_ENABLED = 'true';
+
+    expect(
+      selectMfaRecoveryEnabled.resultFunc({
+        [FeatureFlagNames.mfaRecovery]: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      }),
+    ).toBe(false);
   });
 });
 
