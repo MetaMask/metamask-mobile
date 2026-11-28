@@ -114,9 +114,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../Views/MoneyHomeView', () => () => (
   <MockView testID="mock-money-home-view" />
 ));
-jest.mock('../Views/MoneyActivityView', () => () => (
-  <MockView testID="mock-money-activity-view" />
-));
 jest.mock('../Views/MoneyHowItWorksView', () => () => (
   <MockView testID="mock-money-how-it-works-view" />
 ));
@@ -184,13 +181,12 @@ describe('MoneyTabScreenStack', () => {
     Engine.context.CardController.state.isAuthenticated = true;
   });
 
-  it('registers Money home, activity, and how-it-works screens', () => {
+  it('registers Money home and how-it-works screens', () => {
     const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
     expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
-    expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyHowItWorks')).toBeOnTheScreen();
   });
 
@@ -253,9 +249,6 @@ describe('MoneyTabScreenStack', () => {
       theme: themeWithCustomBackground,
     });
 
-    expect(
-      queryByTestId(`money-screen-${Routes.MONEY.ACTIVITY}-focus`),
-    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(`money-screen-${Routes.MONEY.HOW_IT_WORKS}-focus`),
     ).not.toBeOnTheScreen();

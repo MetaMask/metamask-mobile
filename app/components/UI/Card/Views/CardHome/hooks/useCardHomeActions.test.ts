@@ -161,10 +161,7 @@ describe('useCardHomeActions — transactionHistoryAction', () => {
       result.current.transactionHistoryAction('money');
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.ACTIVITY },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 
   it('navigates to card transaction history when authenticated', () => {

@@ -561,10 +561,7 @@ export function useCardHomeActions({
   const transactionHistoryAction = useCallback(
     (destination: 'card' | 'money') => {
       if (destination === 'money') {
-        navigation.navigate(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.ACTIVITY },
-        });
+        navigation.navigate(Routes.MONEY.ACTIVITY);
         return;
       }
 
