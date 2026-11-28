@@ -77,6 +77,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import {
   formatAmount,
   getCaipChainIdFromCryptoCurrency,
+  getEvmHexChainId,
   getHexChainIdFromCryptoCurrency,
 } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
@@ -101,9 +102,11 @@ import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
 } from '../../../../../../util/number/bigint';
-import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import useRampSellGasFee from '../../hooks/useRampSellGasFee';
+import useRampNetworkClientId from '../../hooks/useRampNetworkClientId';
+import { createUnfundedRecipient } from '../../utils/createUnfundedRecipient';
+import { buildRampTransferParams } from '../../utils/buildRampTransferParams';
 import useIntentAmount from '../../hooks/useIntentAmount';
-import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
@@ -113,7 +116,7 @@ import {
 } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { GasFeeEstimateLevel } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
 import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
@@ -336,20 +339,11 @@ const BuildQuote = () => {
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
 
-  const gasLimitEstimation = useERC20GasLimitEstimation({
-    tokenAddress: selectedAsset?.address,
-    fromAddress: selectedAddress,
-    chainId: selectedAsset?.network?.chainId || CHAIN_IDS.MAINNET,
-    amount,
-    decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
-    isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
-  });
-
-  const gasPriceEstimation = useGasPriceEstimation({
-    // 0 is set when buying since there's no transaction involved
-    gasLimit: isBuy ? 0 : gasLimitEstimation,
-    estimateRange: 'high',
-  });
+  const sellChainId = getEvmHexChainId(selectedAsset?.network?.chainId);
+  const sellNetworkClientId = useRampNetworkClientId(
+    selectedAsset?.network?.chainId,
+  );
+  const [unfundedRecipient] = useState(createUnfundedRecipient);
 
   const assetForBalance = useMemo(
     () =>
@@ -399,11 +393,15 @@ const BuildQuote = () => {
   );
 
   const { balanceBN: nativeTokenBalanceBN } = useBalance(
-    isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
+    isBuy ||
+      isNonEvmAsset ||
+      !selectedAsset ||
+      selectedAsset.address === NATIVE_ADDRESS
       ? undefined
       : {
           address: NATIVE_ADDRESS,
           decimals: 18,
+          chainId: sellChainId,
         },
   );
 
@@ -413,15 +411,48 @@ const BuildQuote = () => {
       : undefined,
   );
 
+  const sellGasEstimateTransaction = useMemo(() => {
+    if (!isSell || isNonEvmAsset || balanceBN == null || balanceBN <= 0n) {
+      return undefined;
+    }
+
+    return buildRampTransferParams({
+      from: selectedAddress ?? undefined,
+      chainId: sellChainId,
+      assetAddress: selectedAsset?.address,
+      recipient: unfundedRecipient,
+      // Magnitude barely changes gas (only calldata bytes for ERC-20), and a
+      // non-zero native value still triggers the new-account charge. A fixed
+      // amount keeps the estimate key stable as the balance changes.
+      amount: 1n,
+    });
+  }, [
+    balanceBN,
+    isNonEvmAsset,
+    isSell,
+    selectedAddress,
+    selectedAsset?.address,
+    sellChainId,
+    unfundedRecipient,
+  ]);
+
+  const sellGasFee = useRampSellGasFee({
+    networkClientId: sellNetworkClientId,
+    chainId: sellChainId,
+    transaction: sellGasEstimateTransaction,
+    level: GasFeeEstimateLevel.High,
+  });
+
   let maxSellAmount: bigint | null = null;
   if (selectedAsset && isNonEvmAsset) {
     maxSellAmount = balanceBN ?? null;
   } else if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
-    // Use nullish checks — bigint 0n is falsy, unlike BN instances.
-    maxSellAmount =
-      balanceBN != null && gasPriceEstimation
-        ? balanceBN - gasPriceEstimation.estimatedGasFee
-        : null;
+    if (balanceBN == null || sellGasFee.status !== 'ready') {
+      maxSellAmount = null;
+    } else {
+      const remainingBalance = balanceBN - sellGasFee.gasFeeWei;
+      maxSellAmount = remainingBalance > 0n ? remainingBalance : 0n;
+    }
   } else if (
     selectedAsset &&
     selectedAsset.address !== NATIVE_ADDRESS &&
@@ -477,18 +508,12 @@ const BuildQuote = () => {
 
     // 0n native balance must still be compared against gas — do not use
     // truthiness (BN objects were always truthy; 0n is not).
-    if (nativeTokenBalanceBN == null || !gasPriceEstimation) {
+    if (nativeTokenBalanceBN == null || sellGasFee.status !== 'ready') {
       return false;
     }
 
-    return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
-  }, [
-    gasPriceEstimation,
-    isBuy,
-    isNonEvmAsset,
-    nativeTokenBalanceBN,
-    selectedAsset,
-  ]);
+    return nativeTokenBalanceBN < sellGasFee.gasFeeWei;
+  }, [isBuy, isNonEvmAsset, nativeTokenBalanceBN, selectedAsset, sellGasFee]);
 
   const {
     isValidating: isSnapValidating,
@@ -702,6 +727,13 @@ const BuildQuote = () => {
         return;
       }
 
+      const isNativeMax =
+        selectedAsset?.address === NATIVE_ADDRESS && value === 1;
+
+      if (isNativeMax && maxSellAmount === null) {
+        return;
+      }
+
       const amountPercentage = calculatePercentageAmount(value * 100);
       if (amountPercentage === undefined) {
         return;
@@ -737,6 +769,8 @@ const BuildQuote = () => {
       isBuy,
       isSnapAmountChain,
       isOffRampNonEvmEnabled,
+      maxSellAmount,
+      selectedAsset?.address,
       selectedAsset?.decimals,
       calculatePercentageAmount,
       fetchSnapMaxAmount,
@@ -889,7 +923,7 @@ const BuildQuote = () => {
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
     } else if (errorFiatCurrency) {
-      void queryDefaultFiatCurrency();
+      queryDefaultFiatCurrency().catch(() => undefined);
       return queryGetFiatCurrencies();
     } else if (errorRegions) {
       return queryGetRegions();
@@ -1014,12 +1048,9 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (
-    balanceBN != null &&
-    balanceBN !== 0n &&
-    maxSellAmount !== null &&
-    maxSellAmount > 0n
-  ) {
+  } else if (balanceBN != null && balanceBN > 0n) {
+    const isNative = selectedAsset?.address === NATIVE_ADDRESS;
+
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -1027,7 +1058,8 @@ const BuildQuote = () => {
       {
         value: 1,
         label: strings('fiat_on_ramp_aggregator.max'),
-        isNative: selectedAsset?.address === NATIVE_ADDRESS,
+        isNative,
+        disabled: isNative && (maxSellAmount === null || maxSellAmount === 0n),
       },
     ];
   }
@@ -1196,6 +1228,22 @@ const BuildQuote = () => {
                     color={TextColor.ErrorDefault}
                   >
                     {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
+                  </Text>
+                </Row>
+              )}
+            {!hasInsufficientBalance &&
+              amountNumber > 0 &&
+              isSell &&
+              !isNonEvmAsset &&
+              selectedAsset &&
+              (sellGasFee.status === 'error' ||
+                sellGasFee.status === 'idle') && (
+                <Row>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextMuted}
+                  >
+                    {strings('fiat_on_ramp_aggregator.network_fee_unavailable')}
                   </Text>
                 </Row>
               )}
