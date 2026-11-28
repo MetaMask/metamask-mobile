@@ -1,25 +1,23 @@
-// ADD_INDICATOR / REMOVE_INDICATOR / SET_MA_VISIBILITY handlers.
+// ADD_INDICATOR / REMOVE_INDICATOR handlers.
 //
-// Ported from chartLogic.js handleAddIndicator (~line 803),
-// handleRemoveIndicator (~line 891), handleSetMAVisibility (~line 929).
-// Phase 3 keeps the curated indicator set used by Token Details (MACD, RSI,
-// BOL, MA200 + MA visibility variants). Consumers needing TV's native study
-// picker can re-enable header_widget via the disabledFeatures prop.
+// Ported from chartLogic.js handleAddIndicator (~line 803) and
+// handleRemoveIndicator (~line 891). Every indicator — moving averages
+// included — goes through these two handlers; study arguments come from the
+// RN-supplied registry (CONFIG.indicatorDefinitions). Consumers needing TV's
+// native study picker can re-enable header_widget via the disabledFeatures prop.
 
 import { postToRN, reportErrorToRN } from '../../core/bridge';
 import {
   getActiveStudies,
-  getMaStudies,
   getWidget,
   isChartReady,
   registerStudy,
   unregisterStudy,
 } from '../../core/state';
-import type { ChartConfig, StudyId, TVActiveChart } from '../../core/types';
+import type { ChartConfig, StudyId } from '../../core/types';
 import type {
   AddIndicatorMessage,
   RemoveIndicatorMessage,
-  SetMAVisibilityMessage,
 } from '../../messages/contract';
 import {
   removeSubPaneOverlay,
@@ -31,7 +29,6 @@ import { applySubPaneHeightRatio, hasActiveSubPaneIndicators } from './subPane';
 import {
   createIndicatorStudy,
   isSubPanePreset,
-  MA_LENGTHS,
   resolveStudyPreset,
 } from './studies';
 
@@ -43,6 +40,13 @@ function isOwnStringKey(key: unknown): key is string {
     key !== 'prototype'
   );
 }
+
+/**
+ * Indicators whose createStudy promise hasn't resolved yet. The value is true
+ * once a REMOVE_INDICATOR arrived for it, so the study is dropped on arrival.
+ * Prevents duplicate studies when RN re-syncs before INDICATOR_ADDED lands.
+ */
+const pendingCreates = new Map<string, boolean>();
 
 function notifyIndicatorAdded(name: string, studyId: StudyId): void {
   // Two-frame wait so RN reads the legend overlay after layout completes.
@@ -63,17 +67,29 @@ export function handleAddIndicator(
   const name = payload.name;
   if (!isOwnStringKey(name)) return;
   if (getActiveStudies().has(name)) return;
+  if (pendingCreates.has(name)) {
+    // Re-added before the first create resolved — keep that one.
+    pendingCreates.set(name, false);
+    return;
+  }
 
   const chart = widget.activeChart();
   const preset = resolveStudyPreset(
     name,
-    config.indicatorColors,
+    config.indicatorDefinitions,
     payload.inputs,
   );
 
+  pendingCreates.set(name, false);
   createIndicatorStudy(chart, preset)
     .then((studyId) => {
-      registerStudy('active', name, studyId);
+      const removedWhilePending = pendingCreates.get(name) === true;
+      pendingCreates.delete(name);
+      if (removedWhilePending) {
+        chart.removeEntity(studyId);
+        return;
+      }
+      registerStudy(name, studyId);
       if (isSubPanePreset(preset)) {
         applySubPaneHeightRatio(chart);
       }
@@ -82,6 +98,7 @@ export function handleAddIndicator(
       notifyIndicatorAdded(name, studyId);
     })
     .catch((error) => {
+      pendingCreates.delete(name);
       reportErrorToRN(
         error instanceof Error
           ? new Error(`Failed to add indicator: ${error.message}`)
@@ -98,6 +115,10 @@ export function handleRemoveIndicator(
   if (!payload?.name) return;
   const name = payload.name;
   if (!isOwnStringKey(name)) return;
+  if (pendingCreates.has(name)) {
+    pendingCreates.set(name, true);
+    return;
+  }
   if (!getActiveStudies().has(name)) return;
 
   const studyId = unregisterStudy(name);
@@ -125,77 +146,7 @@ export function handleRemoveIndicator(
   }
 }
 
-export function handleSetMAVisibility(
-  payload: SetMAVisibilityMessage['payload'],
-  config: ChartConfig,
-): void {
-  const widget = getWidget();
-  if (!widget || !isChartReady()) return;
-  if (!payload) return;
-
-  const visible = payload.visible || [];
-  const chart = widget.activeChart();
-
-  const visibleNames = new Set<string>();
-  for (const visibleName of visible) {
-    if (isOwnStringKey(visibleName) && MA_LENGTHS[visibleName] != null) {
-      visibleNames.add(visibleName);
-    }
-  }
-
-  removeMAVariants(chart, visibleNames);
-  addMAVariants(chart, visible, config);
-}
-
-function removeMAVariants(chart: TVActiveChart, keep: Set<string>): void {
-  const toRemove: string[] = [];
-  for (const name of getMaStudies().keys()) {
-    if (!keep.has(name)) toRemove.push(name);
-  }
-  if (toRemove.length === 0) return;
-  for (const name of toRemove) {
-    const studyId = unregisterStudy(name);
-    if (!studyId) continue;
-    try {
-      chart.removeEntity(studyId);
-      postToRN('INDICATOR_REMOVED', { name });
-    } catch (error) {
-      reportErrorToRN(error);
-    }
-  }
-  // Removing TV studies doesn't auto-clear the DOM legend pills. Refresh so
-  // the disabled MA's pill disappears alongside the underlying study.
-  scheduleLegendRefresh();
-}
-
-function addMAVariants(
-  chart: TVActiveChart,
-  visible: string[],
-  config: ChartConfig,
-): void {
-  const promises: Promise<unknown>[] = [];
-  for (const name of visible) {
-    if (!isOwnStringKey(name) || MA_LENGTHS[name] == null) continue;
-    if (getMaStudies().has(name)) continue;
-    const preset = resolveStudyPreset(name, config.indicatorColors);
-    promises.push(
-      createIndicatorStudy(chart, preset)
-        .then((studyId) => {
-          registerStudy('ma', name, studyId);
-          subscribeStudyDataLoaded(chart, studyId);
-          notifyIndicatorAdded(name, studyId);
-        })
-        .catch((err) => {
-          reportErrorToRN(
-            new Error(`MA creation failed: ${name} - ${String(err)}`),
-          );
-        }),
-    );
-  }
-  if (promises.length > 0) {
-    Promise.all(promises).then(() => {
-      scheduleLegendRefresh();
-      scheduleChartWidgetResize();
-    });
-  }
+/** Test-only: clear module-local state between cases. */
+export function __resetIndicatorsForTests(): void {
+  pendingCreates.clear();
 }

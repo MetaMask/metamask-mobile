@@ -24,7 +24,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { getMAOptions } from './indicatorColors';
+import { getMAOptions } from './indicatorRegistry';
 import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';

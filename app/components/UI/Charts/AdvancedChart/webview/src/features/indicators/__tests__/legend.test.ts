@@ -27,8 +27,9 @@ import {
 } from '../../../core/state';
 import type {
   ChartTheme,
-  IndicatorColors,
-  LegendIndicatorCfg,
+  IndicatorDefinitionCfg,
+  IndicatorDefinitionsCfg,
+  IndicatorLegendCfg,
   TVActiveChart,
   TVChartingLibraryWidget,
   TVExportData,
@@ -113,101 +114,96 @@ const setupReadyWidget = (chart: TVActiveChart): void => {
   setChartReady(true);
 };
 
-const defaultTestConfig: Record<string, LegendIndicatorCfg> = {
-  MACD: {
-    subPaneLegend: true,
+/** Palette shape used by tests to colour the default definitions. */
+interface TestColors {
+  MA?: Record<string, string>;
+  MACD?: Record<string, string>;
+  RSI?: Record<string, string>;
+  BOL?: Record<string, string>;
+}
+
+const subPaneDef = (legend: IndicatorLegendCfg): IndicatorDefinitionCfg => ({
+  study: { name: 'Study', pane: 'sub' },
+  legend,
+});
+
+const maDef = (length: number, color: string | null = null) => ({
+  study: { name: 'Moving Average', inputs: { length } },
+  legend: { plots: [{ tvTitle: 'Plot', label: `MA(${length})`, color }] },
+  group: 'MA',
+});
+
+const defaultTestConfig: IndicatorDefinitionsCfg = {
+  MACD: subPaneDef({
     plots: [
       { tvTitle: 'MACD', label: 'MACD(12,26)', color: null },
       { tvTitle: 'Signal', label: 'Signal', color: null },
       { tvTitle: 'Histogram', label: 'Hist', color: null },
     ],
-  },
-  RSI: {
-    subPaneLegend: true,
+  }),
+  RSI: subPaneDef({
     plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
-  },
+  }),
   BOL: {
-    combineInOnePill: true,
-    title: 'BB(20,2)',
-    plots: [
-      { tvTitle: 'Upper', label: 'U:', color: null },
-      { tvTitle: 'Median', label: 'M:', color: null },
-      { tvTitle: 'Lower', label: 'L:', color: null },
-    ],
+    study: { name: 'Bollinger Bands' },
+    legend: {
+      title: 'BB(20,2)',
+      plots: [
+        { tvTitle: 'Upper', label: 'U:', color: null },
+        { tvTitle: 'Median', label: 'M:', color: null },
+        { tvTitle: 'Lower', label: 'L:', color: null },
+      ],
+    },
   },
   Volume: {
-    valueFormat: 'compact',
-    plots: [{ tvTitle: 'Volume', label: 'Vol', color: null }],
+    study: { name: 'Volume' },
+    legend: {
+      valueFormat: 'compact',
+      plots: [{ tvTitle: 'Volume', label: 'Vol', color: null }],
+    },
   },
-  MA5: {
-    isMA: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
-  },
-  MA10: {
-    isMA: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: null }],
-  },
-  MA20: {
-    isMA: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: null }],
-  },
-  MA50: {
-    isMA: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: null }],
-  },
-  MA200: {
-    isMA: true,
-    plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: null }],
-  },
+  MA5: maDef(5),
+  MA10: maDef(10),
+  MA20: maDef(20),
+  MA50: maDef(50),
+  MA200: maDef(200),
 };
 
-const buildTestConfig = (
-  colors?: IndicatorColors,
-): Record<string, LegendIndicatorCfg> => {
+const buildTestConfig = (colors?: TestColors): IndicatorDefinitionsCfg => {
   if (!colors) return defaultTestConfig;
   const macd = colors.MACD ?? {};
   const rsi = colors.RSI ?? {};
+  const ma = colors.MA ?? {};
   return {
     ...defaultTestConfig,
-    MACD: {
-      ...defaultTestConfig.MACD,
+    MACD: subPaneDef({
       plots: [
-        {
-          tvTitle: 'MACD',
-          label: 'MACD(12,26)',
-          color: macd.macd ?? null,
-        },
-        {
-          tvTitle: 'Signal',
-          label: 'Signal',
-          color: macd.signal ?? null,
-        },
+        { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
+        { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
         {
           tvTitle: 'Histogram',
           label: 'Hist',
           color: macd.histogramPositive ?? null,
         },
       ],
-    },
-    RSI: {
-      ...defaultTestConfig.RSI,
-      plots: [
-        {
-          tvTitle: 'Plot',
-          label: 'RSI(14)',
-          color: rsi.plot ?? null,
-        },
-      ],
-    },
+    }),
+    RSI: subPaneDef({
+      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
+    }),
+    MA5: maDef(5, ma.MA5 ?? null),
+    MA10: maDef(10, ma.MA10 ?? null),
+    MA20: maDef(20, ma.MA20 ?? null),
+    MA50: maDef(50, ma.MA50 ?? null),
+    MA200: maDef(200, ma.MA200 ?? null),
   };
 };
 
 const enableOverlayWithStudies = (
   chart: TVActiveChart,
-  colors?: IndicatorColors,
+  colors?: TestColors,
 ): void => {
   installContainer();
-  setupLegendOverlay({ enabled: true, config: buildTestConfig(colors) });
+  setupLegendOverlay('overlay', buildTestConfig(colors));
   setupReadyWidget(chart);
 };
 
@@ -232,21 +228,21 @@ describe('legend', () => {
   });
 
   describe('setupLegendOverlay', () => {
-    it('is a no-op when config is undefined', () => {
+    it('is a no-op when legendMode is undefined', () => {
       installContainer();
-      setupLegendOverlay(undefined);
+      setupLegendOverlay(undefined, defaultTestConfig);
       expect(document.getElementById(OVERLAY_ID)).toBeNull();
     });
 
-    it('is a no-op when enabled is false', () => {
+    it('is a no-op when legendMode is none', () => {
       installContainer();
-      setupLegendOverlay({ enabled: false });
+      setupLegendOverlay('none', defaultTestConfig);
       expect(document.getElementById(OVERLAY_ID)).toBeNull();
     });
 
     it('creates the overlay element inside tv_chart_container', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       const overlay = document.getElementById(OVERLAY_ID);
       expect(overlay).not.toBeNull();
       expect(overlay?.parentElement).toBe(container);
@@ -254,26 +250,26 @@ describe('legend', () => {
 
     it('sets container position to relative', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       expect(container.style.position).toBe('relative');
     });
 
     it('replaces an existing overlay if called twice', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true });
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
+      setupLegendOverlay('overlay', undefined);
       expect(document.querySelectorAll(`#${OVERLAY_ID}`).length).toBe(1);
     });
 
     it('does nothing when tv_chart_container is missing', () => {
       document.body.innerHTML = '';
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       expect(document.getElementById(OVERLAY_ID)).toBeNull();
     });
 
     it('injects a style element to hide TV legend buttons', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       const style = document.getElementById('mm-hide-legend-buttons');
       expect(style).not.toBeNull();
       expect(style?.textContent).toContain('display:none!important');
@@ -281,8 +277,8 @@ describe('legend', () => {
 
     it('does not duplicate the CSS style on second setup call', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true });
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
+      setupLegendOverlay('overlay', undefined);
       expect(document.querySelectorAll('#mm-hide-legend-buttons').length).toBe(
         1,
       );
@@ -297,7 +293,7 @@ describe('legend', () => {
 
     it('subscribes to panes_height_changed and triggers layout update', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
         configurable: true,
@@ -350,13 +346,13 @@ describe('legend', () => {
 
     it('is a no-op when widget is null', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       expect(() => refreshStudyLegendFromExport()).not.toThrow();
     });
 
     it('is a no-op when chart is not ready', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       const { chart } = makeChart();
       setWidget({
         activeChart: () => chart,
@@ -377,7 +373,7 @@ describe('legend', () => {
     it('calls exportData with registered active study IDs', () => {
       const { chart, exportData } = makeChart();
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       expect(exportData).toHaveBeenCalledWith({
         includeSeries: false,
@@ -390,7 +386,7 @@ describe('legend', () => {
     it('includes MA studies in the export request', () => {
       const { chart, exportData } = makeChart();
       enableOverlayWithStudies(chart);
-      registerStudy('ma', 'MA5', 'sid-ma5');
+      registerStudy('MA5', 'sid-ma5');
       refreshStudyLegendFromExport();
       expect(exportData).toHaveBeenCalledWith({
         includeSeries: false,
@@ -414,7 +410,7 @@ describe('legend', () => {
     });
 
     it('renders MACD legend pills from export data', async () => {
-      const colors: IndicatorColors = {
+      const colors: TestColors = {
         MACD: {
           macd: 'rgb(255, 0, 0)',
           signal: 'rgb(0, 255, 0)',
@@ -432,7 +428,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart, colors);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -443,7 +439,7 @@ describe('legend', () => {
     });
 
     it('renders RSI legend pill from export data', async () => {
-      const colors: IndicatorColors = {
+      const colors: TestColors = {
         RSI: { plot: 'rgb(170, 187, 0)' },
       };
       const data = makeExportData(
@@ -455,7 +451,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart, colors);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -465,7 +461,7 @@ describe('legend', () => {
     });
 
     it('renders Bollinger Bands in a single combined pill', async () => {
-      const colors: IndicatorColors = {
+      const colors: TestColors = {
         BOL: {
           upper: 'rgb(170, 0, 0)',
           basis: 'rgb(0, 170, 0)',
@@ -483,7 +479,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart, colors);
-      registerStudy('active', 'BOL', 'sid-bol');
+      registerStudy('BOL', 'sid-bol');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -495,7 +491,7 @@ describe('legend', () => {
     });
 
     it('renders MA pill from export data', async () => {
-      const colors: IndicatorColors = {
+      const colors: TestColors = {
         MA: { MA10: 'rgb(17, 34, 51)' },
       };
       const data = makeExportData(
@@ -507,7 +503,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart, colors);
-      registerStudy('ma', 'MA10', 'sid-ma10');
+      registerStudy('MA10', 'sid-ma10');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -526,7 +522,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('ma', 'MA5', 'sid-ma5');
+      registerStudy('MA5', 'sid-ma5');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -562,7 +558,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -585,7 +581,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -602,14 +598,14 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
       expect(overlay.innerHTML).toContain('rgb(133,136,152)');
     });
 
-    it('uses successColor fallback for plot color when indicatorColors not set', async () => {
+    it('uses successColor fallback for plot color when the definition has no color', async () => {
       setTheme(makeTheme({ successColor: 'rgb(0,255,0)' }));
       const data = makeExportData(
         [
@@ -620,7 +616,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -630,7 +626,7 @@ describe('legend', () => {
     it('retries when exportData rejects', async () => {
       const { chart, exportData } = makeChart(new Error('fail'));
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       await Promise.resolve();
@@ -651,7 +647,7 @@ describe('legend', () => {
       const invalidData = makeExportData([], []);
       const { chart, exportData } = makeChart(invalidData);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       jest.advanceTimersByTime(100);
@@ -668,7 +664,7 @@ describe('legend', () => {
       );
       const { chart, exportData } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       jest.advanceTimersByTime(100);
@@ -678,7 +674,7 @@ describe('legend', () => {
     it('stops retrying after MAX_RETRIES and sends LEGEND_RENDERED', async () => {
       const { chart } = makeChart(new Error('fail'));
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
 
       refreshStudyLegendFromExport();
       for (let i = 0; i <= 11; i++) {
@@ -694,7 +690,7 @@ describe('legend', () => {
     it('sends LEGEND_RENDERED after render timeout when retries keep failing', async () => {
       const { chart } = makeChart(new Error('fail'));
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       jest.advanceTimersByTime(3000);
       expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
@@ -710,7 +706,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
@@ -727,7 +723,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -745,7 +741,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -762,7 +758,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'UnknownStudy', 'sid-unknown');
+      registerStudy('UnknownStudy', 'sid-unknown');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -780,7 +776,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -799,7 +795,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'BOL', 'sid-bol');
+      registerStudy('BOL', 'sid-bol');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -816,7 +812,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       document.getElementById(OVERLAY_ID)?.remove();
       expect(() => refreshStudyLegendFromExport()).not.toThrow();
     });
@@ -835,7 +831,7 @@ describe('legend', () => {
       __resetLegendForTests();
       __resetStateForTests();
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -896,7 +892,7 @@ describe('legend', () => {
 
     it('uses fallback scale width when no widget and container has width', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
         configurable: true,
@@ -919,7 +915,7 @@ describe('legend', () => {
     it('triggers refreshStudyLegendFromExport via double rAF', () => {
       const { chart, exportData } = makeChart();
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       scheduleLegendRefresh();
       expect(exportData).toHaveBeenCalled();
     });
@@ -940,7 +936,7 @@ describe('legend', () => {
         exportData: jest.fn().mockResolvedValue(makeExportData([], [])),
       } as unknown as TVActiveChart;
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       subscribeStudyDataLoaded(chart, 'sid-rsi');
       expect(chart.getStudyById).toHaveBeenCalledWith('sid-rsi');
       dataLoadedCb?.();
@@ -953,7 +949,7 @@ describe('legend', () => {
         throw new Error('not found');
       });
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       subscribeStudyDataLoaded(chart, 'sid-rsi');
       expect(exportData).toHaveBeenCalled();
     });
@@ -962,7 +958,7 @@ describe('legend', () => {
       const { chart, exportData } = makeChart();
       (chart.getStudyById as jest.Mock).mockReturnValue({});
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       subscribeStudyDataLoaded(chart, 'sid-rsi');
       expect(exportData).toHaveBeenCalled();
     });
@@ -971,7 +967,7 @@ describe('legend', () => {
       const { chart, exportData } = makeChart();
       (chart.getStudyById as jest.Mock).mockReturnValue(null);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       subscribeStudyDataLoaded(chart, 'sid-rsi');
       expect(exportData).toHaveBeenCalled();
     });
@@ -979,7 +975,7 @@ describe('legend', () => {
 
   describe('multiple indicators rendered together', () => {
     it('renders pills in legend study order', async () => {
-      const colors: IndicatorColors = {
+      const colors: TestColors = {
         RSI: { plot: 'rgb(170, 0, 0)' },
         MACD: {
           macd: 'rgb(0, 170, 0)',
@@ -999,8 +995,8 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart, colors);
-      registerStudy('active', 'RSI', 'sid-rsi');
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('RSI', 'sid-rsi');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
@@ -1021,7 +1017,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       setLegendOwnsLayoutSettle(true);
 
       refreshStudyLegendFromExport();
@@ -1042,7 +1038,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1057,7 +1053,7 @@ describe('legend', () => {
     it('posts CHART_LAYOUT_SETTLED via timeout fallback when legendOwnsLayoutSettle is true', () => {
       const { chart } = makeChart(new Error('fail'));
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       setLegendOwnsLayoutSettle(true);
 
       refreshStudyLegendFromExport();
@@ -1080,7 +1076,7 @@ describe('legend', () => {
       (data as { data: unknown[] }).data = [undefined];
       const { chart, exportData } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       jest.advanceTimersByTime(100);
@@ -1091,7 +1087,7 @@ describe('legend', () => {
   describe('updateLegendOverlayLayout with price scale API', () => {
     it('computes pixel max-width from price scale width', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
 
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
@@ -1119,7 +1115,7 @@ describe('legend', () => {
 
     it('falls back to 48px when timeScale.width() is not usable', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
         configurable: true,
@@ -1136,7 +1132,7 @@ describe('legend', () => {
 
     it('uses fallback scale width when no widget is set', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
 
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
@@ -1151,7 +1147,7 @@ describe('legend', () => {
 
     it('does not set maxWidth when container clientWidth is 0', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
 
       Object.defineProperty(container, 'clientWidth', {
         value: 0,
@@ -1172,14 +1168,10 @@ describe('legend', () => {
         ],
         [[1000, 55.5]],
       );
-      setupLegendOverlay({
-        enabled: true,
-        config: {
-          RSI: {
-            subPaneLegend: true,
-            plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
-          },
-        },
+      setupLegendOverlay('overlay', {
+        RSI: subPaneDef({
+          plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
+        }),
       });
 
       Object.defineProperty(container, 'clientWidth', {
@@ -1195,7 +1187,7 @@ describe('legend', () => {
         activeChart: () => chart,
       } as unknown as TVChartingLibraryWidget);
       setChartReady(true);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
 
@@ -1209,7 +1201,7 @@ describe('legend', () => {
   });
 
   describe('per-pane sub-pane legends', () => {
-    const subPaneColors: IndicatorColors = {
+    const subPaneColors: TestColors = {
       RSI: { plot: 'rgb(170,0,0)' },
       MACD: {
         macd: 'rgb(0,170,0)',
@@ -1229,49 +1221,38 @@ describe('legend', () => {
       [[1000, 65.0, 12.5, 11.3, 1.2]],
     );
 
-    const setupWithConfig = (
-      chart: TVActiveChart,
-      colors?: IndicatorColors,
-    ) => {
+    const setupWithConfig = (chart: TVActiveChart, colors?: TestColors) => {
       installContainer();
-      setupLegendOverlay({
-        enabled: true,
-        config: {
-          MACD: {
-            subPaneLegend: true,
-            plots: [
-              {
-                tvTitle: 'MACD',
-                label: 'MACD(12,26)',
-                color: colors?.MACD?.macd ?? null,
-              },
-              {
-                tvTitle: 'Signal',
-                label: 'Signal',
-                color: colors?.MACD?.signal ?? null,
-              },
-              {
-                tvTitle: 'Histogram',
-                label: 'Hist',
-                color: colors?.MACD?.histogramPositive ?? null,
-              },
-            ],
-          },
-          RSI: {
-            subPaneLegend: true,
-            plots: [
-              {
-                tvTitle: 'Plot',
-                label: 'RSI(14)',
-                color: colors?.RSI?.plot ?? null,
-              },
-            ],
-          },
-          MA5: {
-            isMA: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
-          },
-        },
+      setupLegendOverlay('overlay', {
+        MACD: subPaneDef({
+          plots: [
+            {
+              tvTitle: 'MACD',
+              label: 'MACD(12,26)',
+              color: colors?.MACD?.macd ?? null,
+            },
+            {
+              tvTitle: 'Signal',
+              label: 'Signal',
+              color: colors?.MACD?.signal ?? null,
+            },
+            {
+              tvTitle: 'Histogram',
+              label: 'Hist',
+              color: colors?.MACD?.histogramPositive ?? null,
+            },
+          ],
+        }),
+        RSI: subPaneDef({
+          plots: [
+            {
+              tvTitle: 'Plot',
+              label: 'RSI(14)',
+              color: colors?.RSI?.plot ?? null,
+            },
+          ],
+        }),
+        MA5: maDef(5),
       });
       setupReadyWidget(chart);
     };
@@ -1282,8 +1263,8 @@ describe('legend', () => {
         'sid-macd': 2,
       });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('active', 'RSI', 'sid-rsi');
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('RSI', 'sid-rsi');
+      registerStudy('MACD', 'sid-macd');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1303,7 +1284,7 @@ describe('legend', () => {
     it('falls back to main overlay when paneIndex() returns 0 (main pane)', async () => {
       const { chart } = makeChart(rsiMacdData, [300], { 'sid-rsi': 0 });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1319,8 +1300,8 @@ describe('legend', () => {
         'sid-macd': 2,
       });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('active', 'RSI', 'sid-rsi');
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('RSI', 'sid-rsi');
+      registerStudy('MACD', 'sid-macd');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1328,7 +1309,7 @@ describe('legend', () => {
       expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).not.toBeNull();
 
       __resetStateForTests();
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
 
       const rsiOnlyData = makeExportData(
         [
@@ -1350,9 +1331,8 @@ describe('legend', () => {
     });
 
     it('uses RN-supplied config over fallback presets', async () => {
-      const customConfig = {
-        RSI: {
-          subPaneLegend: true,
+      const customConfig: IndicatorDefinitionsCfg = {
+        RSI: subPaneDef({
           plots: [
             {
               tvTitle: 'Plot',
@@ -1360,7 +1340,7 @@ describe('legend', () => {
               color: 'rgb(255,0,255)',
             },
           ],
-        },
+        }),
       };
       const data = makeExportData(
         [
@@ -1371,9 +1351,9 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       installContainer();
-      setupLegendOverlay({ enabled: true, config: customConfig });
+      setupLegendOverlay('overlay', customConfig);
       setupReadyWidget(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1388,7 +1368,7 @@ describe('legend', () => {
         'sid-rsi': 1,
       });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1409,8 +1389,8 @@ describe('legend', () => {
       );
       const { chart } = makeChart(mixedData, [300, 100], { 'sid-rsi': 1 });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('ma', 'MA5', 'sid-ma5');
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('MA5', 'sid-ma5');
+      registerStudy('RSI', 'sid-rsi');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1426,7 +1406,7 @@ describe('legend', () => {
     it('__resetLegendForTests clears sub-pane overlays', () => {
       const { chart } = makeChart(rsiMacdData, [300, 100], { 'sid-rsi': 1 });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
 
       refreshStudyLegendFromExport();
 
@@ -1438,7 +1418,7 @@ describe('legend', () => {
     it('clears sub-pane overlays when all studies are removed', async () => {
       const { chart } = makeChart(rsiMacdData, [300, 100], { 'sid-macd': 1 });
       setupWithConfig(chart, subPaneColors);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1458,7 +1438,7 @@ describe('legend', () => {
   describe('__resetLegendForTests', () => {
     it('resets state so overlay can be re-enabled', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       expect(document.getElementById(OVERLAY_ID)).not.toBeNull();
       __resetLegendForTests();
       refreshStudyLegendFromExport();
@@ -1504,7 +1484,7 @@ describe('legend', () => {
     it('shows each MACD value under its own label with real v30.1.0 order', async () => {
       const { chart } = makeChart(realMacdBbExport());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const texts = pillTexts(document.getElementById(OVERLAY_ID));
@@ -1518,7 +1498,7 @@ describe('legend', () => {
     it('shows each BB value under its own label with real v30.1.0 order', async () => {
       const { chart } = makeChart(realMacdBbExport());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'BOL', 'sid-bol');
+      registerStudy('BOL', 'sid-bol');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const texts = pillTexts(document.getElementById(OVERLAY_ID));
@@ -1537,7 +1517,7 @@ describe('legend', () => {
       );
       const { chart, exportData } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       expect(pillTexts(document.getElementById(OVERLAY_ID))).toEqual([
@@ -1561,7 +1541,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('ma', 'MA20', 'sid-ma20');
+      registerStudy('MA20', 'sid-ma20');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const html = document.getElementById(OVERLAY_ID)?.innerHTML ?? '';
@@ -1588,15 +1568,18 @@ describe('legend', () => {
   });
 
   describe('M1: Hist pill is coloured by the sign of its value', () => {
-    const configWithNegative = (): Record<string, LegendIndicatorCfg> => ({
+    const configWithNegative = (): IndicatorDefinitionsCfg => ({
       MACD: {
-        plots: [
-          { tvTitle: 'MACD', label: 'MACD(12,26)', color: 'rgb(1,1,1)' },
-          { tvTitle: 'Signal', label: 'Signal', color: 'rgb(2,2,2)' },
-          { tvTitle: 'Histogram', label: 'Hist', color: 'rgb(0,200,0)' },
-        ],
-        negativeColorPlot: 'Histogram',
-        negativeColor: 'rgb(200,0,0)',
+        study: { name: 'MACD' },
+        legend: {
+          plots: [
+            { tvTitle: 'MACD', label: 'MACD(12,26)', color: 'rgb(1,1,1)' },
+            { tvTitle: 'Signal', label: 'Signal', color: 'rgb(2,2,2)' },
+            { tvTitle: 'Histogram', label: 'Hist', color: 'rgb(0,200,0)' },
+          ],
+          negativeColorPlot: 'Histogram',
+          negativeColor: 'rgb(200,0,0)',
+        },
       },
     });
 
@@ -1613,9 +1596,9 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       installContainer();
-      setupLegendOverlay({ enabled: true, config: configWithNegative() });
+      setupLegendOverlay('overlay', configWithNegative());
       setupReadyWidget(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       const pills = document.querySelectorAll('.legend-pill');
@@ -1639,7 +1622,7 @@ describe('legend', () => {
         { time: 1_699_000_000_000, open: 1, high: 1, low: 1, close: 1 },
         { time: 1_700_000_000_000, open: 1, high: 1, low: 1, close: 1 },
       ]);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       expect(exportData).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1666,7 +1649,7 @@ describe('legend', () => {
       setOhlcvData([
         { time: 1_700_000_000_000, open: 1, high: 1, low: 1, close: 1 },
       ]);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       await Promise.resolve();
@@ -1680,7 +1663,7 @@ describe('legend', () => {
     it('resets the retry budget for every new refresh generation', async () => {
       const { chart, exportData } = makeChart(new Error('fail'));
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       for (let i = 0; i < 5; i++) {
         await Promise.resolve();
@@ -1716,7 +1699,7 @@ describe('legend', () => {
     it('renders the hovered values from entityValues', () => {
       const { chart } = makeChart();
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       renderLegendFromEntityValues(entityValues);
       expect(pillTexts(document.getElementById(OVERLAY_ID))).toEqual([
         'MACD(12,26) 2.22',
@@ -1728,7 +1711,7 @@ describe('legend', () => {
     it('drops an in-flight export so it cannot overwrite scrubbed values', async () => {
       const { chart } = makeChart(realMacdBbExport());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       refreshStudyLegendFromExport();
       renderLegendFromEntityValues(entityValues);
       await Promise.resolve();
@@ -1740,7 +1723,7 @@ describe('legend', () => {
     it('returns to last-bar values when the crosshair is dismissed', async () => {
       const { chart, exportData } = makeChart(realMacdBbExport());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'MACD', 'sid-macd');
+      registerStudy('MACD', 'sid-macd');
       renderLegendFromEntityValues(entityValues);
       onLegendCrosshairDismissed();
       expect(exportData).toHaveBeenCalled();
@@ -1760,7 +1743,7 @@ describe('legend', () => {
     it('throttles refreshes to one per second', () => {
       const { chart, exportData } = makeChart();
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       requestLegendRealtimeRefresh();
       requestLegendRealtimeRefresh();
       requestLegendRealtimeRefresh();
@@ -1772,7 +1755,7 @@ describe('legend', () => {
     it('is skipped while the crosshair is active', () => {
       const { chart, exportData } = makeChart();
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       renderLegendFromEntityValues({
         'sid-rsi': {
           isHovered: false,
@@ -1796,7 +1779,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       requestLegendRealtimeRefresh();
       jest.advanceTimersByTime(1000);
       await Promise.resolve();
@@ -1844,7 +1827,7 @@ describe('legend', () => {
       const { chart, exportData } = makeChart(ma200Empty());
       enableOverlayWithStudies(chart);
       setOhlcvData(bars(150));
-      registerStudy('ma', 'MA200', 'sid-ma200');
+      registerStudy('MA200', 'sid-ma200');
       refreshStudyLegendFromExport();
       await flush(12);
       expect(exportData).toHaveBeenCalledTimes(1);
@@ -1855,16 +1838,42 @@ describe('legend', () => {
       const { chart, exportData } = makeChart(ma200Empty());
       enableOverlayWithStudies(chart);
       setOhlcvData(bars(250));
-      registerStudy('ma', 'MA200', 'sid-ma200');
+      registerStudy('MA200', 'sid-ma200');
       refreshStudyLegendFromExport();
       await flush(12);
       expect(exportData).toHaveBeenCalledTimes(11);
     });
 
+    it('does not retry for a study without a legend block', async () => {
+      const noLegendEmpty = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'value', sourceId: 'sid-stoch', plotTitle: 'K' },
+        ],
+        [[1700000000, NaN]],
+        [['', '']],
+      );
+      const { chart, exportData } = makeChart(noLegendEmpty);
+      installContainer();
+      setupLegendOverlay('overlay', {
+        Stoch: { study: { name: 'Stochastic', pane: 'sub' } },
+      });
+      setupReadyWidget(chart);
+      registerStudy('Stoch', 'sid-stoch');
+      refreshStudyLegendFromExport();
+      await flush(12);
+      expect(exportData).toHaveBeenCalledTimes(1);
+      expect(
+        document.getElementById(OVERLAY_ID)?.querySelectorAll('.legend-pill')
+          .length,
+      ).toBe(0);
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+    });
+
     it('never retries on a silent realtime refresh', async () => {
       const { chart, exportData } = makeChart(rsiEmpty());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       requestLegendRealtimeRefresh();
       jest.advanceTimersByTime(1000);
       await flush(12);
@@ -1874,7 +1883,7 @@ describe('legend', () => {
     it('repeated realtime ticks cost one export each, not 11', async () => {
       const { chart, exportData } = makeChart(rsiEmpty());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       for (let tick = 0; tick < 5; tick++) {
         requestLegendRealtimeRefresh();
         jest.advanceTimersByTime(1000);
@@ -1886,7 +1895,7 @@ describe('legend', () => {
     it('a silent refresh superseding a pending load refresh keeps retrying', async () => {
       const { chart, exportData } = makeChart(rsiEmpty());
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       refreshStudyLegendFromExport({ silent: true });
       await flush(12);
@@ -1911,7 +1920,7 @@ describe('legend', () => {
         throw new Error('There is no such study');
       });
       enableOverlayWithStudies(chart);
-      registerStudy('active', 'RSI', 'sid-rsi');
+      registerStudy('RSI', 'sid-rsi');
       refreshStudyLegendFromExport();
       await Promise.resolve();
       expect(document.getElementById(OVERLAY_ID)?.innerHTML).toContain(
@@ -1920,11 +1929,73 @@ describe('legend', () => {
     });
   });
 
+  describe('consumer-supplied definitions', () => {
+    it('renders a pill for an extra study defined only by the consumer', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-ema', plotTitle: 'Plot' },
+        ],
+        [[1000, 42.5]],
+        [['', '42.50']],
+      );
+      const { chart } = makeChart(data);
+      installContainer();
+      setupLegendOverlay('overlay', {
+        ...defaultTestConfig,
+        EMA21: {
+          study: {
+            name: 'Moving Average Exponential',
+            inputs: { length: 21 },
+          },
+          legend: {
+            plots: [{ tvTitle: 'Plot', label: 'EMA(21)', color: 'rgb(1,2,3)' }],
+          },
+        },
+      });
+      setupReadyWidget(chart);
+      registerStudy('EMA21', 'sid-ema');
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(1);
+      expect(overlay.innerHTML).toContain('EMA(21)');
+      expect(overlay.innerHTML).toContain('42.50');
+    });
+
+    it('renders no pill for an indicator without a legend block', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-x', plotTitle: 'Plot' },
+        ],
+        [[1000, 1]],
+        [['', '1.00']],
+      );
+      const { chart } = makeChart(data);
+      installContainer();
+      setupLegendOverlay('overlay', { X: { study: { name: 'X' } } });
+      setupReadyWidget(chart);
+      registerStudy('X', 'sid-x');
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(0);
+    });
+
+    it('does not create the overlay for builtIn legend mode', () => {
+      installContainer();
+      setupLegendOverlay('builtIn', defaultTestConfig);
+      expect(document.getElementById(OVERLAY_ID)).toBeNull();
+      expect(isLegendOverlayEnabled()).toBe(false);
+    });
+  });
+
   describe('isLegendOverlayEnabled', () => {
     it('reflects setupLegendOverlay', () => {
       installContainer();
       expect(isLegendOverlayEnabled()).toBe(false);
-      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay('overlay', undefined);
       expect(isLegendOverlayEnabled()).toBe(true);
     });
   });

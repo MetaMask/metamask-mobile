@@ -3796,11 +3796,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/legend.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

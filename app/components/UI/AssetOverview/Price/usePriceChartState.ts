@@ -25,6 +25,7 @@ import {
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
+  type LegendMode,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import {
   TIME_RANGE_CONFIGS,
@@ -33,7 +34,10 @@ import {
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
-import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
+import {
+  getMALabel,
+  isMovingAverage,
+} from '../../Charts/AdvancedChart/indicatorRegistry';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
@@ -245,19 +249,11 @@ export const usePriceChartState = ({
     setIndicators([...activeIndicators]);
   }, [activeIndicators, setIndicators]);
 
-  const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
-
+  // Every chart study (MAs included). Volume is drawn via `showVolume`.
   const indicatorsArray = useMemo(
     () =>
-      ([...activeIndicators] as IndicatorType[]).filter(
-        (i) => i !== 'Volume' && !isMAIndicator(i),
-      ),
-    [activeIndicators, isMAIndicator],
-  );
-
-  const selectedMAs = useMemo(
-    () => [...activeIndicators].filter((name) => isMAIndicator(name)),
-    [activeIndicators, isMAIndicator],
+      ([...activeIndicators] as IndicatorType[]).filter((i) => i !== 'Volume'),
+    [activeIndicators],
   );
 
   const handleChartTypeSelect = useCallback(
@@ -522,11 +518,10 @@ export const usePriceChartState = ({
     vsCurrency: currentCurrency,
   });
 
-  const maLabel = useMemo(() => {
-    if (selectedMAs.length === 0) return 'MA';
-    if (selectedMAs.length === 1) return selectedMAs[0];
-    return `MA x${selectedMAs.length}`;
-  }, [selectedMAs]);
+  const maLabel = useMemo(
+    () => getMALabel(activeIndicators),
+    [activeIndicators],
+  );
 
   const handleMAPress = useCallback(() => {
     trackEvent(
@@ -543,11 +538,11 @@ export const usePriceChartState = ({
     navigateWithDetails(
       navigation,
       createMAPickerNavDetails({
-        selectedMAs,
+        selectedMAs: [...activeIndicators].filter(isMovingAverage),
         onDone: (selected: string[]) => {
           setActiveIndicators((prev) => {
-            const next = new Set([...prev].filter((i) => !/^MA\d+$/.test(i)));
-            const previousMAs = [...prev].filter((i) => /^MA\d+$/.test(i));
+            const next = new Set([...prev].filter((i) => !isMovingAverage(i)));
+            const previousMAs = [...prev].filter(isMovingAverage);
             const selectedSet = new Set(selected);
 
             selected.forEach((ma) => next.add(ma));
@@ -583,14 +578,7 @@ export const usePriceChartState = ({
         },
       }),
     );
-  }, [
-    navigation,
-    selectedMAs,
-    trackEvent,
-    createEventBuilder,
-    chartType,
-    activeIndicators,
-  ]);
+  }, [navigation, trackEvent, createEventBuilder, chartType, activeIndicators]);
 
   const chartHeight = BASE_CHART_HEIGHT;
 
@@ -904,13 +892,9 @@ export const usePriceChartState = ({
     return initialPriceDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
   }, [initialPriceDiff, ambientSuccessGreen, ambientErrorRed]);
 
-  const tokenDetailsLegendOverlay = useMemo(
-    () =>
-      isTechnicalIndicatorsEnabled
-        ? getTokenDetailsLegendOverlay(themeAppearance)
-        : undefined,
-    [isTechnicalIndicatorsEnabled, themeAppearance],
-  );
+  const legendMode: LegendMode = isTechnicalIndicatorsEnabled
+    ? 'overlay'
+    : 'none';
 
   // Dynamic ambient color for price diff text only - changes during crosshair hover
   const ambientColor = useMemo(() => {
@@ -1103,7 +1087,6 @@ export const usePriceChartState = ({
     hasChartBeenRevealed,
     indicatorsArray,
     maLabel,
-    selectedMAs,
     timeRange,
 
     // Derived booleans
@@ -1130,7 +1113,7 @@ export const usePriceChartState = ({
     ambientErrorRed,
     initialAmbientColor,
     lineAmbientColor,
-    tokenDetailsLegendOverlay,
+    legendMode,
     getLinePriceDiffStyle,
     getPriceDiffStyle,
 

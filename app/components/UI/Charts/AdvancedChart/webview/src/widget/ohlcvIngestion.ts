@@ -26,7 +26,6 @@ import {
   getActiveStudies,
   getCurrentResolution,
   getHotReloadSeq,
-  getMaStudies,
   getOhlcvData,
   getOhlcvGeneration,
   getSlbMode,
@@ -69,10 +68,7 @@ let firstDataDelivered = false;
 function claimLegendSettleOwnership(): void {
   // M5: only the legend overlay ever releases the claim (notifyLegendRendered),
   // so never claim when the overlay is disabled.
-  if (
-    isLegendOverlayEnabled() &&
-    (getActiveStudies().size > 0 || getMaStudies().size > 0)
-  ) {
+  if (isLegendOverlayEnabled() && getActiveStudies().size > 0) {
     setLegendOwnsLayoutSettle(true);
   }
 }

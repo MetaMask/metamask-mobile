@@ -1030,7 +1030,7 @@ describe('legend integration', () => {
       activeChart: () => makeReadyChart(),
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
-    registerStudy('active', 'RSI', 'sid-rsi');
+    registerStudy('RSI', 'sid-rsi');
     // Resolution change (1m -> 5m) is the path that claims ownership.
     handleSetOHLCVData({
       data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
@@ -1045,7 +1045,7 @@ describe('legend integration', () => {
       activeChart: () => makeReadyChart(),
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
-    registerStudy('active', 'RSI', 'sid-rsi');
+    registerStudy('RSI', 'sid-rsi');
     // Resolution change (1m -> 5m) is the path that claims ownership.
     handleSetOHLCVData({
       data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),

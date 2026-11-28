@@ -235,6 +235,63 @@ describe('createChartWidget', () => {
     expect(disabled).not.toContain('left_toolbar');
   });
 
+  describe('legendMode featuresets', () => {
+    const buildArgs = (
+      legendMode?: 'overlay' | 'builtIn' | 'none',
+    ): {
+      disabled: string[];
+      enabled: string[];
+      overrides: Record<string, unknown>;
+    } => {
+      createChartWidget(
+        { ...baseConfig, features: { legendMode } },
+        defaultOptions,
+      );
+      const args = ctor.mock.calls[0][0] as Record<string, unknown>;
+      return {
+        disabled: args.disabled_features as string[],
+        enabled: args.enabled_features as string[],
+        overrides: args.overrides as Record<string, unknown>,
+      };
+    };
+
+    it.each([undefined, 'none'] as const)(
+      'hides the TradingView legend when legendMode is %s',
+      (legendMode) => {
+        const { disabled, enabled, overrides } = buildArgs(legendMode);
+
+        expect(disabled).toContain('legend_widget');
+        expect(disabled).not.toContain('edit_buttons_in_legend');
+        expect(enabled).not.toContain('always_show_legend_values_on_mobile');
+        expect(
+          overrides['paneProperties.legendProperties.showStudyValues'],
+        ).toBe(false);
+      },
+    );
+
+    it('shows the TradingView legend when legendMode is builtIn', () => {
+      const { disabled, enabled, overrides } = buildArgs('builtIn');
+
+      expect(disabled).not.toContain('legend_widget');
+      expect(disabled).not.toContain('edit_buttons_in_legend');
+      expect(enabled).toContain('always_show_legend_values_on_mobile');
+      expect(overrides['paneProperties.legendProperties.showStudyValues']).toBe(
+        true,
+      );
+    });
+
+    it('hides the TradingView legend and its edit buttons when legendMode is overlay', () => {
+      const { disabled, enabled, overrides } = buildArgs('overlay');
+
+      expect(disabled).toContain('legend_widget');
+      expect(disabled).toContain('edit_buttons_in_legend');
+      expect(enabled).not.toContain('always_show_legend_values_on_mobile');
+      expect(overrides['paneProperties.legendProperties.showStudyValues']).toBe(
+        false,
+      );
+    });
+  });
+
   it('includes custom_themes with palette shades for success/error', () => {
     createChartWidget(baseConfig, defaultOptions);
     const args = ctor.mock.calls[0][0] as Record<string, unknown>;

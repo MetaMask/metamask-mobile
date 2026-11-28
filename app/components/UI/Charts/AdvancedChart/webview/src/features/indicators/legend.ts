@@ -7,8 +7,9 @@
 //
 // The overlay is a `<div id="study-legend-overlay">` injected into
 // #tv_chart_container that holds one `.legend-pill` per active indicator.
-// Theme-aware text colors are computed from CONFIG.theme; per-plot colors
-// come from the legend config supplied by RN.
+// Theme-aware text colors are computed from CONFIG.theme; labels and per-plot
+// colors come from the `legend` block of each RN-supplied indicator definition
+// (CONFIG.indicatorDefinitions). Indicators without a `legend` block get no pill.
 //
 // Values come from TradingView, never recomputed here:
 //   - resting state: chart.exportData({ from: lastBar, includeDisplayedValues })
@@ -25,7 +26,6 @@ import {
   doesLegendOwnLayoutSettle,
   getActiveStudies,
   getLegendStudyOrder,
-  getMaStudies,
   getOhlcvData,
   getTheme,
   getVolumeStudyId,
@@ -35,17 +35,21 @@ import {
 } from '../../core/state';
 import { eachChartDocument } from '../../widget/tvDomHelpers';
 import type {
-  LegendIndicatorCfg,
-  LegendOverlayConfig,
+  IndicatorDefinitionCfg,
+  IndicatorDefinitionsCfg,
+  IndicatorLegendCfg,
+  LegendMode,
   LegendPlotCfg,
   StudyId,
   TVActiveChart,
   TVCrosshairSource,
   TVExportData,
 } from '../../core/types';
-import { MA_LENGTHS } from './studies';
+import { getIndicatorDefinition } from './studies';
 
 const OVERLAY_ID = 'study-legend-overlay';
+/** Must match MA_GROUP in indicatorRegistry.ts. */
+const MA_GROUP = 'MA';
 const OVERLAY_LEFT_PX = 8;
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 100;
@@ -71,19 +75,23 @@ let lastEntries: StudyDataEntry[] | null = null;
 /** Study ids that fired onStudyError — never block rendering on them. */
 const erroredStudies = new Set<string>();
 let legendOverlayEnabled = false;
-/** Typed legend config from RN — the single source of truth for legend rendering. */
-let legendConfig: Record<string, LegendIndicatorCfg> | undefined;
+/** Indicator registry from RN — the single source of truth for legend rendering. */
+let indicatorDefinitions: IndicatorDefinitionsCfg | undefined;
 /** Sub-pane overlay elements keyed by indicator name. */
 const subPaneOverlays = new Map<string, HTMLDivElement>();
 
 // ----- Lifecycle ---------------------------------------------------------
 
-/** Called once on chart-ready to set up the DOM container. */
+/**
+ * Called once on chart-ready. Builds the DOM container only when the
+ * consumer opted into the custom overlay (`legendMode: 'overlay'`).
+ */
 export function setupLegendOverlay(
-  config: LegendOverlayConfig | undefined,
+  legendMode: LegendMode | undefined,
+  definitions: IndicatorDefinitionsCfg | undefined,
 ): void {
-  legendOverlayEnabled = Boolean(config?.enabled);
-  legendConfig = config?.config;
+  legendOverlayEnabled = legendMode === 'overlay';
+  indicatorDefinitions = definitions;
   if (!legendOverlayEnabled) return;
   createOverlayElement();
   injectHideLegendButtonsCSS();
@@ -146,12 +154,17 @@ function injectHideLegendButtonsCSS(): void {
 
 // ----- Legend rebuild ---------------------------------------------------
 
-/**
- * Returns the per-indicator legend config supplied by RN via legendOverlay.config.
- * Consumers must pass their own config — there is no built-in fallback.
- */
-function getPresetMap(): Record<string, LegendIndicatorCfg> {
-  return legendConfig ?? {};
+function getDefinition(name: string): IndicatorDefinitionCfg | undefined {
+  return getIndicatorDefinition(indicatorDefinitions, name);
+}
+
+/** Legend block for `name`, or undefined when it has no overlay pill. */
+function getLegendCfg(name: string): IndicatorLegendCfg | undefined {
+  return getDefinition(name)?.legend;
+}
+
+function isSubPaneIndicator(name: string): boolean {
+  return getDefinition(name)?.study.pane === 'sub';
 }
 
 export function isLegendOverlayEnabled(): boolean {
@@ -212,7 +225,7 @@ function findPlot(
  */
 function plotValue(
   entry: StudyDataEntry,
-  cfg: LegendIndicatorCfg,
+  cfg: IndicatorLegendCfg,
   plotCfg: LegendPlotCfg,
 ): string {
   const match = findPlot(entry.values, plotCfg);
@@ -227,7 +240,7 @@ function plotValue(
 
 function plotColor(
   entry: StudyDataEntry,
-  cfg: LegendIndicatorCfg,
+  cfg: IndicatorLegendCfg,
   plotCfg: LegendPlotCfg,
   fallback: string,
 ): string {
@@ -251,15 +264,16 @@ function wrapPill(innerHtml: string, color?: string): string {
 
 function buildHTML(entries: StudyDataEntry[]): string {
   const altColor = getLegendAltColor();
-  const presets = getPresetMap();
   const successColor = getTheme()?.successColor ?? 'rgb(38,166,154)';
   const pills: string[] = [];
 
   for (const entry of entries) {
-    const cfg = presets[entry.name];
-    if (!cfg) continue;
+    const cfg = getLegendCfg(entry.name);
+    if (!cfg || cfg.plots.length === 0) continue;
 
-    if (cfg.isMA) {
+    // Moving averages render as one compact pill in the plot color:
+    // "MA(20) 1.23".
+    if (getDefinition(entry.name)?.group === MA_GROUP) {
       const ma = cfg.plots[0];
       const val = plotValue(entry, cfg, ma);
       if (isEmptyValue(val)) continue;
@@ -267,9 +281,9 @@ function buildHTML(entries: StudyDataEntry[]): string {
       continue;
     }
 
-    if (cfg.combineInOnePill) {
+    if (cfg.title) {
       const labelColor = cfg.plots[0].color ?? successColor;
-      let inner = `<span style="color:${labelColor}">${cfg.title ?? cfg.plots[0].label}</span>`;
+      let inner = `<span style="color:${labelColor}">${cfg.title}</span>`;
       let hasValues = false;
       for (const plot of cfg.plots) {
         const v = plotValue(entry, cfg, plot);
@@ -303,9 +317,6 @@ function collectStudyIdMap(): Record<string, string> {
   for (const [name, id] of getActiveStudies().entries()) {
     map[String(id)] = name;
   }
-  for (const [name, id] of getMaStudies().entries()) {
-    map[String(id)] = name;
-  }
   const vol = getVolumeStudyId();
   if (vol) map[String(vol)] = 'Volume';
   return map;
@@ -337,16 +348,14 @@ function formatLegendValue(num: number): string {
 }
 
 /**
- * S11: an MA whose length exceeds the loaded bar count can never produce a
- * last-bar value — e.g. MA200 on a 1W series with < 200 bars. Retrying for it
- * is pointless, so it is excluded from the retry check (its pill renders
- * without a value, same as after retries were exhausted before).
+ * S11: a study whose `length` input exceeds the loaded bar count can never
+ * produce a last-bar value — e.g. MA200 on a 1W series with < 200 bars.
+ * Retrying for it is pointless, so it is excluded from the retry check (its
+ * pill renders without a value, same as after retries were exhausted before).
  */
 function hasInsufficientHistory(name: string): boolean {
-  const length = Object.prototype.hasOwnProperty.call(MA_LENGTHS, name)
-    ? MA_LENGTHS[name]
-    : undefined;
-  if (length === undefined) return false;
+  const length = getDefinition(name)?.study.inputs?.length;
+  if (typeof length !== 'number' || !Number.isFinite(length)) return false;
   return getOhlcvData().length < length;
 }
 
@@ -358,10 +367,9 @@ function hasInsufficientHistory(name: string): boolean {
 function getConsumedEmpty(
   entries: StudyDataEntry[],
 ): { study: string; tvTitle: string }[] {
-  const presets = getPresetMap();
   const consumedEmpty: { study: string; tvTitle: string }[] = [];
   for (const entry of entries) {
-    const cfg = presets[entry.name];
+    const cfg = getLegendCfg(entry.name);
     if (
       !cfg ||
       erroredStudies.has(entry.sid) ||
@@ -446,7 +454,6 @@ function getStudyPaneIndex(
 }
 
 function renderOverlay(entries: StudyDataEntry[]): void {
-  const presets = getPresetMap();
   const widget = getWidget();
   const chart = widget?.activeChart();
   const activeStudies = getActiveStudies();
@@ -459,8 +466,7 @@ function renderOverlay(entries: StudyDataEntry[]): void {
   }[] = [];
 
   for (const entry of entries) {
-    const cfg = presets[entry.name];
-    if (cfg?.subPaneLegend && chart) {
+    if (isSubPaneIndicator(entry.name) && chart) {
       const studyId = activeStudies.get(entry.name);
       const paneIdx = studyId ? getStudyPaneIndex(chart, studyId) : undefined;
       if (paneIdx !== undefined && paneIdx > 0) {
@@ -859,6 +865,6 @@ export function __resetLegendForTests(): void {
   lastEntries = null;
   erroredStudies.clear();
   legendOverlayEnabled = false;
-  legendConfig = undefined;
+  indicatorDefinitions = undefined;
   removeAllSubPaneOverlays();
 }

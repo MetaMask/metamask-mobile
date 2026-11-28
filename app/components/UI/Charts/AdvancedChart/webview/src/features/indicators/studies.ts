@@ -1,157 +1,65 @@
-// Study presets — the createStudy() shape for each indicator we support.
+// Study presets — resolves the createStudy() arguments for an indicator from
+// the RN-supplied registry (window.CONFIG.indicatorDefinitions).
 //
-// Ported from chartLogic.js: handleAddIndicator's switch (~line 818),
-// MA_LENGTHS / MA_COLORS (~line 920), handleSetMAVisibility createStudy
-// call (~line 959). Phase 3 keeps the curated TV-study surface used by
-// Token Details; consumers needing TV's full study picker can re-enable
-// header_widget via the disabledFeatures prop.
+// The WebView holds no indicator knowledge of its own: study names, inputs,
+// colors and pane placement all come from
+// app/components/UI/Charts/AdvancedChart/indicatorRegistry.ts (merged with any
+// consumer `indicatorDefinitions`). Names without a definition fall through
+// to TradingView's generic createStudy with the name used verbatim.
 
-import type { IndicatorColors, StudyId, TVActiveChart } from '../../core/types';
-
-/**
- * Built-in MA visibility periods. Used by SET_MA_VISIBILITY to keep the
- * MA dropdown in sync. Order matters for the default rendering order.
- */
-export const MA_LENGTHS: Readonly<Record<string, number>> = {
-  MA5: 5,
-  MA10: 10,
-  MA20: 20,
-  MA50: 50,
-  MA200: 200,
-};
-
-const DEFAULT_MA_COLORS: Readonly<Record<string, string>> = {
-  MA5: 'rgb(139,139,245)',
-  MA10: 'rgb(255,107,157)',
-  MA20: 'rgb(245,166,35)',
-  MA50: 'rgb(184,230,46)',
-  MA200: 'rgb(92,201,245)',
-};
-
-export function getMAColor(
-  name: string,
-  indicatorColors: IndicatorColors | undefined,
-): string {
-  const fromConfig = indicatorColors?.MA?.[name];
-  if (fromConfig) return fromConfig;
-  return DEFAULT_MA_COLORS[name] ?? DEFAULT_MA_COLORS.MA200;
-}
+import type {
+  IndicatorDefinitionCfg,
+  IndicatorDefinitionsCfg,
+  StudyId,
+  TVActiveChart,
+} from '../../core/types';
 
 export interface StudyPreset {
   studyName: string;
   inputs: Record<string, unknown>;
   overrides: Record<string, unknown>;
   /** 'sub' places the study in a dedicated pane below the main series. */
-  paneTarget?: 'main' | 'sub';
+  pane?: 'main' | 'sub';
 }
 
-function macdPreset(colors: IndicatorColors | undefined): StudyPreset {
-  const c = colors?.MACD ?? {};
-  return {
-    studyName: 'MACD',
-    inputs: { in_0: 12, in_1: 26, in_2: 9 },
-    overrides: {
-      'MACD.color': c.macd,
-      'Signal.color': c.signal,
-      // v30.1.0 MACD histogram palette has 4 slots driven by its colorer:
-      //   0 = above zero & rising,  1 = above zero & falling,
-      //   2 = below zero & rising,  3 = below zero & falling.
-      // Previously only 0/1 were set, so "above zero & falling" bars were
-      // painted with the negative color and 2/3 kept TV defaults.
-      'Histogram.color.0': c.histogramPositive,
-      'Histogram.color.1': c.histogramPositive,
-      'Histogram.color.2': c.histogramNegative,
-      'Histogram.color.3': c.histogramNegative,
-    },
-    paneTarget: 'sub',
-  };
-}
-
-function rsiPreset(colors: IndicatorColors | undefined): StudyPreset {
-  const c = colors?.RSI ?? {};
-  return {
-    studyName: 'Relative Strength Index',
-    // v30.1.0 RSI input id is `length` (not positional `in_0`, which TV
-    // silently ignores).
-    inputs: { length: 14 },
-    overrides: {
-      'Plot.color': c.plot,
-      'hlines background.visible': false,
-    },
-    paneTarget: 'sub',
-  };
-}
-
-function bolPreset(colors: IndicatorColors | undefined): StudyPreset {
-  const c = colors?.BOL ?? {};
-  return {
-    studyName: 'Bollinger Bands',
-    inputs: { in_0: 20, in_1: 2 },
-    overrides: {
-      'Upper.color': c.upper,
-      // v30.1.0 BB middle plot is titled "Median" (not "Basis").
-      'Median.color': c.basis,
-      'Lower.color': c.lower,
-    },
-  };
-}
-
-function maVariantPreset(
+/** Own-property lookup so names like `constructor` never resolve. */
+export function getIndicatorDefinition(
+  definitions: IndicatorDefinitionsCfg | undefined,
   name: string,
-  colors: IndicatorColors | undefined,
-): StudyPreset {
-  return {
-    studyName: 'Moving Average',
-    inputs: { length: MA_LENGTHS[name] },
-    overrides: {
-      'Plot.color': getMAColor(name, colors),
-    },
-  };
-}
-
-function fallbackPreset(
-  inputs: Record<string, unknown> | undefined,
-): StudyPreset {
-  return {
-    studyName: '',
-    inputs: inputs ?? {},
-    overrides: {},
-  };
+): IndicatorDefinitionCfg | undefined {
+  if (!definitions) return undefined;
+  return Object.prototype.hasOwnProperty.call(definitions, name)
+    ? definitions[name]
+    : undefined;
 }
 
 /**
- * Resolves the createStudy preset for one of the curated indicators. Unknown
- * names fall back to a generic preset that uses the name verbatim as the
- * study name and the inputs as provided.
+ * Resolves the createStudy preset for `name`. Runtime `inputsOverride`
+ * (from ADD_INDICATOR) is shallow-merged over the definition's inputs.
  */
 export function resolveStudyPreset(
   name: string,
-  indicatorColors: IndicatorColors | undefined,
+  definitions: IndicatorDefinitionsCfg | undefined,
   inputsOverride?: Record<string, unknown>,
 ): StudyPreset {
-  switch (name) {
-    case 'MACD':
-      return macdPreset(indicatorColors);
-    case 'RSI':
-      return rsiPreset(indicatorColors);
-    case 'BOL':
-      return bolPreset(indicatorColors);
-    case 'MA5':
-    case 'MA10':
-    case 'MA20':
-    case 'MA50':
-    case 'MA200':
-      return maVariantPreset(name, indicatorColors);
-    default: {
-      const preset = fallbackPreset(inputsOverride);
-      preset.studyName = name;
-      return preset;
-    }
+  const def = getIndicatorDefinition(definitions, name);
+  if (!def) {
+    return {
+      studyName: name,
+      inputs: { ...(inputsOverride ?? {}) },
+      overrides: {},
+    };
   }
+  return {
+    studyName: def.study.name,
+    inputs: { ...(def.study.inputs ?? {}), ...(inputsOverride ?? {}) },
+    overrides: { ...(def.study.overrides ?? {}) },
+    pane: def.study.pane,
+  };
 }
 
 export function isSubPanePreset(preset: StudyPreset): boolean {
-  return preset.paneTarget === 'sub';
+  return preset.pane === 'sub';
 }
 
 /**

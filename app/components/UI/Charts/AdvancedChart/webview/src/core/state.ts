@@ -35,10 +35,8 @@ interface CoreState {
   visibleToMs: number | null;
   /** TradingView subscribeBars listenerGuid → its resolution and tick callback. */
   realtimeListeners: Record<string, RealtimeListener>;
-  /** Curated indicators (MACD, RSI, BOL, MA200) keyed by indicator name → studyId. */
+  /** Every indicator study (MAs included) keyed by indicator name → studyId. */
   activeStudies: Map<string, StudyId>;
-  /** MA visibility-driven studies (MA5/10/20/50/200) keyed by name → studyId. */
-  maStudies: Map<string, StudyId>;
   /** Insertion order used to render legend pills consistently across renders. */
   legendStudyOrder: Map<string, StudyId>;
   volumeStudyId: StudyId | null;
@@ -91,7 +89,6 @@ const state: CoreState = {
   visibleToMs: null,
   realtimeListeners: {},
   activeStudies: new Map(),
-  maStudies: new Map(),
   legendStudyOrder: new Map(),
   volumeStudyId: null,
   volumeIsOverlay: null,
@@ -264,34 +261,20 @@ export function getActiveStudies(): Map<string, StudyId> {
   return state.activeStudies;
 }
 
-export function getMaStudies(): Map<string, StudyId> {
-  return state.maStudies;
-}
-
 export function getLegendStudyOrder(): Map<string, StudyId> {
   return state.legendStudyOrder;
 }
 
-export function registerStudy(
-  bucket: 'active' | 'ma',
-  name: string,
-  studyId: StudyId,
-): void {
-  if (bucket === 'active') {
-    state.activeStudies.set(name, studyId);
-  } else {
-    state.maStudies.set(name, studyId);
-  }
+export function registerStudy(name: string, studyId: StudyId): void {
+  state.activeStudies.set(name, studyId);
   state.legendStudyOrder.set(name, studyId);
 }
 
 export function unregisterStudy(name: string): StudyId | undefined {
-  const fromActive = state.activeStudies.get(name);
-  const fromMA = state.maStudies.get(name);
+  const studyId = state.activeStudies.get(name);
   state.activeStudies.delete(name);
-  state.maStudies.delete(name);
   state.legendStudyOrder.delete(name);
-  return fromActive ?? fromMA;
+  return studyId;
 }
 
 // ----- Volume study -------------------------------------------------------
@@ -407,7 +390,6 @@ export function __resetStateForTests(): void {
   state.visibleToMs = null;
   state.realtimeListeners = {};
   state.activeStudies = new Map();
-  state.maStudies = new Map();
   state.legendStudyOrder = new Map();
   state.volumeStudyId = null;
   state.volumeIsOverlay = null;

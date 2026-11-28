@@ -142,4 +142,4 @@ export type TokenDetailsExitAction =
  * Technical indicators that occupy a sub-pane below the main chart.
  * Derived from `buildIndicatorLegendConfig` — no manual sync needed.
  */
-export { SUB_PANE_INDICATORS } from '../../Charts/AdvancedChart/indicatorColors';
+export { SUB_PANE_INDICATORS } from '../../Charts/AdvancedChart/indicatorRegistry';

@@ -211,13 +211,12 @@ export const PriceChartSection = ({
     ohlcvSeriesKey,
     priceDiff,
     realtimeBar,
-    selectedMAs,
     showCandleEmptyState,
     showChartIndicators,
     styles,
     theme,
     timeRange,
-    tokenDetailsLegendOverlay,
+    legendMode,
     visibleFromMs,
     visibleToMs,
   } = usePriceChartContext();
@@ -298,7 +297,6 @@ export const PriceChartSection = ({
             volumeOverlay
             chartType={chartType}
             indicators={showChartIndicators ? indicatorsArray : []}
-            selectedMAs={showChartIndicators ? selectedMAs : []}
             subPaneHeightRatio={chartPresets.subPaneHeightRatio}
             useSubscriptPriceFormat={chartPresets.useSubscriptPriceFormat}
             isLoading={
@@ -324,7 +322,7 @@ export const PriceChartSection = ({
             lineColorOverride={initialAmbientColor}
             successColorOverride={ambientSuccessGreen}
             errorColorOverride={ambientErrorRed}
-            legendOverlay={tokenDetailsLegendOverlay}
+            legendMode={legendMode}
           />
         </View>
       </Box>

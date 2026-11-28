@@ -205,18 +205,6 @@ describe('core/bootstrap', () => {
     expect(errorCalls).toHaveLength(0);
   });
 
-  it('dispatches SET_MA_VISIBILITY without reporting an error', () => {
-    bootstrap();
-    dispatchInboundMessage({
-      type: 'SET_MA_VISIBILITY',
-      payload: { visible: ['MA5', 'MA20'] },
-    });
-    const errorCalls = bridge.postMessage.mock.calls.filter((call) =>
-      call[0].includes('"type":"ERROR"'),
-    );
-    expect(errorCalls).toHaveLength(0);
-  });
-
   it('dispatches TOGGLE_VOLUME without reporting an error', () => {
     bootstrap();
     dispatchInboundMessage({
