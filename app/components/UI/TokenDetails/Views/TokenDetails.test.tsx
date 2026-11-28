@@ -45,6 +45,11 @@ import {
 import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 import { usePriceApiHost } from '../context/PriceApiHostContext';
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens',
+  () => ({ isUnsupportedPostTradeAsset: jest.fn(() => false) }),
+);
+
 jest.mock('../hooks/useTokenSecurityData', () => ({
   useTokenSecurityData: () => ({
     securityData: null,

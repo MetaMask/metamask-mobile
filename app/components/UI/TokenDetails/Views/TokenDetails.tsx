@@ -65,17 +65,10 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
-import { useQuoteTokensQuery } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery';
-import { isTokenDetailsQuoteAsset } from '../utils/isTokenDetailsQuoteAsset';
+import { useTokenDetailsSocialTabs } from '../hooks/useTokenDetailsSocialTabs';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenSecurityHoldersTab from '../components/tabs/TokenSecurityHoldersTab';
 import { TokenStatKey } from '../constants/tokenStats';
-import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import {
-  FEED_CAIP2_CHAINS,
-  HYPERLIQUID_CAIP2_CHAIN_ID,
-} from '../../SocialFeed/data/feed-constants';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
@@ -109,10 +102,7 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
 import { useTraderPositionPnl } from '../TraderPositionPnl/useTraderPositionPnl';
-import {
-  selectAssetsMemecoinTdpV1Enabled,
-  selectMemecoinTdpV1TabConfigOrder,
-} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -508,41 +498,11 @@ const TokenDetails: React.FC<{
     [handleTabBarLayout, headerInset, onTabBarOffsetY],
   );
 
-  const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
-  const socialEnabled = useSelector(selectIsSocialV1Enabled);
-  const feedEnabled = useSelector(selectSocialLeaderboardEnabled);
-  const feedAsset = caip19AssetId && parseCaipAssetType(caip19AssetId);
-  const canCheckFeedEligibility =
-    socialEnabled &&
-    feedEnabled &&
-    tabConfigOrder.includes('feed') &&
-    !token.isNative &&
-    !token.isETH &&
-    Boolean(
-      feedAsset &&
-        FEED_CAIP2_CHAINS.includes(feedAsset.chainId) &&
-        feedAsset.chainId !== HYPERLIQUID_CAIP2_CHAIN_ID &&
-        ((feedAsset.chain.namespace === 'eip155' &&
-          feedAsset.assetNamespace === 'erc20') ||
-          (feedAsset.chain.namespace === 'solana' &&
-            feedAsset.assetNamespace === 'token')),
-    );
   const { handleFeedCopyTrade, feedCopyTradeSheet } =
     useTokenDetailsFeedCopyTrade();
-  const quoteTokens = useQuoteTokensQuery(canCheckFeedEligibility);
-  const quoteTokensError = quoteTokens.error;
-  useEffect(() => {
-    if (canCheckFeedEligibility && quoteTokensError) {
-      Logger.error(quoteTokensError, 'TokenDetails: quote-token list failed');
-    }
-  }, [canCheckFeedEligibility, quoteTokensError]);
-  const showFeedTab =
-    canCheckFeedEligibility &&
-    caip19AssetId !== null &&
-    quoteTokens.isSuccess &&
-    !isTokenDetailsQuoteAsset(caip19AssetId, quoteTokens.data);
   const topHolders = securityData?.financialStats?.topHolders;
-  const showHoldersTab = socialEnabled && Boolean(topHolders?.length);
+  const { tabConfigOrder, showFeedTab, showHoldersTab } =
+    useTokenDetailsSocialTabs({ caip19AssetId, orderAssetChainId, topHolders });
   const tabs = useMemo<TokenDetailsV1TabKey[]>(() => {
     const visibleTabs = tabConfigOrder.filter((tab) => {
       if (tab === 'feed') return showFeedTab;
@@ -869,7 +829,7 @@ const TokenDetails: React.FC<{
             {overview}
             <ActivitySection token={token} includeNonEvm showEvmFooter />
           </View>
-          {showFeedTab && Boolean(caip19AssetId) && mountedTabs.has('feed') && (
+          {showFeedTab && caip19AssetId !== null && mountedTabs.has('feed') && (
             <View
               style={isFeedActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
               testID={TokenDetailsIds.tabPage('feed')}
@@ -894,7 +854,7 @@ const TokenDetails: React.FC<{
           {selectedTab === 'holders' && topHolders && (
             <View testID={TokenDetailsIds.tabPage('holders')}>
               <TokenSecurityHoldersTab
-                chainId={feedAsset?.chainId ?? token.chainId}
+                chainId={orderAssetChainId ?? token.chainId}
                 holders={topHolders}
                 holdersCount={tokenStats[TokenStatKey.Holders]?.value}
                 topTen={tokenStats[TokenStatKey.Top10]?.value}
