@@ -68,6 +68,10 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { useQuoteTokensQuery } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery';
 import { getTopTenWalletHolders } from '../utils/securityFacts';
 import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from '../../SocialFeed/data/feed-constants';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenSecurityHoldersTab from '../components/tabs/TokenSecurityHoldersTab';
 import { TokenStatKey } from '../constants/tokenStats';
@@ -512,7 +516,10 @@ const TokenDetails: React.FC<{
     socialEnabled &&
     feedEnabled &&
     tabConfigOrder.includes('feed') &&
-    Boolean(caip19AssetId && orderAssetChainId);
+    Boolean(caip19AssetId && orderAssetChainId) &&
+    orderAssetChainId !== undefined &&
+    FEED_CAIP2_CHAINS.includes(orderAssetChainId) &&
+    orderAssetChainId !== HYPERLIQUID_CAIP2_CHAIN_ID;
   const { handleFeedCopyTrade, feedCopyTradeSheet } =
     useTokenDetailsFeedCopyTrade();
   const quoteTokens = useQuoteTokensQuery(canCheckFeedEligibility);

@@ -902,6 +902,30 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
   });
 
+  it('hides Feed for an erc20 on an unsupported chain', async () => {
+    const arbitrumToken: CaipAssetType =
+      'eip155:42161/erc20:0x912ce59144191c1204e64559fe8253a0e49e6548';
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    serveQuoteTokens(Promise.resolve(QUOTE_TOKENS));
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['feed', 'overview', 'security'],
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          address: '0x912CE59144191C1204E64559FE8253a0e49E6548',
+          chainId: '0xa4b1',
+          caipAssetId: arbitrumToken,
+          symbol: 'ARB',
+        },
+      });
+
+    await findByTestId(TokenDetailsIds.tabPage('overview'));
+    await userEvent.press(getByTestId(TokenDetailsIds.tab('security')));
+
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+  });
+
   it('hides Holders when only pool and contract holders are listed', async () => {
     setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
     const { findByTestId, queryByTestId } = renderTokenDetailsV1View({
