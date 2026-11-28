@@ -69,6 +69,8 @@ import {
   resetSocialTermsAcceptance,
 } from '../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { formatAddress, toChecksumAddress } from '../../../../util/address';
+import ReactQueryService from '../../../../core/ReactQueryService';
+import { QUOTE_TOKENS_QUERY_KEY } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 
 const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 const USDC = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -89,6 +91,11 @@ const serveQuoteTokens = (
       ? response
       : delegate?.(action, ...args),
   );
+  response
+    .then((data) =>
+      ReactQueryService.queryClient.setQueryData(QUOTE_TOKENS_QUERY_KEY, data),
+    )
+    .catch(() => undefined);
   return messenger;
 };
 
@@ -152,6 +159,7 @@ describeForPlatforms('TokenDetailsV1', () => {
     openUrlSpy.mockRestore();
     clearLeaderboardApiMock();
     clearTokenDetailsV1ApiMocks();
+    ReactQueryService.queryClient.clear();
   });
 
   it('fills the launchpad page from the asset, security and price APIs', async () => {
@@ -866,6 +874,68 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
     expect(queryByTestId(TokenDetailsIds.tab('holders'))).not.toBeOnTheScreen();
     expect(getByTestId(TokenDetailsIds.tab('overview'))).toBeOnTheScreen();
+  });
+
+  it('hides Feed for a stablecoin on the quote-token list', async () => {
+    const solanaUsdc: CaipAssetType = `${SOLANA_MAINNET}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    const messenger = serveQuoteTokens(
+      Promise.resolve({ ...QUOTE_TOKENS, stablecoins: [solanaUsdc] }),
+    );
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['feed', 'overview', 'security'],
+        token: {
+          ...buildTokenDetailsV1RouteParams(),
+          address: solanaUsdc,
+          chainId: SOLANA_MAINNET,
+          caipAssetId: solanaUsdc,
+          symbol: 'USDC',
+        },
+      });
+
+    await findByTestId(TokenDetailsIds.tabPage('overview'));
+    await userEvent.press(getByTestId(TokenDetailsIds.tab('security')));
+
+    expect(messenger).toHaveBeenCalledWith('SocialService:fetchQuoteTokens');
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+  });
+
+  it('hides Holders when only pool and contract holders are listed', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    const { findByTestId, queryByTestId } = renderTokenDetailsV1View({
+      socialEnabled: true,
+      tabConfigOrder: ['holders', 'overview', 'security'],
+      token: {
+        ...buildTokenDetailsV1RouteParams(),
+        securityData: {
+          ...tokenDetailsV1SecurityData,
+          financialStats: {
+            ...tokenDetailsV1SecurityData.financialStats,
+            topHolders: [
+              {
+                label: 'pool',
+                name: null,
+                address: '0x3',
+                holdingPercentage: 40,
+              },
+              {
+                label: 'contract',
+                name: null,
+                address: '0x4',
+                holdingPercentage: 20,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(
+      await findByTestId(TokenDetailsIds.tabPage('overview'), {}, FIND_TIMEOUT),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('holders'))).not.toBeOnTheScreen();
   });
 
   it('lists each open holder and hides a closed position', async () => {
