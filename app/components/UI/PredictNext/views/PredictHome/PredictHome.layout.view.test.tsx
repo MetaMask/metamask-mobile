@@ -54,11 +54,26 @@ const SECTION_TEST_IDS = new RegExp(
     'predict-next-home-section-(?!header-|loading-|error-|empty-|retry-)[a-z-]+',
   ].join('|')})$`,
 );
+const LAYOUT_TEST_IDS = new RegExp(
+  `^(${[
+    PredictHomeTestIds.ACTIONS,
+    PredictHomeTestIds.DIVIDER,
+    PredictHomeTestIds.HOME_TRENDING,
+    'predict-next-home-games-row-(?!header-|chevron-|list-|skeleton-)[a-z-]+',
+    PredictHomeTestIds.CATEGORIES,
+    'predict-next-home-section-(?!header-|loading-|error-|empty-|retry-)[a-z-]+',
+    PredictHomeTestIds.HOME_GAMES_ERROR,
+    PredictHomeTestIds.SECTIONS_UNAVAILABLE,
+  ].join('|')})$`,
+);
 /** The test IDs of Home's sections, in display order. */
 const sectionOrder = (view: ReturnType<typeof renderPredictNext>) =>
   view
     .getAllByTestId(SECTION_TEST_IDS)
     .map((section) => String(section.props.testID));
+/** The test IDs of PortfolioActions, dividers, sections and status blocks, in display order. */
+const layoutOrder = (view: ReturnType<typeof renderPredictNext>) =>
+  view.getAllByTestId(LAYOUT_TEST_IDS).map((node) => String(node.props.testID));
 /** Every Feed read as [Feed ID, params], sorted: the reads start in effect
  * order, which is not display order. */
 const feedCalls = () =>
@@ -445,6 +460,340 @@ describe('PredictHome layout from the Venue catalog', () => {
           PredictHomeTestIds.sectionHeader('trump-watch'),
         ),
       ).toHaveTextContent('Trump Watch');
+    });
+  });
+
+  describe('section dividers', () => {
+    it('places full-bleed 24px-spaced dividers below PortfolioActions and between adjacent visible sections with no divider below Categories or trailing divider', async () => {
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+
+      const dividers = view.getAllByTestId(PredictHomeTestIds.DIVIDER);
+      expect(dividers).toHaveLength(3);
+      dividers.forEach((divider) => {
+        expect(divider).toHaveStyle({
+          marginTop: 0,
+          marginBottom: 0,
+          marginLeft: -16,
+          marginRight: -16,
+          borderTopWidth: 1,
+        });
+      });
+    });
+
+    it('omits dividers for hidden Trending and Sports rows and directly below Categories when games feeds are empty', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: [] });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('omits the Sports divider and the divider directly below Categories when only the Sports row is empty', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: ncaaEvents });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('omits the divider directly below Categories when the catalog places Categories before another section', async () => {
+      configureHome([POLITICS, CATEGORIES, SPORTS_ROW, TRENDING]);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.section('politics'),
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+      ]);
+    });
+
+    it('omits the Categories divider when categories are empty', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        categories: [],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.CATEGORIES),
+      ).not.toBeOnTheScreen();
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('renders no trailing divider when a Feed preview section has no read', async () => {
+      const { 'politics-trump': _omitted, ...feeds } =
+        KALSHI_STATIC_VENUE_CATALOG.feeds;
+      configurePredictNextCatalog({ ...KALSHI_STATIC_VENUE_CATALOG, feeds });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section('politics')),
+      ).not.toBeOnTheScreen();
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+      ]);
+    });
+
+    it('never renders two dividers in a row when multiple middle sections hide', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: ncaaEvents });
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        categories: [],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('renders only Divider 1 above a single visible Categories section', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: [] });
+      configureHome([TRENDING, SPORTS_ROW, CATEGORIES]);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+
+      // The catalog lists Trending and the Sports row, so they mount first
+      // and unmount once their empty data lands; wait for the layout to
+      // settle before asserting it.
+      await waitFor(() =>
+        expect(layoutOrder(view)).toEqual([
+          PredictHomeTestIds.ACTIONS,
+          PredictHomeTestIds.DIVIDER,
+          PredictHomeTestIds.CATEGORIES,
+        ]),
+      );
+    });
+
+    it('renders only Divider 1 above a single visible Feed preview section', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: [] });
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        categories: [],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      // Trending and the Sports row are listed by the default catalog home
+      // and unmount once their empty data lands; wait for the layout to
+      // settle before asserting it.
+      await waitFor(() =>
+        expect(layoutOrder(view)).toEqual([
+          PredictHomeTestIds.ACTIONS,
+          PredictHomeTestIds.DIVIDER,
+          PredictHomeTestIds.section('politics'),
+        ]),
+      );
+    });
+
+    it('renders zero dividers while capabilities are loading', async () => {
+      configurePredictNextCatalog('pending');
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_LOADING),
+      ).toBeOnTheScreen();
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+      expect(view.queryAllByTestId(PredictHomeTestIds.DIVIDER)).toHaveLength(0);
+    });
+
+    it('renders zero dividers when capabilities fail to load', async () => {
+      configurePredictNextCatalog(
+        PredictError.from(PredictErrorCode.SERVICE_DEGRADED),
+      );
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_ERROR),
+      ).toBeOnTheScreen();
+      expect(view.queryAllByTestId(PredictHomeTestIds.DIVIDER)).toHaveLength(0);
+    });
+
+    it.each([
+      ['catalog has an empty home', []],
+      ['catalog has no home', undefined],
+    ])(
+      'renders zero dividers when %s and HomeSectionsStatus is unavailable',
+      async (_label, sections) => {
+        configureHome(sections);
+        const view = renderPredictNext();
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+        ).toBeOnTheScreen();
+        expect(view.queryAllByTestId(PredictHomeTestIds.DIVIDER)).toHaveLength(
+          0,
+        );
+      },
+    );
+
+    it('renders zero dividers when all configured sections are empty', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: [] });
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        categories: [],
+        home: { sections: [TRENDING, SPORTS_ROW, CATEGORIES] },
+      });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+      ).toBeOnTheScreen();
+      expect(view.queryAllByTestId(PredictHomeTestIds.DIVIDER)).toHaveLength(0);
+    });
+
+    it('separates HomeGamesError cleanly when Sports fails while Trending succeeds', async () => {
+      configurePredictNextFeeds({ nfl: new Error('NFL failed') });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.HOME_GAMES_ERROR);
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_GAMES_ERROR,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('updates dividers cleanly when all games reads fail and then recover on retry', async () => {
+      configurePredictNextFeeds({
+        nfl: new Error('NFL failed'),
+        ncaa: new Error('NCAAF failed'),
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.HOME_GAMES_ERROR);
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_GAMES_ERROR,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+
+      configurePredictNextFeeds({ nfl: NFL_GAMES });
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_GAMES_RETRY));
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section('politics'),
+      ]);
+    });
+
+    it('renders Divider 1 without a trailing divider when only games sections exist and all fail', async () => {
+      configurePredictNextFeeds({
+        nfl: new Error('NFL failed'),
+        ncaa: new Error('NCAAF failed'),
+      });
+      configureHome([TRENDING, SPORTS_ROW]);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.HOME_GAMES_ERROR);
+      await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE);
+
+      expect(layoutOrder(view)).toEqual([
+        PredictHomeTestIds.ACTIONS,
+        PredictHomeTestIds.DIVIDER,
+        PredictHomeTestIds.SECTIONS_UNAVAILABLE,
+        PredictHomeTestIds.HOME_GAMES_ERROR,
+      ]);
     });
   });
 });

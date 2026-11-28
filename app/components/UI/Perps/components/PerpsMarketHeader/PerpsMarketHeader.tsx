@@ -147,6 +147,7 @@ const PerpsMarketHeader = ({
   onModeChange,
   enableHaptics = false,
   enableModeHaptics = false,
+  providerId,
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
@@ -409,6 +410,7 @@ const PerpsMarketHeader = ({
             symbol={market.symbol}
             name={market.name}
             maxLeverage={market.maxLeverage}
+            providerId={providerId}
             size={32}
             gap={2}
             onPress={onIdentityPress ? handleIdentityPress : undefined}

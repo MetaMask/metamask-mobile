@@ -1,4 +1,5 @@
 import {
+  hasTransactionType,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -30,6 +31,15 @@ export const nestedTxWithType = (
 
 export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
   isMoneyDepositTransaction(transactionMeta);
+
+/**
+ * True when the transaction is a Pro subscription top-up: a Money deposit
+ * typed `membershipSubscription` so the subscription service can match it.
+ * Its deposit call is not typed `moneyAccountDeposit`, so `isMoneyDepositTx`
+ * does not see it.
+ */
+export const isMembershipTopUpTx = (transactionMeta: TransactionMeta) =>
+  hasTransactionType(transactionMeta, [TransactionType.membershipSubscription]);
 
 /**
  * True when a Money deposit is funded by a fiat on-ramp (e.g. a card). Fiat

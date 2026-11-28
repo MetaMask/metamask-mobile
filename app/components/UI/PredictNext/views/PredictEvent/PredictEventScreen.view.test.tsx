@@ -327,9 +327,8 @@ const resolveEventForRoute = (event: PredictEvent): void => {
 
 const HIDDEN = { includeHiddenElements: true };
 
-// The Event headers mount only after the Event query settles, which a loaded
-// CV shard can push past findBy's 1s default.
-const EVENT_LOAD = { timeout: 5000 };
+// The Event headers mount only after the Event query settles, which can take a
+// moment on a loaded CV shard.
 
 describe('PredictEventScreen', () => {
   beforeEach(() => {
@@ -365,8 +364,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -401,8 +398,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
     );
     const title = within(header).getByTestId(PredictEventScreenTestIds.TITLE);
 
@@ -491,11 +486,7 @@ describe('PredictEventScreen', () => {
       );
       const view = renderPredictEventScreen(routeParams);
 
-      await view.findByTestId(
-        PredictEventScreenTestIds.STANDARD_HEADER,
-        {},
-        EVENT_LOAD,
-      );
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
       expect(
         view.queryByTestId(PredictMarketHistoryTestIds.VIEW),
@@ -1239,8 +1230,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -1322,11 +1311,7 @@ describe('PredictEventScreen', () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(
-      PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
-    );
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
     await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
 
     expect(
@@ -1796,8 +1781,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
     );
     fireEvent.press(
       within(header).getByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
@@ -1921,11 +1904,7 @@ describe('PredictEventScreen', () => {
     );
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(
-      PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
-    );
+    await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
     expect(
       view.queryByTestId(PredictEventScreenTestIds.GAME_HEADER),
@@ -1945,8 +1924,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -1977,8 +1954,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2015,8 +1990,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
     const awayLogo = within(header).getByTestId(
       PredictEventScreenTestIds.teamLogo('away'),
@@ -2062,8 +2035,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2121,8 +2092,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2165,8 +2134,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2195,8 +2162,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     fireEvent(
@@ -2224,8 +2189,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
     const scheduledHeader = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
     expect(
       within(scheduledHeader).queryByTestId(PredictEventScreenTestIds.LIVE_DOT),
@@ -2271,11 +2234,7 @@ describe('PredictEventScreen', () => {
   it('watches the Event for live updates and stops on unmount', async () => {
     resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
-    await view.findByTestId(
-      PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
-    );
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
 
     expectMessengerCalledWith('PredictLiveDataService:watchEvents', venueId, [
       eventId,
@@ -2310,8 +2269,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expectMessengerCalledWith(
@@ -2340,8 +2297,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2361,8 +2316,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2380,11 +2333,7 @@ describe('PredictEventScreen', () => {
     resolveEvent(createEvent({ category: '' }));
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(
-      PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
-    );
+    await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
     expect(
       view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
@@ -2416,8 +2365,6 @@ describe('PredictEventScreen', () => {
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.GAME_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     expect(
@@ -2473,11 +2420,7 @@ describe('PredictEventScreen', () => {
     fireEvent.press(within(error).getByTestId(PredictEventScreenTestIds.RETRY));
 
     expect(
-      await view.findByTestId(
-        PredictEventScreenTestIds.STANDARD_HEADER,
-        {},
-        EVENT_LOAD,
-      ),
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
     ).toBeOnTheScreen();
     const eventCalls = messengerCall.mock.calls.filter(
       ([action]) => action === 'PredictMarketDataService:getEvent',
@@ -2503,8 +2446,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
-      {},
-      EVENT_LOAD,
     );
 
     fireEvent.press(within(header).getByTestId(PredictEventScreenTestIds.BACK));
@@ -3266,28 +3207,25 @@ describe('PredictEventScreen', () => {
       // list item mount. findBy's default 1000ms budget expired on CI
       // after that wait was added, so wait until the walked page is
       // requested and both the row and its Cash Out control are on screen.
-      await waitFor(
-        () => {
-          expect(
-            messengerCall.mock.calls.some(
-              ([action, , , cursor]) =>
-                action === 'PredictPortfolioService:getPositions' &&
-                cursor === 'cursor-page-2',
-            ),
-          ).toBe(true);
-          expect(
-            view.getByTestId(
-              EventMarketListTestIds.positionRow('market-1', 'yes'),
-            ),
-          ).toBeOnTheScreen();
-          expect(
-            view.getByTestId(
-              EventMarketListTestIds.positionCashOut('market-1', 'yes'),
-            ),
-          ).toBeOnTheScreen();
-        },
-        { timeout: 5000 },
-      );
+      await waitFor(() => {
+        expect(
+          messengerCall.mock.calls.some(
+            ([action, , , cursor]) =>
+              action === 'PredictPortfolioService:getPositions' &&
+              cursor === 'cursor-page-2',
+          ),
+        ).toBe(true);
+        expect(
+          view.getByTestId(
+            EventMarketListTestIds.positionRow('market-1', 'yes'),
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          view.getByTestId(
+            EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+          ),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('stops walking venue-wide Positions pages at the screen bound', async () => {
@@ -3310,10 +3248,9 @@ describe('PredictEventScreen', () => {
         'cursor-page-4',
         'cursor-page-5',
       ];
-      await waitFor(
-        () => expect(walkedPositionCursors()).toEqual(boundedCursors),
-        // Each walk starts only after the previous page lands and re-renders.
-        { timeout: 5000 },
+      // Each walk starts only after the previous page lands and re-renders.
+      await waitFor(() =>
+        expect(walkedPositionCursors()).toEqual(boundedCursors),
       );
       // waitFor returns when the last page is requested, not when it lands.
       // Awaiting that page lets the effect that would request the next one run.
@@ -3344,10 +3281,9 @@ describe('PredictEventScreen', () => {
 
       const view = renderPredictEventScreen(routeParams);
       await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
-      await waitFor(
-        () => expect(walkedPositionCursors()).toEqual(['cursor-page-2']),
-        // The second page is requested only after the first page lands.
-        { timeout: 5000 },
+      // The second page is requested only after the first page lands.
+      await waitFor(() =>
+        expect(walkedPositionCursors()).toEqual(['cursor-page-2']),
       );
       // The failed page has to settle before the effect can choose not to
       // retry.
@@ -3440,8 +3376,6 @@ describe('PredictEventScreen', () => {
       fireEvent.press(
         await view.findByTestId(
           EventMarketListTestIds.positionCashOut('market-1', 'yes'),
-          {},
-          { timeout: 5000 },
         ),
       );
       await view.findByTestId(PredictOrderFlowTestIds.SHEET);
@@ -3506,11 +3440,7 @@ describe('PredictEventScreen', () => {
       });
 
       const view = renderPredictEventScreen(routeParams);
-      await view.findByTestId(
-        PredictEventScreenTestIds.STANDARD_HEADER,
-        {},
-        EVENT_LOAD,
-      );
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
       expect(
         view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
@@ -3527,11 +3457,7 @@ describe('PredictEventScreen', () => {
       });
 
       const view = renderPredictEventScreen(routeParams);
-      await view.findByTestId(
-        PredictEventScreenTestIds.STANDARD_HEADER,
-        {},
-        EVENT_LOAD,
-      );
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
       // The fixture Position targets an unrelated Market.
       expect(

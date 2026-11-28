@@ -11,6 +11,7 @@ import {
 } from '../../Earn/constants/musd';
 import {
   isFiatMoneyDeposit,
+  isMembershipTopUpTx,
   isMoneyAccountTx,
   isMoneyDepositTx,
   isMoneyWithdrawTx,
@@ -101,6 +102,22 @@ describe('isMoneyDepositTx', () => {
     expect(isMoneyDepositTx(makeTx(TransactionType.contractInteraction))).toBe(
       false,
     );
+  });
+});
+
+describe('isMembershipTopUpTx', () => {
+  it('returns true when a nested call is typed membershipSubscription', () => {
+    const tx = makeTx(TransactionType.batch, [
+      { type: TransactionType.tokenMethodApprove },
+      { type: TransactionType.membershipSubscription },
+    ]);
+    expect(isMembershipTopUpTx(tx)).toBe(true);
+  });
+
+  it('returns false for a plain Money deposit', () => {
+    expect(
+      isMembershipTopUpTx(makeTx(TransactionType.moneyAccountDeposit)),
+    ).toBe(false);
   });
 });
 

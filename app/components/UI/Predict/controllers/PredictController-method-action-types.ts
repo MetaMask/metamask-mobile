@@ -333,6 +333,19 @@ export type PredictControllerSelectPaymentTokenAction = {
   handler: PredictController['selectPaymentToken'];
 };
 
+/**
+ * Moves an active buy order from `PREVIEW` to `PAY_WITH_ANY_TOKEN` without
+ * setting an ERC-20 `selectedPaymentToken` (used when funding from Money
+ * Account, whose pay token lives on `TransactionPayController`).
+ *
+ * Also clears any stale ERC-20 `selectedPaymentToken` so subsequent order
+ * analytics and failure banners do not attribute the buy to a previous token.
+ */
+export type PredictControllerEnterPayWithAnyTokenAction = {
+  type: `PredictController:enterPayWithAnyToken`;
+  handler: PredictController['enterPayWithAnyToken'];
+};
+
 export type PredictControllerClearActiveOrderAction = {
   type: `PredictController:clearActiveOrder`;
   handler: PredictController['clearActiveOrder'];
@@ -473,6 +486,7 @@ export type PredictControllerMethodActions =
   | PredictControllerOnPlaceOrderSuccessAction
   | PredictControllerClearActiveOrderTransactionIdAction
   | PredictControllerSelectPaymentTokenAction
+  | PredictControllerEnterPayWithAnyTokenAction
   | PredictControllerClearActiveOrderAction
   | PredictControllerSetSelectedPaymentTokenAction
   | PredictControllerDepositWithConfirmationAction

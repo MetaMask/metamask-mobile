@@ -54,28 +54,38 @@ describe('KYCFailedContent', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the rejection reason when one is provided', () => {
+  it('uses the title and description it is given', () => {
     const { getByTestId } = render(
       <KYCFailedContent
         onClose={jest.fn()}
-        reasonLine="Your ID document couldn't be verified."
+        title="Custom title"
+        description="Custom description"
       />,
     );
 
-    expect(getByTestId('kyc-failed-reason')).toHaveTextContent(
-      "Your ID document couldn't be verified.",
+    expect(getByTestId('kyc-failed-title')).toHaveTextContent('Custom title');
+    expect(getByTestId('kyc-failed-description')).toHaveTextContent(
+      'Custom description',
     );
   });
 
-  it.each([
-    ['missing', undefined],
-    ['null', null],
-    ['an empty string', ''],
-  ] as const)('omits the reason line when it is %s', (_label, reasonLine) => {
-    const { queryByTestId } = render(
-      <KYCFailedContent onClose={jest.fn()} reasonLine={reasonLine} />,
+  it('shows Contact support only when a handler is given', () => {
+    const onContactSupport = jest.fn();
+    const { getByTestId, rerender, queryByTestId } = render(
+      <KYCFailedContent onClose={jest.fn()} />,
     );
+    expect(
+      queryByTestId('kyc-failed-contact-support-button'),
+    ).not.toBeOnTheScreen();
 
-    expect(queryByTestId('kyc-failed-reason')).not.toBeOnTheScreen();
+    rerender(
+      <KYCFailedContent
+        onClose={jest.fn()}
+        onContactSupport={onContactSupport}
+      />,
+    );
+    fireEvent.press(getByTestId('kyc-failed-contact-support-button'));
+
+    expect(onContactSupport).toHaveBeenCalledTimes(1);
   });
 });

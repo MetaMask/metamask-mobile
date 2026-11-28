@@ -1,17 +1,17 @@
 import React from 'react';
 import {
+  Button,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useFormatters } from '../../../hooks/useFormatters';
 import type { ListedPack } from '../types/packs';
 import { collectiblesTestIds } from '../Collectibles.testIds';
-import { Button } from '../../primitives/Button';
 import { Pressable } from '../../primitives/Pressable';
-import { Text } from '../../primitives/Text';
 import { View } from '../../primitives/View';
 import { PackArt } from './PackArt';
 import { getOpensLabel } from './PackOpensBadge';

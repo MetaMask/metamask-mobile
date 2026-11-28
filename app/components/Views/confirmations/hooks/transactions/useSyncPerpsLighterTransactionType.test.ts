@@ -30,7 +30,6 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     TransactionPayController: {
       state: { transactionData: {} },
-      setTransactionConfig: jest.fn(),
     },
   },
 }));
@@ -168,7 +167,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
   });
 
-  it('creates a Lighter deposit without calldata and sets the payment override when the address already has a Lighter account', async () => {
+  it('creates a Lighter deposit without calldata and declares the Lighter target asset when the address already has a Lighter account', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -201,23 +200,11 @@ describe('useSyncPerpsLighterTransactionType', () => {
       expect.objectContaining({
         address: usdcContract,
         amount: '0x1e8480',
+        assetId: 'lighter:mainnet/perps:usdc',
         standard: 'erc20',
       }),
     );
 
-    const setTransactionConfig = jest.mocked(
-      Engine.context.TransactionPayController.setTransactionConfig,
-    );
-    expect(setTransactionConfig).toHaveBeenCalledWith(
-      'tx-2',
-      expect.any(Function),
-    );
-    const config: Record<string, unknown> = {};
-    setTransactionConfig.mock.calls[0][1](config);
-    expect(config).toStrictEqual({
-      isQuoteRequired: true,
-      paymentOverride: 'perpsLighter',
-    });
     expect(mockAddTransaction.mock.invocationCallOrder[0]).toBeLessThan(
       mockRejectRequest.mock.invocationCallOrder[0],
     );

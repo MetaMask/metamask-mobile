@@ -50,6 +50,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
+import { useVbaDetailsNewDot } from '../../hooks/useVbaDetailsNewDot';
 import {
   getMoneyHomeCardDevOverrideById,
   setMoneyHomeCardDevOverride,
@@ -553,6 +554,13 @@ jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
   useVbaTransactionRefresh: jest.fn(),
 }));
 
+jest.mock('../../hooks/useVbaDetailsNewDot', () => ({
+  useVbaDetailsNewDot: jest.fn(),
+}));
+
+const mockUseVbaDetailsNewDot = jest.mocked(useVbaDetailsNewDot);
+const mockMarkVbaDetailsNewDotSeen = jest.fn();
+
 jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
   useActiveGroupCryptoPresence: jest.fn(),
 }));
@@ -970,6 +978,10 @@ describe('MoneyHomeView', () => {
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
     mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
     mockOpenVbaEntry.mockClear();
+    mockUseVbaDetailsNewDot.mockReturnValue({
+      showNewDot: false,
+      markSeen: mockMarkVbaDetailsNewDotSeen,
+    });
 
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
@@ -1356,6 +1368,29 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the discovery dot on the Details button for a first-time user', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockUseVbaDetailsNewDot.mockReturnValue({
+        showNewDot: true,
+        markSeen: mockMarkVbaDetailsNewDotSeen,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_NEW_DOT),
+      ).toBeOnTheScreen();
+    });
+
+    it('marks the discovery dot seen on the first Details press', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
+
+      expect(mockMarkVbaDetailsNewDotSeen).toHaveBeenCalledTimes(1);
     });
 
     it('renders no Details button when the user is not VBA eligible', () => {

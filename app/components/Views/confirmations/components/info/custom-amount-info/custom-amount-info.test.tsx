@@ -1114,7 +1114,7 @@ describe('CustomAmountInfo', () => {
   );
 
   it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-    'renders "Send" confirm label for %s from Money Account',
+    'renders "Move" confirm label for %s from Money Account',
     async (transactionType) => {
       useRouteMock.mockReturnValue({
         key: 'mock-route',
@@ -1135,7 +1135,7 @@ describe('CustomAmountInfo', () => {
 
       expect(
         await findByText(
-          strings('confirm.deposit_edit_amount_money_account_send'),
+          strings('confirm.deposit_edit_amount_money_account_move'),
         ),
       ).toBeOnTheScreen();
     },

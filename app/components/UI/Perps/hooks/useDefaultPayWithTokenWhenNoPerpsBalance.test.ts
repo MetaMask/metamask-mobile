@@ -10,11 +10,34 @@ jest.mock('./usePerpsPaymentTokens', () => ({
   usePerpsPaymentTokens: jest.fn(() => []),
 }));
 
+jest.mock('./stream/usePerpsLiveAvailableToTrade', () => ({
+  ...jest.requireActual('./stream/usePerpsLiveAvailableToTrade'),
+  usePerpsLiveAvailableToTrade: jest.fn(() => ({
+    availableToTrade: null,
+    isInitialLoading: false,
+    isUnavailable: false,
+  })),
+}));
+
 const mockUsePerpsPaymentTokens = jest.requireMock<
   typeof import('./usePerpsPaymentTokens')
 >('./usePerpsPaymentTokens').usePerpsPaymentTokens as jest.MockedFunction<
   (typeof import('./usePerpsPaymentTokens'))['usePerpsPaymentTokens']
 >;
+
+const mockUsePerpsLiveAvailableToTrade = jest.mocked(
+  jest.requireMock<typeof import('./stream/usePerpsLiveAvailableToTrade')>(
+    './stream/usePerpsLiveAvailableToTrade',
+  ).usePerpsLiveAvailableToTrade,
+);
+
+const ALLOWLIST_USDC_TOKEN = {
+  address: '0xusdc',
+  chainId: '0xa4b1',
+  symbol: 'USDC',
+  balanceFiat: 'US$500',
+  decimals: 6,
+} as PerpsToken;
 
 function getState(
   overrides: {
@@ -67,6 +90,123 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsPaymentTokens.mockReturnValue([]);
+    mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+      availableToTrade: null,
+      isInitialLoading: false,
+      isUnavailable: false,
+    });
+  });
+
+  describe('with a market symbol', () => {
+    const runHookForSymbol = (state: ReturnType<typeof getState>) =>
+      renderHookWithProvider(
+        () => useDefaultPayWithTokenWhenNoPerpsBalance('BTC'),
+        { state },
+      );
+
+    it('keeps Perps balance when available to trade covers the order but withdrawable does not', () => {
+      mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: {
+          providerId: 'hyperliquid',
+          symbol: 'BTC',
+          long: '250',
+          short: '0',
+        },
+        isInitialLoading: false,
+        isUnavailable: false,
+      });
+
+      const { result } = runHookForSymbol(
+        getState({
+          perpsAccount: { spendableBalance: '0' },
+          allowlistAssets: ['0xa4b1.0xusdc'],
+        }),
+      );
+
+      expect(result.current).toBeNull();
+      expect(mockUsePerpsLiveAvailableToTrade).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        enabled: true,
+      });
+    });
+
+    it('returns the allowlist token when available to trade is below threshold on both sides', () => {
+      mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: {
+          providerId: 'hyperliquid',
+          symbol: 'BTC',
+          long: '0',
+          short: '0',
+        },
+        isInitialLoading: false,
+        isUnavailable: false,
+      });
+
+      const { result } = runHookForSymbol(
+        getState({
+          perpsAccount: { spendableBalance: '500' },
+          allowlistAssets: ['0xa4b1.0xusdc'],
+        }),
+      );
+
+      expect(result.current?.address).toBe('0xusdc');
+    });
+
+    it('returns null while available to trade is loading', () => {
+      mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: null,
+        isInitialLoading: true,
+        isUnavailable: false,
+      });
+
+      const { result } = runHookForSymbol(
+        getState({
+          perpsAccount: { spendableBalance: '0' },
+          allowlistAssets: ['0xa4b1.0xusdc'],
+        }),
+      );
+
+      expect(result.current).toBeNull();
+    });
+
+    it('falls back to spendable balance when the stream reports no value', () => {
+      mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: null,
+        isInitialLoading: false,
+        isUnavailable: true,
+      });
+
+      const { result } = runHookForSymbol(
+        getState({
+          perpsAccount: { spendableBalance: '0' },
+          allowlistAssets: ['0xa4b1.0xusdc'],
+        }),
+      );
+
+      expect(result.current?.address).toBe('0xusdc');
+    });
+
+    it('returns null when the stream reports no value and the account has not loaded', () => {
+      mockUsePerpsPaymentTokens.mockReturnValue([ALLOWLIST_USDC_TOKEN]);
+      mockUsePerpsLiveAvailableToTrade.mockReturnValue({
+        availableToTrade: null,
+        isInitialLoading: false,
+        isUnavailable: true,
+      });
+
+      const { result } = runHookForSymbol(
+        getState({
+          perpsAccount: null,
+          allowlistAssets: ['0xa4b1.0xusdc'],
+        }),
+      );
+
+      expect(result.current).toBeNull();
+    });
   });
 
   it('returns null when available perps balance is above threshold', () => {

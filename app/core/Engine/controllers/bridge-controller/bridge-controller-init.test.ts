@@ -24,6 +24,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
+import { swapQuoteFetchTrace } from '../../../../components/UI/Bridge/utils/swapQuoteFetchTrace';
 
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
@@ -40,6 +41,9 @@ jest.mock('expo/fetch', () => ({
   fetch: jest.fn(),
 }));
 jest.mock('../../../redux', () => ({ store: { getState: jest.fn() } }));
+jest.mock('../../../../components/UI/Bridge/utils/swapQuoteFetchTrace', () => ({
+  swapQuoteFetchTrace: { mark: jest.fn() },
+}));
 jest.mock(
   '../../../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig',
   () => ({
@@ -375,14 +379,46 @@ describe('BridgeController Init', () => {
   });
 
   describe('handleBridgeFetch', () => {
-    it('should use expoFetch if the url includes Stream', () => {
-      const url = new URL(
-        'http://localhost:3000/getQuoteStream?srcChainId=1&destChainId=2&srcTokenAddress=0x123&destTokenAddress=0x456&srcAmount=100&destAmount=200',
-      );
+    it('should use expoFetch if the url includes Stream', async () => {
+      const url = new URL('http://localhost:3000/getBatchQuoteStream');
       const options = { headers: { 'Content-Type': 'application/json' } };
 
       handleBridgeFetch(url, options);
       expect(expoFetch).toHaveBeenCalledWith(url.toString(), options);
+      expect(swapQuoteFetchTrace.mark).not.toHaveBeenCalled();
+
+      jest.mocked(swapQuoteFetchTrace.mark).mockReturnValue(undefined);
+      await handleBridgeFetch('http://localhost:3000/getQuoteStream', options);
+      expect(swapQuoteFetchTrace.mark).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks the first quote chunk of getQuoteStream once and passes reads through', async () => {
+      const chunks = [
+        'event: token_warning\n',
+        'event: quote\n',
+        'event: quote\n',
+      ].map((text) => ({ done: false, value: new TextEncoder().encode(text) }));
+      const rawReader = { read: jest.fn() };
+      chunks.forEach((chunk) => rawReader.read.mockResolvedValueOnce(chunk));
+      jest
+        .mocked(expoFetch)
+        .mockResolvedValue({ body: { getReader: () => rawReader } } as never);
+      jest.mocked(swapQuoteFetchTrace.mark).mockReturnValue('trace-id');
+
+      const response = await handleBridgeFetch(
+        'http://localhost:3000/getQuoteStream',
+      );
+      const reader = response.body?.getReader();
+
+      expect(await reader?.read()).toBe(chunks[0]);
+      expect(swapQuoteFetchTrace.mark).toHaveBeenCalledTimes(2);
+      expect(await reader?.read()).toBe(chunks[1]);
+      expect(await reader?.read()).toBe(chunks[2]);
+      expect(jest.mocked(swapQuoteFetchTrace.mark).mock.calls).toEqual([
+        ['stream_fetch_start_ms'],
+        ['stream_headers_ms', 'trace-id'],
+        ['stream_first_quote_chunk_ms', 'trace-id'],
+      ]);
     });
 
     it.each([

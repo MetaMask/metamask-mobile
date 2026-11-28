@@ -89,7 +89,7 @@ export interface ReadPattern {
   readonly path: string;
 }
 
-/** The parsed, verified profile document payload. */
+/** One parsed and validated venue profile (ADR-0005). */
 export interface SigningProfile {
   readonly id: string;
   /** Monotonic; the server refuses to accept an older version again. */

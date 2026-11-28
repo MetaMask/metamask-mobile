@@ -29,14 +29,16 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import {
-  getEditablePerpRowTestId,
-  WatchlistFullScreenViewSelectorsIDs,
-} from './WatchlistFullScreenView.testIds';
+import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { WatchlistSearchContentTestIds } from './WatchlistSearchContent.testIds';
+import { WatchlistEmptyCTATestIds } from '../../components/WatchlistEmptyCTA/WatchlistEmptyCTA.testIds';
+import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistSearchRowItemTestIds } from '../../components/WatchlistSearchRowItem/WatchlistSearchRowItem.testIds';
 import { WatchlistStarButtonTestIds } from '../../components/WatchlistStarButton.testIds';
-import { getTrendingTokenRowItemTestId } from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowAddButtonTestId,
+  getTrendingTokenRowItemTestId,
+} from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import { TrendingViewSelectorsIDs } from '../../../../../Views/TrendingView/TrendingView.testIds';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
 import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
@@ -76,16 +78,13 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       deterministicFiat: true,
     });
 
-    const editableRows = await waitFor(
-      () => {
-        const rows = getAllByTestId(
-          WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
-        );
-        expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
-        return rows;
-      },
-      { timeout: 5000 },
-    );
+    const editableRows = await waitFor(() => {
+      const rows = getAllByTestId(
+        WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
+      );
+      expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
+      return rows;
+    });
 
     editableRows.forEach((row, index) => {
       const assetId = NEWEST_FIRST_ASSET_IDS[index];
@@ -114,8 +113,8 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     });
   });
 
-  it('keeps mixed rows read-only until edit mode', async () => {
-    const { findByTestId, getByTestId, getAllByTestId, queryByTestId } =
+  it('renders unified mixed rows with star buttons and no edit mode', async () => {
+    const { findByTestId, queryByTestId } =
       renderWatchlistFullScreenViewWithRoutes({
         unifiedWatchlist: true,
         perpsWatchlistSymbols: ['ETH'],
@@ -136,35 +135,29 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
     ).toBeOnTheScreen();
     expect(
+      within(
+        await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+      ).getByText('Token'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+      ).getByText('Perp'),
+    ).toBeOnTheScreen();
+    expect(
       queryByTestId(getPerpsMarketRowItemSelector.badge('ETH')),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
+      await findByTestId(
+        getTrendingTokenRowAddButtonTestId(mockWatchlistAssetIds[0]),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(getPerpsMarketRowItemSelector.addButton('ETH')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     ).not.toBeOnTheScreen();
-
-    fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-    );
-
-    expect(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getAllByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR).length,
-    ).toBeGreaterThan(0);
-    expect(
-      getAllByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
-    ).toHaveLength(
-      getAllByTestId(WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW).length +
-        1,
-    );
-
-    fireEvent.press(
-      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-    );
-    expect(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-    ).toBeOnTheScreen();
   });
 
   it('keeps watched Perps loading until the first market snapshot resolves', async () => {
@@ -200,51 +193,30 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     expect(await findByTestId(WatchlistErrorRowTestIds.ROW)).toBeOnTheScreen();
   });
 
-  const removeUnavailablePerpInEditMode = async (symbol: string) => {
-    const view = renderWatchlistFullScreenViewWithRoutes({
-      unifiedWatchlist: true,
-      perpsWatchlistSymbols: [symbol],
-      streamOverrides: { marketData: [] },
-    });
-
-    expect(
-      await view.findByTestId(getUnavailablePerpRowTestId(symbol)),
-    ).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(getUnavailablePerpRemoveButtonTestId(symbol)),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(
-      await view.findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-    );
-    const unavailablePerpRow = view.getByTestId(
-      getEditablePerpRowTestId(symbol),
-    );
-    const unavailablePerpButton = within(unavailablePerpRow).getByTestId(
-      WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
-    );
-    await userEvent.press(unavailablePerpButton);
-    await waitFor(() => {
-      expect(
-        view.queryByTestId(getUnavailablePerpRowTestId(symbol)),
-      ).not.toBeOnTheScreen();
-    });
-    fireEvent.press(
-      view.getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-    );
-
-    return view;
-  };
-
-  it('removes an unavailable watched Perps market from edit mode', async () => {
+  it('removes an unavailable watched Perps market via its star button', async () => {
     const toggleWatchlistMarket = Engine.context.PerpsController
       .toggleWatchlistMarket as jest.Mock;
     const getWatchlistMarkets = Engine.context.PerpsController
       .getWatchlistMarkets as jest.Mock;
     toggleWatchlistMarket.mockClear();
-    getWatchlistMarkets.mockReturnValueOnce(['DOGE']).mockReturnValueOnce([]);
+    getWatchlistMarkets.mockReturnValueOnce(['DOGE']);
+    const { findByTestId, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['DOGE'],
+        streamOverrides: { marketData: [] },
+      });
 
-    await removeUnavailablePerpInEditMode('DOGE');
+    expect(
+      await findByTestId(getUnavailablePerpRowTestId('DOGE')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      await findByTestId(getUnavailablePerpRemoveButtonTestId('DOGE')),
+    );
 
     await waitFor(() => {
       expect(toggleWatchlistMarket).toHaveBeenCalledWith('DOGE');
@@ -260,8 +232,16 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     toggleWatchlistMarket.mockRejectedValueOnce(
       new Error('Persistence failed'),
     );
+    const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: ['DOGE'],
+      streamOverrides: { marketData: [] },
+    });
 
-    const { findByTestId } = await removeUnavailablePerpInEditMode('DOGE');
+    await findByTestId(getUnavailablePerpRowTestId('DOGE'));
+    fireEvent.press(
+      await findByTestId(getUnavailablePerpRemoveButtonTestId('DOGE')),
+    );
 
     await waitFor(() => {
       expect(toggleWatchlistMarket).toHaveBeenCalledWith('DOGE');
@@ -271,43 +251,27 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('removes a token in edit mode and persists the update to storage', async () => {
+  it('removes a token directly via its star button and persists the update to storage', async () => {
     const assetToRemove = mockWatchlistAssetIds[2];
     const putScope = setupWatchlistStoragePutMock();
 
-    const { findByTestId, getAllByTestId, queryByTestId } =
+    const { findByTestId, queryByTestId } =
       renderWatchlistFullScreenViewWithRoutes({
         deterministicFiat: true,
         unifiedWatchlist: true,
       });
 
     await findByTestId(getRowTestId(assetToRemove));
-
-    fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-    );
-
-    const unwatchStars = getAllByTestId(
-      WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
-    );
-    const tokenIndex = mockWatchlistAssetIds.indexOf(assetToRemove);
-    const tokenUnwatchStar = unwatchStars[tokenIndex];
-    if (!tokenUnwatchStar) {
-      throw new Error('Expected the token remove button');
-    }
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(tokenUnwatchStar);
+      fireEvent.press(
+        await findByTestId(getTrendingTokenRowAddButtonTestId(assetToRemove)),
+      );
     });
-
-    await waitFor(() => {
-      expect(queryByTestId(getRowTestId(assetToRemove))).not.toBeOnTheScreen();
-    });
-    expect(putScope.isDone()).toBe(false);
-
-    fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-    );
 
     await waitFor(() => expect(putScope.isDone()).toBe(true));
     expect(
@@ -316,6 +280,100 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     expect(
       queryByTestId(getRowTestId(NEWEST_FIRST_ASSET_IDS[1])),
     ).toBeOnTheScreen();
+    expect(await findByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+  });
+
+  it('filters unified watchlist items between All, Tokens, and Perps', async () => {
+    const { findByTestId, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        deterministicFiat: true,
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['ETH'],
+        streamOverrides: {
+          marketData: [
+            {
+              symbol: 'ETH',
+              name: 'Ethereum Perpetual',
+              maxLeverage: '50x',
+              price: '$2,000.00',
+              change24h: '+$50.00',
+              change24hPercent: '+2.50%',
+              volume: '$1.5B',
+              openInterest: '$500M',
+              marketType: 'index',
+            },
+          ],
+        },
+      });
+
+    await findByTestId(getRowTestId(mockWatchlistAssetIds[0]));
+    await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH'));
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_PERPS),
+    );
+    await waitFor(() => {
+      expect(
+        queryByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_TOKENS),
+    );
+    await waitFor(() => {
+      expect(
+        queryByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the filtered empty state on the Tokens tab when only Perps are watched', async () => {
+    setupWatchlistStorageMock({ version: 1, assets: [] });
+    setupWatchlistTokenApiMock([]);
+
+    const perpsMarkets = [
+      createEthMarketForViews(),
+      {
+        ...createEthMarketForViews(),
+        symbol: 'BTC',
+        name: 'Bitcoin Perpetual',
+      },
+      {
+        ...createEthMarketForViews(),
+        symbol: 'SOL',
+        name: 'Solana Perpetual',
+      },
+    ];
+
+    const { findByTestId, findByText, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        deterministicFiat: true,
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['ETH', 'BTC', 'SOL'],
+        streamOverrides: {
+          marketData: perpsMarkets,
+        },
+      });
+
+    await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH'));
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_TOKENS),
+    );
+
+    expect(
+      await findByText(strings('token_watchlist.no_tokens_found')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistEmptyCTATestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('adds a token from search results and persists the update to storage', async () => {
@@ -338,13 +396,10 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     );
     await userEvent.type(searchInput, SEARCH_TOKEN.symbol.toLowerCase());
 
-    await waitFor(
-      async () => {
-        const rows = getAllByTestId(WatchlistSearchRowItemTestIds.ROW);
-        expect(rows.length).toBeGreaterThan(0);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(async () => {
+      const rows = getAllByTestId(WatchlistSearchRowItemTestIds.ROW);
+      expect(rows.length).toBeGreaterThan(0);
+    });
 
     const searchRow = getAllByTestId(WatchlistSearchRowItemTestIds.ROW)[0];
     const starButton = within(searchRow).getByTestId(

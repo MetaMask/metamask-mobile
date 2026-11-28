@@ -340,4 +340,124 @@ describe('useWatchlistOrder', () => {
       durableOrder,
     );
   });
+
+  it('prunes removed member keys so re-adding an item places it at the bottom immediately', async () => {
+    const tokenA = createToken('token:a');
+    const tokenB = createToken('token:b');
+    const tokenC = createToken('token:c');
+    mockedReadWatchlistOrder.mockResolvedValue([
+      tokenA.key,
+      tokenB.key,
+      tokenC.key,
+    ]);
+    const { wrapper } = createWrapper();
+    const { result, rerender } = renderHook(
+      ({
+        items,
+        memberKeys,
+      }: {
+        items: UnifiedWatchlistToken[];
+        memberKeys: ReadonlySet<string>;
+      }) => useWatchlistOrder(items, { enabled: true, memberKeys }),
+      {
+        initialProps: {
+          items: [tokenA, tokenB, tokenC],
+          memberKeys: new Set([tokenA.key, tokenB.key, tokenC.key]),
+        },
+        wrapper,
+      },
+    );
+
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+    expect(result.current.orderedItems).toEqual([tokenA, tokenB, tokenC]);
+
+    // Remove tokenA from membership
+    rerender({
+      items: [tokenB, tokenC],
+      memberKeys: new Set([tokenB.key, tokenC.key]),
+    });
+
+    await waitFor(() =>
+      expect(mockedWriteWatchlistOrder).toHaveBeenCalledWith('group-1', [
+        tokenB.key,
+        tokenC.key,
+      ]),
+    );
+
+    // Re-add tokenA — even before appendOrderKey runs, it must appear at the bottom
+    rerender({
+      items: [tokenA, tokenB, tokenC],
+      memberKeys: new Set([tokenA.key, tokenB.key, tokenC.key]),
+    });
+
+    expect(result.current.orderedItems).toEqual([tokenB, tokenC, tokenA]);
+  });
+
+  it('does not prune persisted order while a mutation is in flight so a failed remove restores original order', async () => {
+    const tokenA = createToken('token:a');
+    const tokenB = createToken('token:b');
+    const tokenC = createToken('token:c');
+    mockedReadWatchlistOrder.mockResolvedValue([
+      tokenA.key,
+      tokenB.key,
+      tokenC.key,
+    ]);
+    const { queryClient, wrapper } = createWrapper();
+    let rejectMutation: ((err: Error) => void) | undefined;
+    const mutation = queryClient.getMutationCache().build(queryClient, {
+      gcTime: Infinity,
+      mutationFn: async () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectMutation = reject;
+        }),
+    });
+
+    const { result, rerender } = renderHook(
+      ({
+        items,
+        memberKeys,
+      }: {
+        items: UnifiedWatchlistToken[];
+        memberKeys: ReadonlySet<string>;
+      }) => useWatchlistOrder(items, { enabled: true, memberKeys }),
+      {
+        initialProps: {
+          items: [tokenA, tokenB, tokenC],
+          memberKeys: new Set([tokenA.key, tokenB.key, tokenC.key]),
+        },
+        wrapper,
+      },
+    );
+
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    // Start an in-flight removal mutation and optimistically remove tokenA
+    let mutationPromise: Promise<void> | undefined;
+    act(() => {
+      mutationPromise = mutation.execute(undefined).catch(() => undefined);
+    });
+    await waitFor(() => expect(rejectMutation).toBeDefined());
+
+    rerender({
+      items: [tokenB, tokenC],
+      memberKeys: new Set([tokenB.key, tokenC.key]),
+    });
+
+    // Persisted order must NOT be pruned while the mutation is pending
+    expect(mockedWriteWatchlistOrder).not.toHaveBeenCalled();
+
+    // Mutation fails and rolls back membership before settling
+    await act(async () => {
+      rerender({
+        items: [tokenA, tokenB, tokenC],
+        memberKeys: new Set([tokenA.key, tokenB.key, tokenC.key]),
+      });
+      rejectMutation?.(new Error('network error'));
+      await mutationPromise;
+    });
+
+    // tokenA is restored to its original index 0 (not appended to the bottom)
+    expect(result.current.orderedItems).toEqual([tokenA, tokenB, tokenC]);
+    expect(mockedWriteWatchlistOrder).not.toHaveBeenCalled();
+  });
 });

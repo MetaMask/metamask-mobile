@@ -633,6 +633,28 @@ describe('MoneyMetaMaskCard', () => {
     expect(onSetupContinuePress).not.toHaveBeenCalled();
   });
 
+  it('does not offer to finish setup after a final rejection', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="setup"
+        setupView={{ kind: 'action_required', step: 'rejected' }}
+        onGetNowPress={jest.fn()}
+        onSetupContinuePress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_TITLE),
+    ).toHaveTextContent(
+      strings('card.card_home.messages.setup_incomplete.rejected_title'),
+    );
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION),
+    ).toHaveTextContent(
+      strings('card.card_home.messages.setup_incomplete.descriptions.rejected'),
+    );
+  });
+
   it('uses the generic setup copy for other unfinished steps', () => {
     const onSetupContinuePress = jest.fn();
     render(

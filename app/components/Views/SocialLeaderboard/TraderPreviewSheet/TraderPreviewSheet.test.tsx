@@ -127,6 +127,13 @@ jest.mock('../terms/socialTermsAcceptance', () => ({
   ensureSocialTermsAccepted: jest.fn(),
 }));
 
+const mockEnsureSocialProfileOnboarding = jest.fn();
+jest.mock('../hooks/useRequireSocialProfileOnboarding', () => ({
+  useRequireSocialProfileOnboarding: () => ({
+    ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+  }),
+}));
+
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
@@ -587,6 +594,29 @@ describe('TraderPreviewSheet', () => {
         clearPendingReferralCode('CODE1234'),
       );
       expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    });
+
+    it('opens profile onboarding on join once the terms are accepted', () => {
+      jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(true);
+      render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      );
+
+      expect(mockEnsureSocialProfileOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves profile onboarding to the terms screen when the terms are not accepted', () => {
+      jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+      render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      );
+
+      expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+      expect(mockEnsureSocialProfileOnboarding).not.toHaveBeenCalled();
     });
 
     it('starts onboarding without a referral code when it was not offered', () => {

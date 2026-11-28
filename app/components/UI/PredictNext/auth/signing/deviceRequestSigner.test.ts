@@ -1,6 +1,10 @@
 import { p256 } from '@noble/curves/nist';
 
-import { loadVenueProfile, type SigningProfile } from '../venueSigningProfiles';
+import { TEST_VENUE_PROFILE_RAW } from '../../../../../../tests/fixtures/predict/venueProfiles';
+import {
+  validateSigningProfile,
+  type SigningProfile,
+} from '../venueSigningProfiles';
 import type { RenderedRequest } from './profileTemplates';
 import {
   contentDigest,
@@ -19,12 +23,9 @@ const signatureBytes = (value: string): Uint8Array => {
   return new Uint8Array(Buffer.from(match[1], 'base64'));
 };
 
-// The bundled trading profile; `loadVenueProfile` verifies it.
-let profile: SigningProfile;
-
-beforeAll(async () => {
-  profile = (await loadVenueProfile()) as SigningProfile;
-});
+const profile = validateSigningProfile(
+  JSON.parse(TEST_VENUE_PROFILE_RAW),
+) as SigningProfile;
 
 const context: DeviceSigningContext = {
   a2t: 'test-a2t-token',
