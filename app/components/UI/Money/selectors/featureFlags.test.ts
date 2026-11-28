@@ -1600,6 +1600,21 @@ describe('selectMoneyVaultApyRemoteConfig', () => {
       expect(vaultApyOverride).toBeUndefined();
     });
   });
+
+  it('parses the premium vault APY override and fallback', () => {
+    const state = createState({
+      earnMoneyVaultApyControl: {
+        premiumVaultApyOverride: 0.07,
+        premiumVaultApyFallback: '0.06',
+      },
+    });
+
+    const { premiumVaultApyOverride, premiumVaultApyFallback } =
+      selectMoneyVaultApyRemoteConfig(state as never);
+
+    expect(premiumVaultApyOverride).toBe(0.07);
+    expect(premiumVaultApyFallback).toBe(0.06);
+  });
 });
 
 /**

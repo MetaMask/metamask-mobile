@@ -4,6 +4,7 @@ import type { PositionResponse } from '@metamask/money-account-api-data-service'
 import { useQuery } from '@metamask/react-data-query';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 import { parseApy, toApyPercent } from '../utils/apy';
 import { findVault } from '../utils/moneyVaultState';
 import { readVaultAddress } from '../utils/readVaultAddress';
@@ -33,7 +34,11 @@ export interface UseMoneyPremiumVaultRateOptions {
 interface UseMoneyPremiumVaultRateResult {
   /** Positions query that carries `current_apy` per vault. */
   vaultRateQuery: UseQueryResult<PositionResponse>;
-  /** Raw `current_apy` decimal for the premium vault, when the position has one. */
+  /**
+   * Premium vault APY decimal: `premiumVaultApyOverride` when set, else the
+   * position's `current_apy`, else `premiumVaultApyFallback` once the query
+   * settles without a usable rate.
+   */
   rate: string | undefined;
   /** `current_apy` as a one-decimal percentage (for example `7.1` for `0.071`). */
   ratePercent: number | undefined;
@@ -51,6 +56,11 @@ interface UseMoneyPremiumVaultRateResult {
  * (`vault_key`), including when no vault address is available yet. The account
  * address comes from the primary Money account.
  *
+ * While the query is enabled, the `earnMoneyVaultApyControl` remote flag can
+ * replace the rate (`premiumVaultApyOverride`) or fill it in after the query
+ * settles with an error or no usable rate (`premiumVaultApyFallback`). The
+ * fallback is not used during the first load, so it does not flash.
+ *
  * @param options - Optional enable flag and fallback vault. `enabled` defaults
  * to true. When false the positions query does not run, even if an account
  * exists.
@@ -63,6 +73,9 @@ const useMoneyPremiumVaultRate = ({
 }: UseMoneyPremiumVaultRateOptions = {}): UseMoneyPremiumVaultRateResult => {
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
+  const { premiumVaultApyOverride, premiumVaultApyFallback } = useSelector(
+    selectMoneyVaultApyRemoteConfig,
+  );
   const address = primaryMoneyAccount?.address?.toLowerCase();
   const vaultAddress =
     readVaultAddress(plusSubscription?.paymentMethod) ?? fallbackVaultAddress;
@@ -79,7 +92,16 @@ const useMoneyPremiumVaultRate = ({
 
   const positions = vaultRateQuery.data?.positions;
   const position = findVault(positions, vaultAddress, 'premium');
-  const rate = position?.current_apy;
+  const liveRate = position?.current_apy;
+  const shouldUseFallback =
+    !vaultRateQuery.isLoading &&
+    (vaultRateQuery.isError || parseApy(liveRate) === undefined);
+  const fallbackApy = shouldUseFallback ? premiumVaultApyFallback : undefined;
+  const configuredApy = isEnabled
+    ? (premiumVaultApyOverride ?? fallbackApy)
+    : undefined;
+  const rate =
+    configuredApy === undefined ? liveRate : configuredApy.toString();
   const ratePercent = toApyPercent(parseApy(rate));
   const ratePercentFormatted =
     ratePercent !== undefined ? `${ratePercent}%` : undefined;

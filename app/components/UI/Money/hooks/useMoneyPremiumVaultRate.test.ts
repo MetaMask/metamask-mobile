@@ -4,6 +4,8 @@ import { useQuery } from '@metamask/react-data-query';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
+import type { MoneyVaultApyRemoteConfig } from '../selectors/featureFlags.types';
 import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
 
 jest.mock('react-redux', () => ({
@@ -28,16 +30,26 @@ const MOCK_QUERY_RESULT = {
   isError: false,
 };
 
+const DEFAULT_REMOTE_APY_CONFIG: MoneyVaultApyRemoteConfig = {
+  vaultApyFallback: undefined,
+  vaultApyOverride: undefined,
+};
+
 function setSelectors({
   address = MOCK_ADDRESS,
   tokenAddress = MOCK_VAULT_ADDRESS,
   paymentType = 'crypto',
+  remoteApyConfig = DEFAULT_REMOTE_APY_CONFIG,
 }: {
   address?: string;
   tokenAddress?: string;
   paymentType?: 'crypto' | 'card';
+  remoteApyConfig?: MoneyVaultApyRemoteConfig;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectMoneyVaultApyRemoteConfig) {
+      return remoteApyConfig;
+    }
     if (selector === selectPrimaryMoneyAccount) {
       return address ? { address } : undefined;
     }
@@ -276,5 +288,67 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.rate).toBeUndefined();
     expect(result.current.ratePercent).toBeUndefined();
     expect(result.current.ratePercentFormatted).toBeUndefined();
+  });
+
+  describe('premium APY remote controls', () => {
+    const PREMIUM_CONTROLS = {
+      ...DEFAULT_REMOTE_APY_CONFIG,
+      premiumVaultApyFallback: 0.06,
+    };
+
+    it('uses the premium override over the position APY', () => {
+      setSelectors({
+        remoteApyConfig: { ...PREMIUM_CONTROLS, premiumVaultApyOverride: 0.07 },
+      });
+      mockPositions([
+        { vault_address: MOCK_VAULT_ADDRESS, current_apy: '0.08' },
+      ]);
+
+      const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+      expect(result.current.rate).toBe('0.07');
+      expect(result.current.ratePercentFormatted).toBe('7%');
+    });
+
+    it.each([
+      ['has no premium position', { data: { positions: [] }, isError: false }],
+      ['errors', { data: undefined, isError: true }],
+    ])(
+      'uses the premium fallback when the positions query %s',
+      (_name, query) => {
+        setSelectors({ remoteApyConfig: PREMIUM_CONTROLS });
+        mockUseQuery.mockReturnValue({ ...query, isLoading: false } as never);
+
+        const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+        expect(result.current.rate).toBe('0.06');
+        expect(result.current.ratePercentFormatted).toBe('6%');
+      },
+    );
+
+    it('does not use the premium fallback during the first load', () => {
+      setSelectors({ remoteApyConfig: PREMIUM_CONTROLS });
+      mockUseQuery.mockReturnValue({
+        data: undefined,
+        isLoading: true,
+        isError: false,
+      } as never);
+
+      const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+      expect(result.current.rate).toBeUndefined();
+    });
+
+    it('ignores the premium controls when the query is disabled', () => {
+      setSelectors({
+        remoteApyConfig: { ...PREMIUM_CONTROLS, premiumVaultApyOverride: 0.07 },
+      });
+
+      const { result } = renderHook(() =>
+        useMoneyPremiumVaultRate({ enabled: false }),
+      );
+
+      expect(result.current.rate).toBeUndefined();
+    });
   });
 });
