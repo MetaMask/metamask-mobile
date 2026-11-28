@@ -12,18 +12,28 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFormatters } from '../../../../hooks/useFormatters';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
 
 /**
  * Blocks a Lighter perps deposit below Lighter's minimum direct L1 deposit
  * (1 USDC). A smaller deposit would be rejected on-chain after the user has
  * already paid to bridge into USDC.
  *
+ * Fees come out of the entered amount, so the amount that reaches Lighter can
+ * be below the minimum even when the entered amount is not. Without a keypad
+ * amount, the quoted amount received is checked too. Quotes for a previous
+ * amount are ignored while the next quote loads.
+ *
  * Reuses the fiat buy amount limit alert and copy shown for the money account
  * deposit minimum, so both minimums look the same.
  *
  * @param options - Optional overrides.
  * @param options.pendingAmount - USD amount currently on the keypad.
- * @returns A blocking alert while the amount is above 0 and below the minimum.
+ * @returns A blocking alert while the amount entered or received is above 0
+ * and below the minimum.
  */
 export function useLighterDepositMinimumAlert({
   pendingAmount,
@@ -33,33 +43,54 @@ export function useLighterDepositMinimumAlert({
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { pendingFiatAmount } = useConfirmationContext();
   const { formatCurrency } = useFormatters();
+  const totals = useTransactionPayTotals();
+  const isQuoteLoading = useIsTransactionPayLoading();
 
   const isLighterDeposit = hasTransactionType(transactionMeta, [
     TransactionType.perpsLighterDeposit,
   ]);
 
   const amount = Number(pendingAmount ?? pendingFiatAmount ?? '0');
-  const isBelowMinimum =
-    Number.isFinite(amount) && amount > 0 && amount < LIGHTER_MINIMUM_DEPOSIT;
+  const receivedAmount =
+    pendingAmount === undefined && !isQuoteLoading
+      ? Number(totals?.targetAmount?.usd ?? '0')
+      : 0;
+  const isBelow = (value: number) =>
+    Number.isFinite(value) && value > 0 && value < LIGHTER_MINIMUM_DEPOSIT;
+  const isAmountBelowMinimum = isBelow(amount);
+  const isReceivedBelowMinimum =
+    !isAmountBelowMinimum && isBelow(receivedAmount);
 
   return useMemo(() => {
-    if (!isLighterDeposit || !isBelowMinimum) {
+    if (
+      !isLighterDeposit ||
+      (!isAmountBelowMinimum && !isReceivedBelowMinimum)
+    ) {
       return NO_ALERTS;
     }
+
+    const minimum = formatCurrency(LIGHTER_MINIMUM_DEPOSIT, 'USD', {
+      currencyDisplay: 'narrowSymbol',
+    });
 
     return [
       {
         key: AlertKeys.FiatBuyAmountLimit,
         field: RowAlertKey.Amount,
         title: strings('alert_system.fiat_buy_amount_limit.title'),
-        message: strings('fiat_on_ramp.min_deposit_limit', {
-          amount: formatCurrency(LIGHTER_MINIMUM_DEPOSIT, 'USD', {
-            currencyDisplay: 'narrowSymbol',
-          }),
-        }),
+        message: isReceivedBelowMinimum
+          ? strings('alert_system.lighter_deposit_minimum_after_fees.message', {
+              amount: minimum,
+            })
+          : strings('fiat_on_ramp.min_deposit_limit', { amount: minimum }),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isLighterDeposit, isBelowMinimum, formatCurrency]);
+  }, [
+    isLighterDeposit,
+    isAmountBelowMinimum,
+    isReceivedBelowMinimum,
+    formatCurrency,
+  ]);
 }

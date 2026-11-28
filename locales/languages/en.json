@@ -145,6 +145,9 @@
     "lighter_withdraw_minimum": {
       "message": "Minimum withdrawal is {{amount}}"
     },
+    "lighter_deposit_minimum_after_fees": {
+      "message": "Minimum deposit is {{amount}} after fees. Enter a higher amount."
+    },
     "lighter_account_lookup_pending": {
       "message": "Verifying Lighter account..."
     },
