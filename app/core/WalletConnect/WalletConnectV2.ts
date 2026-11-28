@@ -63,6 +63,7 @@ import {
 } from '../../util/errorHandling/isUserRejectedError';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import { getWalletConnectSessionId } from './wc-analytics';
+import { hasPersistedWalletConnectState } from './wc-persisted-state';
 import { trackWalletConnectEvent } from '../../util/analytics/walletConnectTracking';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -87,6 +88,8 @@ const SEEN_TOPIC_TTL_MS = 5_000;
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
+  /** The in-flight (or finished) start, shared by every caller of ensureInitialized. */
+  private static initPromise?: Promise<WC2Manager | undefined>;
   private navigation?: NavigationContainerRef<ParamListBase>;
   private web3Wallet: IWalletKit;
   private sessions: { [topic: string]: WalletConnect2Session };
@@ -372,10 +375,67 @@ export class WC2Manager {
     return this.instance;
   }
 
+  /**
+   * Starts WalletConnect at unlock only when this install has something for it
+   * to serve: stored sessions, pairings, proposals or deeplink sessions. Without
+   * any, it is started on first use instead (getInstance: a `wc:` deeplink or QR
+   * code, or the sessions screen), so the relay WebSocket and its JWT signing are
+   * skipped for wallets that never connected a dApp.
+   */
+  public static async startIfNeeded(): Promise<WC2Manager | undefined> {
+    if (this.instance) return this.instance;
+    if (!(await hasPersistedWalletConnectState())) {
+      DevLogger.log(
+        'WC2::startIfNeeded no stored sessions or pairings; starting on first use',
+      );
+      return undefined;
+    }
+    return this.ensureInitialized();
+  }
+
+  /**
+   * Starts WalletConnect once. Concurrent callers share the same start; when it
+   * ends without an instance (init failed or was skipped), the next call tries
+   * again.
+   */
+  public static ensureInitialized(): Promise<WC2Manager | undefined> {
+    if (this.instance) return Promise.resolve(this.instance);
+    if (!this.initPromise) {
+      const attempt = this.init({}).finally(() => {
+        if (!this.instance && this.initPromise === attempt) {
+          this.initPromise = undefined;
+          // init marks itself started before it can fail; allow a retry.
+          this._initialized = false;
+        }
+      });
+      this.initPromise = attempt;
+    }
+    return this.initPromise;
+  }
+
+  /**
+   * The running WalletConnect manager, starting it if it hasn't been started
+   * (WalletConnect is started lazily, see startIfNeeded). Resolves once it is up.
+   */
   public static async getInstance(): Promise<WC2Manager> {
     let waitCount = 1;
+    const start = () => {
+      this.ensureInitialized().catch((error) =>
+        DevLogger.log('WC2::getInstance start failed, will retry', error),
+      );
+    };
+    start();
     return new Promise((resolve) => {
       const interval = setInterval(() => {
+        if (
+          isWC2Enabled &&
+          !this.instance &&
+          !this.initPromise &&
+          waitCount % 10 === 0
+        ) {
+          // The previous start ended without an instance; try again.
+          start();
+        }
         if (this.instance) {
           if (waitCount % 10 === 0) {
             DevLogger.log(
