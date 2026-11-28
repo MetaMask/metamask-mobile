@@ -509,6 +509,7 @@ export const NETWORK_CHAIN_ID: {
   readonly ZERO_G: '0x4115';
   readonly SOMNIA: '0x13a7';
   readonly ETHEREUM_CLASSIC_MAINNET: '0x3d';
+  readonly WCAHT: '0x1e6d';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -562,6 +563,7 @@ export const NETWORK_CHAIN_ID: {
   ZERO_G: '0x4115',
   SOMNIA: '0x13a7',
   ETHEREUM_CLASSIC_MAINNET: '0x3d',
+  WCAHT: '0x1e6d',
   ...CHAIN_IDS,
 };
 
@@ -623,4 +625,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ZERO_G]: require('../../images/0g-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.SOMNIA]: require('../../images/somnia.png'),
   [NETWORK_CHAIN_ID.ETHEREUM_CLASSIC_MAINNET]: require('../../images/ethereum-classic.png'),
+  [NETWORK_CHAIN_ID.WCAHT]: require('../../images/wcaht.png'),
 };
