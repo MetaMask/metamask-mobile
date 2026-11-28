@@ -14550,9 +14550,6 @@
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    },
     "typescript/unbound-method": {
       "count": 2
     }

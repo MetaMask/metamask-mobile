@@ -17,7 +17,6 @@ import {
 import React, {
   forwardRef,
   useCallback,
-  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -27,10 +26,10 @@ import React, {
 import { ActivityIndicator, RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
-  runOnJS,
   useAnimatedScrollHandler,
   type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
@@ -154,12 +153,15 @@ const PERPS_WALLET_TX_TYPES = [
   TransactionType.perpsWithdraw,
 ];
 
-const isPerpsWalletTransaction = (tx: TransactionMeta) =>
+const isPerpsWalletTransaction = (tx: TransactionMeta): boolean =>
   hasTransactionType(tx, PERPS_WALLET_TX_TYPES) ||
   (tx.originalType !== undefined &&
     PERPS_WALLET_TX_TYPES.includes(tx.originalType));
 
-const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
+const getBlockExplorerTrackingText = (
+  url: string,
+  fallbackName?: string,
+): string => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
   const prefix = strings('transactions.view_full_history_on');
 
@@ -224,7 +226,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       data: evmTransactions,
       fetchNextPage,
       hasNextPage,
-      isInitialLoading,
+      isLoading: isInitialLoading,
       isFetchingNextPage,
       refetch,
     } = useTransactionsQuery();
@@ -973,7 +975,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const isPerpsLoading = perps.isLoading;
     const isPredictLoading =
       shouldMountPredictSource && predictSource.isLoading;
-    const isRelevantActivityLoading = (() => {
+    const isRelevantActivityLoading: boolean = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
           return isPerpsLoading;
@@ -1008,7 +1010,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     useImperativeHandle(
       ref,
       () => ({
-        scrollToTop: () => {
+        scrollToTop: (): void => {
           listRef.current?.scrollToOffset({ offset: 0, animated: true });
           limitOrdersListRef.current?.scrollToOffset({
             offset: 0,
@@ -1049,7 +1051,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (scrollY) {
           scrollY.value = event.contentOffset.y;
         }
-        runOnJS(runAutoScroll)();
+        scheduleOnRN(runAutoScroll);
       },
     });
 
@@ -1059,7 +1061,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       isPerpsEnabled &&
       perps.items.length > 0;
 
-    const renderEmptyList = () => (
+    const renderEmptyList = (): JSX.Element => (
       <View style={styles.emptyList}>
         <ActivityEmptyState
           typeFilter={typeFilter ?? ActivityTypeFilter.All}
@@ -1069,7 +1071,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       </View>
     );
 
-    const renderInitialLoading = () => (
+    const renderInitialLoading = (): JSX.Element => (
       <View style={styles.emptyList}>
         <ActivityIndicator
           color={colors.icon.default}
@@ -1082,7 +1084,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       !isRelevantActivityLoading && data.length > 0;
     const items = shouldShowTransactionList ? groupedData : [];
 
-    const haveRelevantSourcesReported = (() => {
+    const haveRelevantSourcesReported: boolean = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
           return true;
@@ -1118,7 +1120,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }: {
       item: GroupedActivityListItem;
       index: number;
-    }) => {
+    }): JSX.Element => {
       if (groupedItem.type === 'pending-header') {
         return (
           <ActivityListDateHeader label={strings('transaction.pending')} />
