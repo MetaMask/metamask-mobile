@@ -17,44 +17,44 @@ import {
   TextColor,
   TextVariant,
   FontWeight,
-} from "@metamask/design-system-react-native";
+} from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
   type PerpsProviderType,
-} from "@metamask/perps-controller";
-import { AnimationDuration } from "@metamask/design-tokens";
+} from '@metamask/perps-controller';
+import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-} from "react";
-import { Pressable, View } from "react-native";
+} from 'react';
+import { Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-} from "react-native-reanimated";
-import { strings } from "../../../../../../../locales/i18n";
-import { useHaptics } from "../../../../../../util/haptics";
-import { useTheme } from "../../../../../../util/theme";
-import { PerpsProMarketViewSelectorsIDs } from "../../../Perps.testIds";
+} from 'react-native-reanimated';
+import { strings } from '../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../util/haptics';
+import { useTheme } from '../../../../../../util/theme';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   usePerpsLiveOrderBook,
   type OrderBookLevel,
-} from "../../../hooks/stream/usePerpsLiveOrderBook";
-import { usePerpsOrderBookGrouping } from "../../../hooks/usePerpsOrderBookGrouping";
-import type { PerpsMarketDetailSectionState } from "../../../hooks/usePerpsMarketDetailSession";
-import { usePerpsOrderBookPreferences } from "../../../hooks/usePerpsOrderBookPreferences";
+} from '../../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGrouping';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
+import { usePerpsOrderBookPreferences } from '../../../hooks/usePerpsOrderBookPreferences';
 import {
   usePerpsProOrderBookPosition,
   type PerpsProOrderBookPosition,
-} from "../../../hooks/usePerpsProOrderBookPosition";
+} from '../../../hooks/usePerpsProOrderBookPosition';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
-} from "../../../utils/formatUtils";
+} from '../../../utils/formatUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
@@ -72,17 +72,17 @@ import {
   type OrderBookListCurrency,
   type OrderBookListMetric,
   type OrderBookPriceFormat,
-} from "../../../utils/orderBookGrouping";
+} from '../../../utils/orderBookGrouping';
 import {
   getPerpsOrderBookSizeOnClickPreference,
   setPerpsOrderBookSizeOnClickPreference,
-} from "../../../utils/perpsOrderBookSizeOnClickStorage";
-import PerpsProOrderBookConfigSheet from "./PerpsProOrderBookConfigSheet";
-import styles from "./PerpsProOrderBookPanel.styles";
+} from '../../../utils/perpsOrderBookSizeOnClickStorage';
+import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
+import styles from './PerpsProOrderBookPanel.styles';
 
 const DEPTH_BAR_OPACITY = 0.15;
 
-type OrderBookViewMode = "default" | "buy" | "sell";
+type OrderBookViewMode = 'default' | 'buy' | 'sell';
 
 export interface PerpsProOrderBookPanelProps {
   /** Market symbol (e.g. 'BTC', 'xyz:TSLA'). */
@@ -126,14 +126,14 @@ export interface PerpsProOrderBookPanelProps {
  * whole. Each side still keeps single-line text, so the extreme case degrades
  * to a truncated price rather than a row that wraps or overflows.
  */
-const PRICE_COLUMN_CLASS = "relative z-10 flex-1";
-const PRICE_COLUMN_CLASS_MIRRORED = "relative z-10 flex-1 text-right";
-const VALUE_COLUMN_CLASS = "relative z-10 shrink-0 text-right";
-const VALUE_COLUMN_CLASS_MIRRORED = "relative z-10 shrink-0";
+const PRICE_COLUMN_CLASS = 'relative z-10 flex-1';
+const PRICE_COLUMN_CLASS_MIRRORED = 'relative z-10 flex-1 text-right';
+const VALUE_COLUMN_CLASS = 'relative z-10 shrink-0 text-right';
+const VALUE_COLUMN_CLASS_MIRRORED = 'relative z-10 shrink-0';
 
 interface OrderBookRowProps {
   level: OrderBookLevel;
-  side: "bid" | "ask";
+  side: 'bid' | 'ask';
   currency: OrderBookListCurrency;
   metric: OrderBookListMetric;
   /** Denominator the depth bar is scaled against, matching `metric`. */
@@ -160,9 +160,9 @@ const OrderBookRow = ({
   layout,
   testID,
 }: OrderBookRowProps) => {
-  const isMirrored = layout === "left";
+  const isMirrored = layout === 'left';
   const depthWidth = getDepthWidth(level, depthMax, metric);
-  const isBid = side === "bid";
+  const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
   // Ladder rows are reused positionally across live ticks (see key comment
@@ -232,7 +232,7 @@ const OrderBookRow = ({
       <Pressable
         onPress={() => onSelectPrice(level.price, level.size)}
         accessibilityRole="button"
-        accessibilityLabel={strings("perps.order_book.use_price", {
+        accessibilityLabel={strings('perps.order_book.use_price', {
           price: priceLabel,
         })}
         testID={testID}
@@ -322,9 +322,9 @@ const OrderBookViewIcon = ({
   sellColor: string;
 }) => {
   const colors: [string, string, string, string] =
-    mode === "buy"
+    mode === 'buy'
       ? [buyColor, buyColor, buyColor, buyColor]
-      : mode === "sell"
+      : mode === 'sell'
         ? [sellColor, sellColor, sellColor, sellColor]
         : [buyColor, buyColor, sellColor, sellColor];
   const widths = [18, 14, 10, 6] as const;
@@ -430,7 +430,7 @@ const PerpsProOrderBookPanel = ({
   marketPrice,
   szDecimals,
   isMarketContextReady = true,
-  marketContextKey = "",
+  marketContextKey = '',
   onSelectPrice,
   onCollapse,
   onResolvedStateChange,
@@ -446,7 +446,7 @@ const PerpsProOrderBookPanel = ({
     usePerpsOrderBookPreferences();
   const currency = orderBookPreferences.currency;
   const metric = orderBookPreferences.metric;
-  const [viewMode, setViewMode] = useState<OrderBookViewMode>("default");
+  const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isSizeOnClickEnabled, setIsSizeOnClickEnabled] = useState(
     getPerpsOrderBookSizeOnClickPreference,
@@ -481,24 +481,24 @@ const PerpsProOrderBookPanel = ({
 
   const handleCycleViewMode = useCallback(() => {
     setViewMode((current) => {
-      if (current === "default") {
-        return "buy";
+      if (current === 'default') {
+        return 'buy';
       }
-      if (current === "buy") {
-        return "sell";
+      if (current === 'buy') {
+        return 'sell';
       }
-      return "default";
+      return 'default';
     });
   }, []);
 
-  const showBids = viewMode !== "sell";
-  const showAsks = viewMode !== "buy";
+  const showBids = viewMode !== 'sell';
+  const showAsks = viewMode !== 'buy';
 
-  let viewModeAccessibilityValue = strings("perps.order_book.view_mode_both");
-  if (viewMode === "buy") {
-    viewModeAccessibilityValue = strings("perps.order_book.view_mode_bids");
-  } else if (viewMode === "sell") {
-    viewModeAccessibilityValue = strings("perps.order_book.view_mode_asks");
+  let viewModeAccessibilityValue = strings('perps.order_book.view_mode_both');
+  if (viewMode === 'buy') {
+    viewModeAccessibilityValue = strings('perps.order_book.view_mode_bids');
+  } else if (viewMode === 'sell') {
+    viewModeAccessibilityValue = strings('perps.order_book.view_mode_asks');
   }
 
   // Raw, full-precision book — mid price + spread (shared controller socket).
@@ -515,12 +515,12 @@ const PerpsProOrderBookPanel = ({
 
   const midPriceValue = useMemo<number | null>(() => {
     const orderBookMid = Number.parseFloat(
-      rawOrderBookSymbol === symbol ? (rawOrderBook?.midPrice ?? "") : "",
+      rawOrderBookSymbol === symbol ? (rawOrderBook?.midPrice ?? '') : '',
     );
     if (Number.isFinite(orderBookMid) && orderBookMid > 0) {
       return orderBookMid;
     }
-    if (typeof marketPrice === "number" && marketPrice > 0) {
+    if (typeof marketPrice === 'number' && marketPrice > 0) {
       return marketPrice;
     }
     return null;
@@ -595,7 +595,7 @@ const PerpsProOrderBookPanel = ({
   } = usePerpsLiveOrderBook({
     symbol,
     providerId,
-    channel: "orderBookAggregated",
+    channel: 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
@@ -645,7 +645,7 @@ const PerpsProOrderBookPanel = ({
   // Listing by Size measures each level against the largest single level;
   // listing by Total measures it against the deepest cumulative total.
   const depthMax =
-    metric === "size" ? (grouped?.maxSize ?? 0) : (grouped?.maxTotal ?? 0);
+    metric === 'size' ? (grouped?.maxSize ?? 0) : (grouped?.maxTotal ?? 0);
 
   const spreadDisplay = useMemo(() => {
     if (!rawOrderBook || rawOrderBookSymbol !== symbol) {
@@ -696,7 +696,7 @@ const PerpsProOrderBookPanel = ({
       (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
   const hasConnectionError =
-    isOrderBookForCurrentSymbol && connectionStatus === "error";
+    isOrderBookForCurrentSymbol && connectionStatus === 'error';
   // Skeleton only when we have no ladder yet (initial connect / reconnect).
   // Avoids collapsing the column into a short "Loading..." message.
   const showSkeleton =
@@ -706,29 +706,29 @@ const PerpsProOrderBookPanel = ({
       !isOrderBookForCurrentSymbol ||
       !hasFreshContextDelivery ||
       isInitialLoading ||
-      connectionStatus === "connecting");
+      connectionStatus === 'connecting');
   const showEmptyPlaceholder =
     !showSkeleton && (hasConnectionError || !hasLadder);
 
   useEffect(() => {
-    onResolvedStateChange?.(symbol, "loading");
+    onResolvedStateChange?.(symbol, 'loading');
   }, [marketContextKey, onResolvedStateChange, symbol]);
   useEffect(() => {
     if (!isMarketContextReady) {
-      onResolvedStateChange?.(symbol, "loading");
+      onResolvedStateChange?.(symbol, 'loading');
       return;
     }
     if (!isOrderBookForCurrentSymbol) {
-      onResolvedStateChange?.(symbol, "loading");
+      onResolvedStateChange?.(symbol, 'loading');
       return;
     }
-    let state: PerpsMarketDetailSectionState = "loading";
+    let state: PerpsMarketDetailSectionState = 'loading';
     if (hasConnectionError) {
-      state = "error";
+      state = 'error';
     } else if (hasLadder) {
-      state = "content";
+      state = 'content';
     } else if (!showSkeleton) {
-      state = "empty";
+      state = 'empty';
     }
     onResolvedStateChange?.(symbol, state);
   }, [
@@ -741,20 +741,20 @@ const PerpsProOrderBookPanel = ({
     symbol,
   ]);
 
-  let placeholderMessage = strings("perps.order_book.no_data");
+  let placeholderMessage = strings('perps.order_book.no_data');
   if (hasConnectionError) {
-    placeholderMessage = strings("perps.order_book.connection_error");
+    placeholderMessage = strings('perps.order_book.connection_error');
   }
 
   // Use "$" instead of "USD" so "Total ($)" fits the fixed 132px Pro order-book
   // column without ellipsizing to "Total (U…" (TAT-3774). Settings still say USD.
-  const unitLabel = currency === "usd" ? "$" : displaySymbol;
+  const unitLabel = currency === 'usd' ? '$' : displaySymbol;
   const metricLabel =
-    metric === "total"
-      ? strings("perps.order_book.total")
-      : strings("perps.order_book.size");
+    metric === 'total'
+      ? strings('perps.order_book.total')
+      : strings('perps.order_book.size');
 
-  const isLadderMirrored = orderBookPosition === "left";
+  const isLadderMirrored = orderBookPosition === 'left';
   const priceHeader = (
     <Text
       key="price"
@@ -762,10 +762,10 @@ const PerpsProOrderBookPanel = ({
       fontWeight={FontWeight.Medium}
       color={TextColor.TextAlternative}
       numberOfLines={1}
-      className={isLadderMirrored ? "flex-1 text-right" : "flex-1"}
+      className={isLadderMirrored ? 'flex-1 text-right' : 'flex-1'}
       testID={`${testID}-column-header-price`}
     >
-      {strings("perps.order_book.price")}
+      {strings('perps.order_book.price')}
     </Text>
   );
   const valueHeader = (
@@ -775,7 +775,7 @@ const PerpsProOrderBookPanel = ({
       fontWeight={FontWeight.Medium}
       color={TextColor.TextAlternative}
       numberOfLines={1}
-      className={isLadderMirrored ? "shrink-0" : "shrink-0 text-right"}
+      className={isLadderMirrored ? 'shrink-0' : 'shrink-0 text-right'}
       testID={`${testID}-column-header-value`}
     >
       {`${metricLabel} (${unitLabel})`}
@@ -811,7 +811,7 @@ const PerpsProOrderBookPanel = ({
           <Pressable
             onPress={handleCycleViewMode}
             accessibilityRole="button"
-            accessibilityLabel={strings("perps.order_book.view_toggle")}
+            accessibilityLabel={strings('perps.order_book.view_toggle')}
             accessibilityValue={{ text: viewModeAccessibilityValue }}
             testID={`${testID}-view-toggle`}
             hitSlop={8}
@@ -828,7 +828,7 @@ const PerpsProOrderBookPanel = ({
           {onCollapse ? (
             <ButtonIcon
               iconName={IconName.Collapse}
-              accessibilityLabel={strings("perps.order_book.collapse")}
+              accessibilityLabel={strings('perps.order_book.collapse')}
               size={ButtonIconSize.Md}
               onPress={handleCollapse}
               testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON}
@@ -842,7 +842,7 @@ const PerpsProOrderBookPanel = ({
         >
           <ButtonIcon
             iconName={IconName.Setting}
-            accessibilityLabel={strings("perps.order_book.config_title")}
+            accessibilityLabel={strings('perps.order_book.config_title')}
             size={ButtonIconSize.Md}
             onPress={handleOpenConfig}
             testID={`${testID}-grouping-trigger`}
@@ -884,7 +884,7 @@ const PerpsProOrderBookPanel = ({
               onPress={reconnect}
               testID={`${testID}-reconnect`}
             >
-              {strings("perps.order_book.reconnect")}
+              {strings('perps.order_book.reconnect')}
             </Button>
           )}
         </Box>
@@ -931,7 +931,7 @@ const PerpsProOrderBookPanel = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
                 className="flex-1 text-right"
-                accessibilityLabel={strings("perps.order_book.spread_value", {
+                accessibilityLabel={strings('perps.order_book.spread_value', {
                   value: spreadDisplay,
                 })}
               >
@@ -975,7 +975,7 @@ const PerpsProOrderBookPanel = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             className="w-full gap-1"
-            accessibilityLabel={strings("perps.order_book.depth_ratio", {
+            accessibilityLabel={strings('perps.order_book.depth_ratio', {
               buy: String(depthRatio.buyPercent),
               sell: String(depthRatio.sellPercent),
             })}
@@ -1001,7 +1001,7 @@ const PerpsProOrderBookPanel = ({
               alignItems={BoxAlignItems.Center}
               className="gap-0.5"
               accessible
-              accessibilityLabel={strings("perps.order_book.buy_percent", {
+              accessibilityLabel={strings('perps.order_book.buy_percent', {
                 percent: String(depthRatio.buyPercent),
               })}
               testID={`${testID}-buy-percent`}
@@ -1024,7 +1024,7 @@ const PerpsProOrderBookPanel = ({
               alignItems={BoxAlignItems.Center}
               className="gap-0.5"
               accessible
-              accessibilityLabel={strings("perps.order_book.sell_percent", {
+              accessibilityLabel={strings('perps.order_book.sell_percent', {
                 percent: String(depthRatio.sellPercent),
               })}
               testID={`${testID}-sell-percent`}
