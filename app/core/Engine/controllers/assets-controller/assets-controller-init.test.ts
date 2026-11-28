@@ -15,6 +15,10 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { store } from '../../../../store';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { createApiPlatformClient } from '@metamask/core-backend';
+import {
+  ASSETS_UNIFY_STATE_FLAG,
+  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+} from '../../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -550,12 +554,108 @@ describe('assetsControllerInit', () => {
   });
 
   describe('trace callback', () => {
-    it('does not pass a trace callback (tracing is disabled)', () => {
+    it('passes a trace callback that runs fn without creating a span when tracing is disabled', () => {
       assetsControllerInit(getInitRequestMock());
 
       const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace;
 
-      expect(constructorCall.trace).toBeUndefined();
+      expect(traceCallback).toBeDefined();
+      expect(typeof traceCallback).toBe('function');
+    });
+
+    it('does not create a Sentry span when tracesEnabled is false', async () => {
+      const baseMessenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        never
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      registerInitActionHandlers(
+        baseMessenger as unknown as MessengerWithRegisterActionHandler,
+        {
+          remoteFeatureFlagState: {
+            remoteFeatureFlags: {
+              [ASSETS_UNIFY_STATE_FLAG]: {
+                enabled: true,
+                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+                minimumVersion: null,
+                tracesEnabled: false,
+              },
+            },
+          },
+        },
+      );
+
+      const controllerMessenger = getAssetsControllerMessenger(baseMessenger);
+      const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
+
+      const requestMock = {
+        ...buildMessengerClientInitRequestMock(baseMessenger),
+        controllerMessenger,
+        initMessenger,
+        persistedState: {},
+      };
+
+      assetsControllerInit(requestMock);
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace as (
+        req: { name: string },
+        fn?: () => string,
+      ) => Promise<string>;
+
+      const result = await traceCallback({ name: 'test' }, () => 'result');
+
+      expect(result).toBe('result');
+    });
+
+    it('creates a Sentry span when tracesEnabled is true', async () => {
+      const baseMessenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        never
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      registerInitActionHandlers(
+        baseMessenger as unknown as MessengerWithRegisterActionHandler,
+        {
+          remoteFeatureFlagState: {
+            remoteFeatureFlags: {
+              [ASSETS_UNIFY_STATE_FLAG]: {
+                enabled: true,
+                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+                minimumVersion: null,
+                tracesEnabled: true,
+              },
+            },
+          },
+        },
+      );
+
+      const controllerMessenger = getAssetsControllerMessenger(baseMessenger);
+      const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
+
+      const requestMock = {
+        ...buildMessengerClientInitRequestMock(baseMessenger),
+        controllerMessenger,
+        initMessenger,
+        persistedState: {},
+      };
+
+      assetsControllerInit(requestMock);
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+      const traceCallback = constructorCall.trace as (
+        req: { name: string },
+        fn?: () => string,
+      ) => Promise<string>;
+
+      const result = await traceCallback({ name: 'test' }, () => 'result');
+
+      expect(result).toBe('result');
     });
   });
 });
