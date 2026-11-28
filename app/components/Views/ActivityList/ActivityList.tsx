@@ -587,9 +587,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return configBlockExplorerUrl;
       }
       return hasConfiguredEvmChains
-        ? popularListBlockExplorer.getBlockExplorerUrl(
+        ? (popularListBlockExplorer.getBlockExplorerUrl(
             selectedAccountGroupEvmAddress,
-          ) ?? undefined
+          ) ?? undefined)
         : undefined;
     }, [
       configBlockExplorerUrl,
