@@ -96,9 +96,9 @@ const useMoneyPremiumVaultRate = ({
   const shouldUseFallback =
     !vaultRateQuery.isLoading &&
     (vaultRateQuery.isError || parseApy(liveRate) === undefined);
+  const fallbackApy = shouldUseFallback ? premiumVaultApyFallback : undefined;
   const configuredApy = isEnabled
-    ? (premiumVaultApyOverride ??
-      (shouldUseFallback ? premiumVaultApyFallback : undefined))
+    ? (premiumVaultApyOverride ?? fallbackApy)
     : undefined;
   const rate =
     configuredApy === undefined ? liveRate : configuredApy.toString();
