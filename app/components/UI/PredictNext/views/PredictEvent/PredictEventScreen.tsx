@@ -390,6 +390,7 @@ export const PredictEventScreen = (): React.ReactElement => {
         eventTitle: liveEvent?.title ?? '',
         eventImageUrl: liveEvent?.imageUrl,
         askPrice: outcome.askPrice,
+        fractionalTradingEnabled: market.fractionalTradingEnabled,
       });
     },
     [eventId, liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],

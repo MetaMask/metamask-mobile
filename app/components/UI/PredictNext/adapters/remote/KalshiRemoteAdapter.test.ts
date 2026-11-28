@@ -968,7 +968,7 @@ describe('KalshiRemoteAdapter', () => {
       expect(result).toMatchObject({ requestedAmount: '20.00' });
     });
 
-    it('sends the legacy buy wire shape without an action key', async () => {
+    it('sends the buy wire shape without an action key, offering fractional contracts', async () => {
       client.fetchOrderPreview.mockResolvedValue(previewPayload);
 
       await adapter.trading.previewOrder(previewParams);
@@ -980,6 +980,29 @@ describe('KalshiRemoteAdapter', () => {
           marketId,
           side: 'yes',
           amount: '20',
+          allowFractionalContracts: true,
+          idempotencyKey: previewParams.idempotencyKey,
+        },
+        undefined,
+      );
+    });
+
+    it('keeps the Market fractional flag off the buy wire', async () => {
+      adapter.trading.invalidatePreviews();
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+
+      await adapter.trading.previewOrder({
+        ...previewParams,
+        fractionalTradingEnabled: true,
+      });
+
+      expect(client.fetchOrderPreview).toHaveBeenCalledWith(
+        adapter.venueId,
+        {
+          marketId,
+          side: 'yes',
+          amount: '20',
+          allowFractionalContracts: true,
           idempotencyKey: previewParams.idempotencyKey,
         },
         undefined,

@@ -63,6 +63,7 @@ const SearchEventRow = React.memo(
             eventTitle: cardEvent.title,
             eventImageUrl: cardEvent.imageUrl,
             askPrice: outcome.askPrice,
+            fractionalTradingEnabled: market.fractionalTradingEnabled,
           })
         }
       />

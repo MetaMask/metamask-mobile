@@ -109,6 +109,37 @@ describe('OrderDetailsRows', () => {
     ).toHaveTextContent(strings('predict.fee_summary.fak_partial_fill_note'));
   });
 
+  it('shows the signed maximum cost of a buy', () => {
+    const view = render(
+      <OrderDetailsRows preview={basePreview} maxCost="19.89" />,
+    );
+
+    expect(
+      view.getByText(strings('predict_next.order_preview.max_cost')),
+    ).toBeOnTheScreen();
+    expect(textOf(view, PredictOrderFlowTestIds.MAX_COST)).toBe('$19.89');
+  });
+
+  it('shows a dash for the maximum cost until the phone has checked the quote', () => {
+    const view = render(<OrderDetailsRows preview={basePreview} />);
+
+    expect(textOf(view, PredictOrderFlowTestIds.MAX_COST)).toBe('—');
+  });
+
+  it('shows a fractional contract count without trailing zeros', () => {
+    const view = render(
+      <OrderDetailsRows
+        preview={{ ...basePreview, estimatedContracts: 12.5 }}
+      />,
+    );
+
+    expect(
+      view.getByText(
+        '~12.5 contracts at 46.5¢ each. Final amount may vary based on order book availability.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('falls back to a single Fees row when feeBreakdown is empty', () => {
     const view = render(
       <OrderDetailsRows
@@ -167,13 +198,18 @@ describe('OrderDetailsRows', () => {
       estimatedNetProceeds: '33.26',
     } as unknown as PredictSellOrderPreview;
 
-    const view = render(<OrderDetailsRows preview={sellPreview} />);
+    const view = render(
+      <OrderDetailsRows preview={sellPreview} maxCost="19.89" />,
+    );
 
     expect(
       view.getByText(
         '~70 contracts at 48¢ each. Final amount may vary based on order book availability.',
       ),
     ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictOrderFlowTestIds.MAX_COST),
+    ).not.toBeOnTheScreen();
     expect(textOf(view, PredictOrderFlowTestIds.DETAILS_ORDER_AMOUNT)).toBe(
       '$33.60',
     );

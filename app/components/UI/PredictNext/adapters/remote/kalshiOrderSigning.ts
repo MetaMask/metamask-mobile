@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import type {
   PredictOrderPreview,
   PredictOrderPreviewParams,
@@ -70,26 +71,42 @@ export const loadFeeCeilingCentsPerContract = async (): Promise<
     : undefined;
 };
 
-/** The whole contracts a buy may sign. The profile requires the worst case,
- * every contract at the signed limit plus the fee ceiling, to fit the typed
- * spend. The quote sizes `estimatedContracts` from the average price, which
- * is lower than the limit, so the quoted count alone can exceed that bound.
- * Never more than the quote offered. */
+/** Kalshi's smallest order. */
+const MINIMUM_CONTRACTS = 1;
+
+/** At least one contract, within safe integers, in hundredths at most. */
+const isSignableCount = (contracts: number): boolean =>
+  contracts >= MINIMUM_CONTRACTS &&
+  contracts <= Number.MAX_SAFE_INTEGER &&
+  (new BigNumber(contracts).decimalPlaces() ?? Infinity) <= 2;
+
+/** The contracts a buy may sign: hundredths on a fractional Market, whole
+ * contracts otherwise. The profile requires the worst case, every contract
+ * at the signed limit plus the fee ceiling, to fit the typed spend. The
+ * quote sizes `estimatedContracts` from the average price, which is lower
+ * than the limit, so the quoted count alone can exceed that bound. Never
+ * more than the quote offered. */
 const affordableBuyContracts = (
   amountCents: number,
   outcomePrice: number,
   feeCeilingCentsPerContract: number,
   quotedContracts: number,
-): number => {
+  isFractional: boolean,
+): BigNumber => {
   // One cent is 100 ten-thousandths of a dollar.
   const perContract = outcomePrice + feeCeilingCentsPerContract * 100;
   if (perContract <= 0) {
-    return 0;
+    return new BigNumber(0);
   }
-  return Math.min(
+  // Integer division floors exactly: no rounding can lift the count over
+  // the spend.
+  const affordableHundredths = new BigNumber(amountCents)
+    .times(10_000)
+    .dividedToIntegerBy(perContract);
+  return BigNumber.min(
     quotedContracts,
-    Math.floor((amountCents * 100) / perContract),
-  );
+    affordableHundredths.shiftedBy(-2),
+  ).decimalPlaces(isFractional ? 2 : 0, BigNumber.ROUND_FLOOR);
 };
 
 /** Converts only the quote and input snapshot held by Kalshi's adapter.
@@ -113,7 +130,7 @@ export const kalshiOrderSigningInput = (
     preview.action === 'sell'
       ? preview.requestedContracts
       : preview.estimatedContracts;
-  if (!Number.isSafeInteger(quotedContracts) || quotedContracts <= 0) {
+  if (!isSignableCount(quotedContracts)) {
     return undefined;
   }
   const outcomePrice = outcomePriceUnits(preview.limitPrice);
@@ -141,8 +158,9 @@ export const kalshiOrderSigningInput = (
       outcomePrice,
       feeCeilingCentsPerContract,
       quotedContracts,
+      params.fractionalTradingEnabled === true,
     );
-    if (contracts <= 0) {
+    if (contracts.isLessThan(MINIMUM_CONTRACTS)) {
       return undefined;
     }
     return {

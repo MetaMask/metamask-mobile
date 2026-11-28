@@ -109,6 +109,16 @@ describe('OrderPreviewRows', () => {
     ).toBeNull();
   });
 
+  it('shows a fractional buy contract count without trailing zeros', () => {
+    const view = render(
+      <OrderPreviewRows preview={{ ...buy, estimatedContracts: 12.5 }} />,
+    );
+
+    expect(textOf(view, PredictOrderFlowTestIds.ESTIMATED_CONTRACTS)).toBe(
+      '12.5',
+    );
+  });
+
   it('shows a negative profit when the signed cost exceeds the payout', () => {
     const view = render(
       <OrderPreviewRows

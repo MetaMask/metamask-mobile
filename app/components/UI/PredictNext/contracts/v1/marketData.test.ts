@@ -309,6 +309,39 @@ describe('Predict API canonical response parsers', () => {
     expect(parsePredictEvent(input).markets[0].status).toBe('closed');
   });
 
+  it.each([true, false])(
+    'parses a Market with fractionalTradingEnabled %s',
+    (fractionalTradingEnabled) => {
+      const input = createEvent({
+        markets: [createMarket({ fractionalTradingEnabled })],
+      });
+
+      const result = parsePredictEvent(input);
+
+      expect(result.markets[0].fractionalTradingEnabled).toBe(
+        fractionalTradingEnabled,
+      );
+    },
+  );
+
+  it('leaves fractionalTradingEnabled absent when the API omits it', () => {
+    const input = createEvent();
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0]).not.toHaveProperty('fractionalTradingEnabled');
+  });
+
+  it('rejects a non-boolean fractionalTradingEnabled', () => {
+    const input = createEvent({
+      markets: [createMarket({ fractionalTradingEnabled: 'true' })],
+    });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses an event containing an ask without a bid', () => {
     const input = createEvent({
       markets: [

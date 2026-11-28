@@ -13,6 +13,7 @@ import type {
   PredictOrderReview,
 } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
+import { formatContractCount } from '../../../utils/formatShares';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { OrderDataRow } from './OrderDataRow';
@@ -72,7 +73,7 @@ const BuyPreviewRows = ({
     <>
       <QuoteRow
         label={strings('predict_next.order_preview.estimated_contracts')}
-        value={String(preview.estimatedContracts)}
+        value={formatContractCount(preview.estimatedContracts)}
         testID={PredictOrderFlowTestIds.ESTIMATED_CONTRACTS}
       />
       <QuoteRow
@@ -142,7 +143,7 @@ const SellPreviewRows = ({
     <>
       <QuoteRow
         label={strings('predict_next.order_preview.estimated_contracts')}
-        value={String(preview.estimatedContracts)}
+        value={formatContractCount(preview.estimatedContracts)}
         testID={PredictOrderFlowTestIds.ESTIMATED_CONTRACTS}
       />
       <QuoteRow

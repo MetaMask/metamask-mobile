@@ -201,6 +201,153 @@ describe('kalshiOrderSigningInput', () => {
     expect(result?.values.count).toBe('10.00');
   });
 
+  describe('on a Market with fractional trading enabled', () => {
+    it('signs the hundredths of a contract the spend covers at the limit plus the fee ceiling', () => {
+      const params = buyParams({
+        amount: '20' as BuyParams['amount'],
+        fractionalTradingEnabled: true,
+      });
+      const preview = buyPreview({
+        estimatedContracts: 43,
+        limitPrice: '0.4700' as PredictBuyOrderPreview['limitPrice'],
+        requestedAmount: '20.00' as PredictBuyOrderPreview['requestedAmount'],
+      });
+
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
+
+      // 2000 cents / 49 cents per contract is 40.816..., floored to 40.81.
+      expect(result?.values).toEqual({ count: '40.81', price: '0.4700' });
+    });
+
+    it('signs a fractional quoted count the spend covers', () => {
+      const params = buyParams({
+        amount: '50' as BuyParams['amount'],
+        fractionalTradingEnabled: true,
+      });
+      const preview = buyPreview({
+        estimatedContracts: 12.5,
+        requestedAmount: '50.00' as PredictBuyOrderPreview['requestedAmount'],
+      });
+
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
+
+      expect(result?.values.count).toBe('12.50');
+    });
+
+    it('signs a quoted count whose float product is inexact without drift', () => {
+      // 1.29 * 100 is 129.00000000000003 in IEEE-754.
+      const params = buyParams({
+        amount: '50' as BuyParams['amount'],
+        fractionalTradingEnabled: true,
+      });
+      const preview = buyPreview({
+        estimatedContracts: 1.29,
+        requestedAmount: '50.00' as PredictBuyOrderPreview['requestedAmount'],
+      });
+
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
+
+      expect(result?.values.count).toBe('1.29');
+    });
+
+    it('refuses a buy the spend covers for less than one contract', () => {
+      const params = buyParams({
+        amount: '0.40' as BuyParams['amount'],
+        fractionalTradingEnabled: true,
+      });
+      const preview = buyPreview({
+        requestedAmount: '0.40' as PredictBuyOrderPreview['requestedAmount'],
+      });
+
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('renders under the registry profile invariant', async () => {
+      const feeCeiling = await loadFeeCeilingCentsPerContract();
+      const profile = await loadVenueProfile();
+      const payload = profile?.payloads.create_order;
+      if (payload?.kind !== 'http-rfc9421' || !payload.body) {
+        throw new Error('create_order is not a bodied http-rfc9421 payload');
+      }
+      const params = buyParams({
+        amount: '20' as BuyParams['amount'],
+        fractionalTradingEnabled: true,
+      });
+      const preview = buyPreview({
+        estimatedContracts: 43,
+        limitPrice: '0.4700' as PredictBuyOrderPreview['limitPrice'],
+        requestedAmount: '20.00' as PredictBuyOrderPreview['requestedAmount'],
+      });
+      const signing = kalshiOrderSigningInput(params, preview, feeCeiling);
+      if (!signing) {
+        throw new Error('expected a signing input');
+      }
+
+      const rendered = renderRequest(
+        'create_order',
+        {
+          class: 'mutation',
+          method: payload.method,
+          path: payload.path,
+          body: payload.body,
+          idempotencyKey: payload.idempotencyKey,
+          invariants: payload.invariants,
+        },
+        { ...signing, nowMs: 1_700_000_000_000 },
+      );
+
+      // 40.81 x 0.49 is 19.9969, which the display rounds up to 20.00.
+      expect(rendered.display?.contracts).toBe('40.81');
+      expect(rendered.display?.maxCost).toBe('20.00');
+    });
+  });
+
+  it('floors a fractional quote to whole contracts on a whole-only Market', () => {
+    const params = buyParams({ amount: '50' as BuyParams['amount'] });
+    const preview = buyPreview({
+      estimatedContracts: 12.5,
+      requestedAmount: '50.00' as PredictBuyOrderPreview['requestedAmount'],
+    });
+
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
+
+    expect(result?.values.count).toBe('12.00');
+  });
+
+  it('signs whole contracts when fractional trading is disabled', () => {
+    const params = buyParams({
+      amount: '20' as BuyParams['amount'],
+      fractionalTradingEnabled: false,
+    });
+    const preview = buyPreview({
+      estimatedContracts: 43,
+      limitPrice: '0.4700' as PredictBuyOrderPreview['limitPrice'],
+      requestedAmount: '20.00' as PredictBuyOrderPreview['requestedAmount'],
+    });
+
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
+
+    expect(result?.values.count).toBe('40.00');
+  });
+
   it('refuses a buy the fee ceiling is unknown for, or the spend cannot cover one contract', () => {
     const params = buyParams({ amount: '0.40' as BuyParams['amount'] });
     const preview = buyPreview({
@@ -276,10 +423,10 @@ describe('kalshiOrderSigningInput', () => {
     },
   );
 
-  it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
+  it.each([0, -1, 0.5, 1.555, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])(
     'refuses quoted contract count %s',
     (estimatedContracts) => {
-      const params = buyParams();
+      const params = buyParams({ fractionalTradingEnabled: true });
       const preview = buyPreview({ estimatedContracts });
 
       const result = kalshiOrderSigningInput(

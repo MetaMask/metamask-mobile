@@ -270,6 +270,7 @@ describe('PredictNext Order Preview request', () => {
           marketId: 'KXTEST-26-A',
           side: 'yes',
           amount: '20.00',
+          allowFractionalContracts: true,
           idempotencyKey: previewResponse.previewId,
         }),
       }),
@@ -686,7 +687,12 @@ describe('PredictNext Order Preview request', () => {
           };
         }
         if (String(url).endsWith('/orders/preview')) {
-          return { body: previewResponse };
+          return {
+            body: {
+              ...previewResponse,
+              expiresAt: new Date(Date.now() + 30_000).toISOString(),
+            },
+          };
         }
         if (isCommitUrl(url)) {
           commitCalls += 1;

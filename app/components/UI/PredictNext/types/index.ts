@@ -161,6 +161,9 @@ export interface PredictMarket {
   status: PredictMarketStatus;
   group?: PredictMarketGroup;
   layout?: PredictMarketLayout;
+  /** The Venue fills buys in hundredths of a contract. Absent means whole
+   * contracts only. */
+  fractionalTradingEnabled?: boolean;
   /**
    * Last traded price, yes-side, as of `updatedAt`. Absent when the Market has
    * never traded. Streamed only; the REST read model does not carry it.
@@ -371,6 +374,9 @@ export type PredictOrderPreviewParams =
       action: 'buy';
       /** The entered maximum USD spend before fees. */
       amount: PredictAmount;
+      /** The Market's `fractionalTradingEnabled`. Without it a buy signs
+       * whole contracts only. */
+      fractionalTradingEnabled?: boolean;
       /** Phone-generated id. The preview stores it as `client_order_id`. */
       idempotencyKey: string;
     }
@@ -387,15 +393,18 @@ export type PredictOrderPreviewParams =
     };
 
 /** Wire-shape twin of PredictOrderPreviewParams for the API transport.
- * Version tolerance (ADR-0001): a buy keeps the exact PRED-1194 body — a
- * strict deployed schema rejects unknown keys, so it carries no `action` —
- * while a sell carries the `action: 'sell'` discriminator it needs. The
- * adapter maps the canonical union to this shape. */
+ * Version tolerance (ADR-0001): a buy carries no `action` — a strict
+ * deployed schema rejects unknown keys — while a sell carries the
+ * `action: 'sell'` discriminator it needs. The adapter maps the canonical
+ * union to this shape. */
 export type FetchOrderPreviewParams =
   | {
       marketId: string;
       side: PredictOutcomeSide;
       amount: string;
+      /** The phone can sign fractional counts (PRED-1615). The backend
+       * quotes them only on Markets with fractional trading enabled. */
+      allowFractionalContracts: true;
       idempotencyKey: string;
     }
   | {
@@ -424,6 +433,8 @@ interface PredictOrderPreviewBase {
   venueId: PredictVenueId;
   marketId: PredictEntityId;
   side: PredictOutcomeSide;
+  /** Positive, with at most two decimals: a buy on a fractional Market can
+   * quote hundredths of a contract. */
   estimatedContracts: number;
   averagePrice: PredictDecimal;
   /** The worst per-contract price the quote walked — the worst ask on a
@@ -526,7 +537,8 @@ interface PredictOrderReceiptBase {
   marketId: PredictEntityId;
   side: PredictOutcomeSide;
   status: PredictOrderReceiptStatus;
-  /** Contracts the committed Order Preview quoted; never zero. */
+  /** Contracts the committed Order Preview quoted; never zero, with at most
+   * two decimals. */
   quotedContracts: number;
   /** Venue order identifier once the Venue has produced one. */
   venueOrderId: string | null;

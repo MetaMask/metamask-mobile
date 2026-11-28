@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import React from 'react';
 import {
   Box,
@@ -15,14 +16,11 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictOrderReceipt } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
+import { formatContractCount } from '../../../utils/formatShares';
 import { formatUsd } from '../../../utils/formatUsd';
 
 import { OrderDataRow } from './OrderDataRow';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
-
-/** Canonical decimal amounts like '43.00' display as bare contract counts:
- * '43.00' → '43', '12.50' → '12.5'. */
-const formatContracts = (amount: string): string => String(Number(amount));
 
 interface StatusIconProps {
   iconName: IconName;
@@ -47,7 +45,7 @@ const FillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => (
     {receipt.filledContracts !== null && (
       <OrderDataRow
         label={strings('predict_next.order_receipt.filled_contracts')}
-        value={formatContracts(receipt.filledContracts)}
+        value={formatContractCount(receipt.filledContracts)}
         testID={PredictOrderFlowTestIds.FILLED_CONTRACTS}
       />
     )}
@@ -156,9 +154,11 @@ export const OrderReceiptOutcome = ({
       const isPartial = receipt.status === 'partially_filled';
       // Fill fields are fixed-point decimal strings for either action;
       // '7.00' renders as the bare count 7.
-      const filled = Number(receipt.filledContracts ?? '0');
-      const filledLabel = formatContracts(receipt.filledContracts ?? '0');
-      const remainder = Math.max(receipt.quotedContracts - filled, 0);
+      const filled = new BigNumber(receipt.filledContracts ?? '0');
+      const filledLabel = formatContractCount(filled);
+      const remainder = formatContractCount(
+        BigNumber.max(new BigNumber(receipt.quotedContracts).minus(filled), 0),
+      );
       return (
         <Box
           twClassName="items-center gap-3 py-6"
@@ -197,7 +197,7 @@ export const OrderReceiptOutcome = ({
                   : 'predict_next.order_receipt.partial_description',
                 {
                   filled: filledLabel,
-                  quoted: receipt.quotedContracts,
+                  quoted: formatContractCount(receipt.quotedContracts),
                   remainder,
                 },
               )}
