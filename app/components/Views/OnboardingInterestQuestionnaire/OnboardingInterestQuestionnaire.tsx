@@ -248,14 +248,7 @@ const OnboardingInterestQuestionnaire = () => {
               variant={ListItemVariant.OneLine}
               isSelected={isSelected}
               endAccessory={
-                isSelected ? (
-                  <Checkbox
-                    isSelected
-                    onChange={() => handleOptionPress(option.id)}
-                    pointerEvents="none"
-                    accessibilityLabel={strings(option.labelKey)}
-                  />
-                ) : (
+                isSelected ? undefined : (
                   <Icon
                     name={IconName.Add}
                     size={IconSize.Lg}
@@ -264,17 +257,28 @@ const OnboardingInterestQuestionnaire = () => {
                 )
               }
               onPress={() => handleOptionPress(option.id)}
-              twClassName={`rounded-full border pl-6 pr-6 py-4 ${
+              className={`rounded-full border px-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {option.emoji}
-                </Text>
+                <Box twClassName="flex-row items-center gap-2">
+                  {isSelected && (
+                    <Checkbox
+                      isSelected
+                      onChange={() => handleOptionPress(option.id)}
+                      pointerEvents="none"
+                      accessibilityLabel={strings(option.labelKey)}
+                      checkboxContainerProps={{ className: 'rounded' }}
+                    />
+                  )}
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {option.emoji}
+                  </Text>
+                </Box>
               }
               title={strings(option.labelKey)}
               titleEndAccessory={
@@ -285,7 +289,7 @@ const OnboardingInterestQuestionnaire = () => {
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink"
+                    className="flex-shrink"
                   >
                     {otherText}
                   </Text>

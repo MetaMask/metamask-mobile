@@ -16,6 +16,7 @@ import {
   BoxFlexDirection,
   TextVariant,
   ButtonSize,
+  Checkbox,
   TextField,
   IconName,
   ButtonIcon,
@@ -23,7 +24,7 @@ import {
   TitleStandard,
   HelpText,
   HelpTextSeverity,
-  ListItemMultiSelect,
+  ListItem,
   ListItemVariant,
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
@@ -1090,14 +1091,25 @@ const ChoosePassword = () => {
             </Box>
 
             {getOauth2LoginSuccess() && (
-              <ListItemMultiSelect
+              <ListItem
                 variant={ListItemVariant.MultiLine}
-                isSelected={marketingOptInChecked}
+                isInteractive
                 onPress={setSelection}
+                accessoryGap={3}
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName="mt-2 border border-muted rounded-xl"
+                className={`mt-2 rounded-xl border border-muted${
+                  marketingOptInChecked ? ' bg-background-muted' : ''
+                }`}
+                startAccessory={
+                  <Checkbox
+                    isSelected={marketingOptInChecked}
+                    onChange={setSelection}
+                    pointerEvents="none"
+                    checkboxContainerProps={{ className: 'rounded' }}
+                  />
+                }
                 titleProps={{
                   variant: TextVariant.BodySm,
                   testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,

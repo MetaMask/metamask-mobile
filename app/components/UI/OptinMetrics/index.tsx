@@ -13,9 +13,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
+  Checkbox,
   ContentVariant,
   FontWeight,
-  ListItemMultiSelect,
+  ListItem,
   Text,
   TextButton,
   TextColor,
@@ -409,11 +410,25 @@ const OptinMetrics = () => {
             />
           </Box>
           <Box twClassName="gap-4">
-            <ListItemMultiSelect
+            <ListItem
               variant={ContentVariant.MultiLine}
-              isSelected={isBasicUsageChecked}
+              isInteractive
               onPress={handleBasicUsageToggle}
-              twClassName="rounded-xl border border-muted"
+              accessoryGap={3}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+              }
+              className={`rounded-xl border border-muted${
+                isBasicUsageChecked ? ' bg-background-muted' : ''
+              }`}
+              startAccessory={
+                <Checkbox
+                  isSelected={isBasicUsageChecked}
+                  onChange={handleBasicUsageToggle}
+                  pointerEvents="none"
+                  checkboxContainerProps={{ className: 'rounded' }}
+                />
+              }
               title={strings('privacy_policy.gather_basic_usage_title')}
               description={
                 <Text
@@ -434,9 +449,6 @@ const OptinMetrics = () => {
                   </TextButton>
                 </Text>
               }
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
-              }
             />
             <Box twClassName="gap-2">
               <Text
@@ -446,16 +458,27 @@ const OptinMetrics = () => {
               >
                 {strings('privacy_policy.stay_informed')}
               </Text>
-              <ListItemMultiSelect
+              <ListItem
                 variant={ContentVariant.MultiLine}
-                isSelected={isMarketingChecked}
+                isInteractive
                 onPress={handleMarketingToggle}
-                twClassName="rounded-xl border border-muted"
-                title={strings('privacy_policy.checkbox_marketing')}
-                description={strings('privacy_policy.checkbox')}
+                accessoryGap={3}
                 testID={
                   MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
                 }
+                className={`rounded-xl border border-muted${
+                  isMarketingChecked ? ' bg-background-muted' : ''
+                }`}
+                startAccessory={
+                  <Checkbox
+                    isSelected={isMarketingChecked}
+                    onChange={handleMarketingToggle}
+                    pointerEvents="none"
+                    checkboxContainerProps={{ className: 'rounded' }}
+                  />
+                }
+                title={strings('privacy_policy.checkbox_marketing')}
+                description={strings('privacy_policy.checkbox')}
               />
             </Box>
             <Text
