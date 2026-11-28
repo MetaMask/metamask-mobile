@@ -1099,7 +1099,7 @@ const ChoosePassword = () => {
                 testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: marketingOptInChecked }}
-                twClassName={`mt-2 border border-muted rounded-xl${
+                className={`mt-2 border border-muted rounded-xl${
                   marketingOptInChecked ? ' bg-background-muted' : ''
                 }`}
                 startAccessory={

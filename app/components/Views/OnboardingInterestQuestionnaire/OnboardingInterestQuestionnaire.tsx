@@ -257,7 +257,7 @@ const OnboardingInterestQuestionnaire = () => {
                 )
               }
               onPress={() => handleOptionPress(option.id)}
-              twClassName={`rounded-full border pl-6 pr-6 py-4 ${
+              className={`rounded-full border pl-6 pr-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={
@@ -289,7 +289,7 @@ const OnboardingInterestQuestionnaire = () => {
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink"
+                    className="flex-shrink"
                   >
                     {otherText}
                   </Text>

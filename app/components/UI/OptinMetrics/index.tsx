@@ -418,7 +418,7 @@ const OptinMetrics = () => {
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
-              twClassName={`rounded-xl border border-muted${
+              className={`rounded-xl border border-muted${
                 isBasicUsageChecked ? ' bg-background-muted' : ''
               }`}
               startAccessory={
@@ -466,7 +466,7 @@ const OptinMetrics = () => {
                 testID={
                   MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
                 }
-                twClassName={`rounded-xl border border-muted${
+                className={`rounded-xl border border-muted${
                   isMarketingChecked ? ' bg-background-muted' : ''
                 }`}
                 startAccessory={
