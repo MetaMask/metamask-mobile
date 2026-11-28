@@ -5,10 +5,10 @@ import {
 import { createMfaVersionGatedFlagSelector } from '../mfa/createMfaVersionGatedFlagSelector';
 
 /**
- * Whether passwordless social recovery is offered. A valid `mfaRecovery`
- * remote flag (`{ enabled, minimumVersion }`) decides it. When that flag is
- * missing or invalid, `MM_MONEY_MFA_ENABLED` is the fallback (default off) —
- * the same local switch as Money MFA.
+ * Gate for passwordless social recovery: the `mfaRecovery` remote flag
+ * (`{ enabled, minimumVersion }`) when valid, otherwise `MM_MONEY_MFA_ENABLED`
+ * (default off), the same local fallback as Money MFA. The rehydration screen
+ * also requires `mfaUiKit` before it offers recovery.
  */
 export const selectMfaRecoveryEnabled = createMfaVersionGatedFlagSelector(
   FeatureFlagNames.mfaRecovery,

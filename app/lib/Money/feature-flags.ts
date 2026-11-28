@@ -31,9 +31,9 @@ export function isMoneyAccountEnabled(
 
 /**
  * Checks if Money MFA (MPC-backed 2FA) is enabled.
- * Remote `isMoneyMfaEnabled` takes precedence when valid; otherwise
- * `MM_MONEY_MFA_ENABLED` is the local fallback (default off). The same local
- * flag is the fallback for social-login MFA recovery.
+ * Remote `isMoneyMfaEnabled` takes precedence when valid, including when it is
+ * disabled; otherwise `MM_MONEY_MFA_ENABLED` is the local fallback (default
+ * off). Social-login MFA recovery uses the same local fallback.
  *
  * @param remoteFeatureFlags - The remote feature flags object.
  * @returns True if Money MFA is enabled, false otherwise.
