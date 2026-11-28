@@ -1,5 +1,6 @@
 import { createAdvancedChartTemplate } from '../AdvancedChartTemplate';
 import { LIGHT_MODE_SUCCESS_GREEN, mockTheme } from '../../../../../util/theme';
+import { buildIndicatorDefinitions } from '../indicatorRegistry';
 
 describe('createAdvancedChartTemplate', () => {
   it('defaults useSubscriptPriceFormat to false in CONFIG', () => {
@@ -136,5 +137,73 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toMatch(
       /chart\.resetData\(\);\s+resetMainPriceScaleAutoScale\(chart\);/,
     );
+  });
+
+  describe('indicator definitions and legend mode', () => {
+    const extractDefinitions = (html: string) => {
+      const match = html.match(/indicatorDefinitions: (\{.*\})\s*\n/);
+      if (!match) throw new Error('indicatorDefinitions not found');
+      return JSON.parse(match[1]) as Record<string, unknown>;
+    };
+
+    it('defaults legendMode to none', () => {
+      const html = createAdvancedChartTemplate(mockTheme);
+
+      expect(html).toContain('legendMode: "none"');
+    });
+
+    it('bakes the provided legendMode into features', () => {
+      const html = createAdvancedChartTemplate(mockTheme, {
+        legendMode: 'builtIn',
+      });
+
+      expect(html).toContain('legendMode: "builtIn"');
+    });
+
+    it('serializes the built-in definitions for the current theme', () => {
+      const definitions = extractDefinitions(
+        createAdvancedChartTemplate(mockTheme),
+      );
+
+      expect(definitions).toEqual(
+        buildIndicatorDefinitions(mockTheme.themeAppearance),
+      );
+    });
+
+    it('merges consumer definitions over the built-ins', () => {
+      const definitions = extractDefinitions(
+        createAdvancedChartTemplate(mockTheme, {
+          indicatorDefinitions: {
+            EMA21: {
+              study: {
+                name: 'Moving Average Exponential',
+                inputs: { length: 21 },
+              },
+            },
+          },
+        }),
+      );
+
+      expect(definitions.EMA21).toEqual({
+        study: { name: 'Moving Average Exponential', inputs: { length: 21 } },
+      });
+      expect(definitions.MACD).toBeDefined();
+    });
+
+    it('escapes < in consumer-supplied strings so they cannot close the script tag', () => {
+      const html = createAdvancedChartTemplate(mockTheme, {
+        indicatorDefinitions: {
+          Evil: {
+            study: { name: 'X' },
+            legend: {
+              plots: [{ tvTitle: 'Plot', label: '</script><b>', color: null }],
+            },
+          },
+        },
+      });
+
+      expect(html).not.toContain('</script><b>');
+      expect(html).toContain('\\u003c/script>\\u003cb>');
+    });
   });
 });

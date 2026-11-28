@@ -58,7 +58,7 @@ describe('hasActiveSubPaneIndicators', () => {
       activeChart: () => chart,
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
-    registerStudy('active', 'MACD', 'sid-1');
+    registerStudy('MACD', 'sid-1');
     expect(hasActiveSubPaneIndicators()).toBe(true);
   });
 
@@ -68,7 +68,7 @@ describe('hasActiveSubPaneIndicators', () => {
       activeChart: () => chart,
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
-    registerStudy('active', 'BOL', 'sid-2');
+    registerStudy('BOL', 'sid-2');
     expect(hasActiveSubPaneIndicators()).toBe(false);
   });
 });
@@ -95,7 +95,7 @@ describe('handleSetSubPaneLayout', () => {
       activeChart: () => chart,
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
-    registerStudy('active', 'MACD', 'sid-1');
+    registerStudy('MACD', 'sid-1');
 
     handleSetSubPaneLayout({ heightRatio: 0.2 });
 

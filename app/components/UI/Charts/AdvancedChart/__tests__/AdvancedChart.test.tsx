@@ -2,8 +2,6 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { render, act, within } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
-import { getTokenDetailsLegendOverlay } from '../indicatorColors';
-import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
   type OHLCVBar,
@@ -1615,9 +1613,9 @@ describe('AdvancedChart', () => {
     expect(addIndicatorCall).toBeDefined();
   });
 
-  it('posts SET_MA_VISIBILITY without MA200 when it is removed from selectedMAs', () => {
+  it('adds and removes moving averages via ADD/REMOVE_INDICATOR', () => {
     const { getByTestId, rerender } = render(
-      <AdvancedChart ohlcvData={MOCK_BARS} selectedMAs={['MA200', 'MA50']} />,
+      <AdvancedChart ohlcvData={MOCK_BARS} indicators={['MA200', 'MA50']} />,
     );
     const webView = getByTestId('mock-webview');
     act(() => {
@@ -1637,17 +1635,68 @@ describe('AdvancedChart', () => {
         },
       });
     });
-    const maMessages = () =>
-      mockPostMessage.mock.calls
-        .map((call) => JSON.parse(call[0] as string))
-        .filter((m) => m.type === 'SET_MA_VISIBILITY');
-    expect(maMessages().at(-1)?.payload.visible).toEqual(['MA200', 'MA50']);
+    const sentMessages = () =>
+      mockPostMessage.mock.calls.map((call) => JSON.parse(call[0] as string));
+    const added = sentMessages()
+      .filter((m) => m.type === 'ADD_INDICATOR')
+      .map((m) => m.payload.name);
+    expect(added).toEqual(['MA200', 'MA50']);
+    act(() => {
+      ['MA200', 'MA50'].forEach((name) =>
+        webView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({
+              type: 'INDICATOR_ADDED',
+              payload: { name, id: `sid-${name}` },
+            }),
+          },
+        }),
+      );
+    });
 
     mockPostMessage.mockClear();
-    rerender(<AdvancedChart ohlcvData={MOCK_BARS} selectedMAs={['MA50']} />);
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} indicators={['MA50']} />);
 
-    expect(maMessages()).toHaveLength(1);
-    expect(maMessages()[0].payload.visible).toEqual(['MA50']);
+    expect(sentMessages()).toEqual([
+      { type: 'REMOVE_INDICATOR', payload: { name: 'MA200' } },
+    ]);
+    expect(sentMessages().some((m) => m.type === 'SET_MA_VISIBILITY')).toBe(
+      false,
+    );
+  });
+
+  it('serializes indicatorDefinitions and legendMode into the WebView CONFIG', () => {
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        legendMode="overlay"
+        indicatorDefinitions={{
+          EMA21: {
+            study: {
+              name: 'Moving Average Exponential',
+              inputs: { length: 21 },
+            },
+          },
+        }}
+      />,
+    );
+
+    const html: string = getByTestId('mock-webview').props.source.html;
+
+    expect(html).toContain('legendMode: "overlay"');
+    expect(html).toContain('indicatorDefinitions: {');
+    expect(html).toContain('"Moving Average Exponential"');
+    expect(html).toContain('"MACD"');
+    expect(html).not.toContain('legendOverlay:');
+    expect(html).not.toContain('indicatorColors:');
+  });
+
+  it('defaults legendMode to none', () => {
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    expect(getByTestId('mock-webview').props.source.html).toContain(
+      'legendMode: "none"',
+    );
   });
 
   it('displays error screen for errors before CHART_READY', () => {
@@ -1710,7 +1759,7 @@ describe('AdvancedChart', () => {
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         indicators={['RSI', 'MACD']}
-        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
+        legendMode="overlay"
         onSkeletonHidden={onSkeletonHidden}
       />,
     );
@@ -2197,7 +2246,7 @@ describe('AdvancedChart', () => {
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         indicators={[]}
-        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
+        legendMode="overlay"
         onSkeletonHidden={onSkeletonHidden}
       />,
     );
@@ -2221,7 +2270,7 @@ describe('AdvancedChart', () => {
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         indicators={['RSI']}
-        legendOverlay={getTokenDetailsLegendOverlay(AppThemeKey.dark)}
+        legendMode="overlay"
         onSkeletonHidden={onSkeletonHidden}
       />,
     );

@@ -80,26 +80,27 @@ const BASE_ENABLED_FEATURES: readonly string[] = [
   'iframe_loading_same_origin',
 ];
 
+function isBuiltInLegend(features: ChartFeaturesConfig | undefined): boolean {
+  return features?.legendMode === 'builtIn';
+}
+
 function resolveEnabledFeatures(features: ChartFeaturesConfig): string[] {
   const list = [...BASE_ENABLED_FEATURES];
-  if (features.showBuiltInLegend) {
+  if (isBuiltInLegend(features)) {
     list.push('always_show_legend_values_on_mobile');
   }
   return list;
 }
 
-function resolveDisabledFeatures(
-  features: ChartFeaturesConfig,
-  legendOverlayEnabled = false,
-): string[] {
+function resolveDisabledFeatures(features: ChartFeaturesConfig): string[] {
   const list = (features.disabledFeatures ?? []).slice();
   if (!features.enableDrawingTools) {
     list.push('left_toolbar', 'context_menus');
   }
-  if (!features.showBuiltInLegend) {
+  if (!isBuiltInLegend(features)) {
     list.push('legend_widget');
   }
-  if (legendOverlayEnabled) {
+  if (features.legendMode === 'overlay') {
     // v30.1.0 featureset: hides show/hide, settings and delete buttons in
     // TV's legend (replaces relying only on the CSS in legend.ts).
     list.push('edit_buttons_in_legend');
@@ -113,7 +114,7 @@ function buildWidgetOverrides(
   features?: ChartFeaturesConfig,
 ): Record<string, unknown> {
   const gridLineColor = theme.gridLineColor || 'transparent';
-  const showLegend = features?.showBuiltInLegend === true;
+  const showLegend = isBuiltInLegend(features);
   return {
     'paneProperties.background': theme.backgroundColor,
     'paneProperties.backgroundType': 'solid',
@@ -189,10 +190,7 @@ export function createChartWidget(
   }
 
   const features = config.features ?? {};
-  const disabledFeatures = resolveDisabledFeatures(
-    features,
-    config.legendOverlay?.enabled === true,
-  );
+  const disabledFeatures = resolveDisabledFeatures(features);
 
   const widget = new TradingView.widget({
     symbol: getCurrentSymbol(),

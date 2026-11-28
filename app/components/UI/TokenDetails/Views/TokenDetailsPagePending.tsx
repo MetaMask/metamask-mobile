@@ -19,6 +19,7 @@ import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import ChartCandleSkeleton from '../../Charts/ChartCandleSkeleton';
 import ChartLineSkeleton from '../../Charts/ChartLineSkeleton';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
+import { getMALabel } from '../../Charts/AdvancedChart/indicatorRegistry';
 import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import TimeRangeSelector, {
   type TimeRange,
@@ -66,17 +67,6 @@ const PendingBodySkeleton = (): React.ReactElement => {
       </Box>
     </Box>
   );
-};
-
-const maLabelFrom = (indicators: string[]): string => {
-  const movingAverages = indicators.filter((name) => /^MA\d+$/.test(name));
-  if (movingAverages.length === 0) {
-    return 'MA';
-  }
-  if (movingAverages.length === 1) {
-    return movingAverages[0];
-  }
-  return `MA x${movingAverages.length}`;
 };
 
 /**
@@ -188,7 +178,7 @@ const TokenDetailsPagePending = ({
           ) : (
             <Box twClassName="mt-4 mb-4 w-full">
               <IndicatorBar
-                maLabel={maLabelFrom(indicators)}
+                maLabel={getMALabel(indicators)}
                 activeIndicators={new Set(indicators)}
                 onIndicatorToggle={handleIndicatorToggle}
               />

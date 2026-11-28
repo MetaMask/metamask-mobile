@@ -45,7 +45,6 @@ import { applyScaleLayout } from '../widget/scaleLayout';
 import {
   handleAddIndicator,
   handleRemoveIndicator,
-  handleSetMAVisibility,
 } from '../features/indicators';
 import { handleSetSubPaneLayout } from '../features/indicators/subPane';
 import {
@@ -134,9 +133,6 @@ export function bootstrap(): ChartConfig {
   registerHandler('REMOVE_INDICATOR', (payload) => {
     handleRemoveIndicator(payload);
   });
-  registerHandler('SET_MA_VISIBILITY', (payload) => {
-    handleSetMAVisibility(payload, config);
-  });
   registerHandler('TOGGLE_VOLUME', (payload) => {
     handleToggleVolume(payload);
   });
@@ -175,7 +171,10 @@ export function bootstrap(): ChartConfig {
               flushPendingTheme();
               applyScaleLayout();
               applyVisualOverrides(config.visualOverrides);
-              setupLegendOverlay(config.legendOverlay);
+              setupLegendOverlay(
+                config.features?.legendMode,
+                config.indicatorDefinitions,
+              );
               const chart = widget.activeChart();
               // Match legacy onChartReady: when no explicit visible range
               // was passed, pin a 2-bar gap on the right. TV's default is

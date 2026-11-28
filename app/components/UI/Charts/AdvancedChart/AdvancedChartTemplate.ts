@@ -2,11 +2,12 @@ import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type ChartLabelStyleOverrides,
-  type LegendOverlayConfig,
+  type IndicatorDefinitions,
+  type LegendMode,
   resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
-import { getIndicatorColorsForWebview } from './indicatorColors';
+import { mergeIndicatorDefinitions } from './indicatorRegistry';
 
 /**
  * CDN base URL for the TradingView charting library assets.
@@ -78,9 +79,17 @@ interface ChartFeatures {
   labelStyleOverrides?: ChartLabelStyleOverrides;
   volumeSuccessColorOverride?: string;
   volumeErrorColorOverride?: string;
-  legendOverlay?: LegendOverlayConfig;
-  showBuiltInLegend?: boolean;
+  legendMode?: LegendMode;
+  /** Consumer definitions merged over the built-in indicator registry. */
+  indicatorDefinitions?: IndicatorDefinitions;
 }
+
+/**
+ * JSON for an inline <script>: escapes `<` so consumer-supplied strings
+ * (e.g. legend labels) can't close the script tag.
+ */
+const serializeForInlineScript = (value: unknown): string =>
+  JSON.stringify(value).replace(/</g, '\\u003c');
 
 const createConfigScript = (
   libraryUrl: string,
@@ -140,12 +149,11 @@ window.CONFIG = {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
     hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'},
-    showBuiltInLegend: ${features.showBuiltInLegend ? 'true' : 'false'}
+    legendMode: ${JSON.stringify(features.legendMode ?? 'none')}
   },
-  legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
   priceDecimals: ${typeof features.priceDecimals === 'number' && Number.isFinite(features.priceDecimals) ? Math.max(0, features.priceDecimals) : 'null'},
-  indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
+  indicatorDefinitions: ${serializeForInlineScript(mergeIndicatorDefinitions(theme.themeAppearance, features.indicatorDefinitions))}
 };
 `;
 };

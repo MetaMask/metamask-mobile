@@ -8,7 +8,7 @@
 // Subsequent phases extend the unions:
 //   Phase 2 — SET_OHLCV_DATA, REALTIME_UPDATE, SET_CHART_TYPE, CROSSHAIR_MOVE,
 //             CHART_INTERACTED
-//   Phase 3 — ADD_INDICATOR, REMOVE_INDICATOR, SET_MA_VISIBILITY,
+//   Phase 3 — ADD_INDICATOR, REMOVE_INDICATOR,
 //             TOGGLE_VOLUME, SET_SUB_PANE_LAYOUT, INDICATOR_ADDED,
 //             INDICATOR_REMOVED, LEGEND_RENDERED
 //   Phase 5 — SET_TRADE_MARKERS, PULSE_TRADE_MARKER, FOCUS_TIME (inbound),
@@ -28,7 +28,6 @@ export type InboundMessage =
   | SetChartTypeMessage
   | AddIndicatorMessage
   | RemoveIndicatorMessage
-  | SetMAVisibilityMessage
   | ToggleVolumeMessage
   | SetSubPaneLayoutMessage
   | SetPositionLinesMessage
@@ -120,11 +119,6 @@ export interface AddIndicatorMessage {
 export interface RemoveIndicatorMessage {
   type: 'REMOVE_INDICATOR';
   payload: { name: string };
-}
-
-export interface SetMAVisibilityMessage {
-  type: 'SET_MA_VISIBILITY';
-  payload: { visible: string[] };
 }
 
 export interface ToggleVolumeMessage {
@@ -338,9 +332,6 @@ export interface OutboundPayloads {
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;
 }
-
-/** Re-export for callers writing Phase 3 handlers. */
-export type { IndicatorName } from '../core/types';
 
 /** Helper for messages/handler.ts — narrows InboundMessage by type tag. */
 export type InboundMessageOf<T extends InboundMessageType> = Extract<

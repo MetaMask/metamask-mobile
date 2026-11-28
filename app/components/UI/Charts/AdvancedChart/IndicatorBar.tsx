@@ -14,6 +14,10 @@ import {
 } from '@metamask/design-system-react-native';
 
 import BoxGlass from '../../../../component-library/components-temp/BoxGlass';
+import {
+  TOKEN_DETAILS_TOGGLE_INDICATORS,
+  type ToggleIndicatorOption,
+} from './indicatorRegistry';
 
 interface IndicatorBarProps {
   /** Label for the MA button (e.g. "MA", "MA5", "MA x2"). */
@@ -26,14 +30,9 @@ interface IndicatorBarProps {
   onIndicatorToggle?: (name: string) => void;
   /** Draws the bar as a brand refresh glass pill. */
   isGlass?: boolean;
+  /** Toggle buttons rendered after the MA picker. Defaults to the Token Details set. */
+  toggleIndicators?: readonly ToggleIndicatorOption[];
 }
-
-const TOGGLE_INDICATORS: { name: string; showDividerAfter?: boolean }[] = [
-  { name: 'BOL', showDividerAfter: true },
-  { name: 'RSI' },
-  { name: 'Volume' },
-  { name: 'MACD' },
-];
 
 const IndicatorBar: React.FC<IndicatorBarProps> = ({
   maLabel = 'MA',
@@ -41,6 +40,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
   activeIndicators,
   onIndicatorToggle,
   isGlass = false,
+  toggleIndicators = TOKEN_DETAILS_TOGGLE_INDICATORS,
 }) => {
   const tw = useTailwind();
 
@@ -74,7 +74,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
         />
       </Pressable>
 
-      {TOGGLE_INDICATORS.map(({ name, showDividerAfter }) => {
+      {toggleIndicators.map(({ name, showDividerAfter }) => {
         const active = isActive(name);
         return (
           <React.Fragment key={name}>

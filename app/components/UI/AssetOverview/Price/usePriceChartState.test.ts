@@ -83,6 +83,7 @@ const ASSET_B = 'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 const flags = {
   wsEnabled: false,
+  technicalIndicatorsEnabled: false,
 };
 
 const bars = (closes: number[]) => {
@@ -141,11 +142,12 @@ describe('usePriceChartState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     flags.wsEnabled = false;
+    flags.technicalIndicatorsEnabled = false;
     persisted.indicators = [];
     jest.mocked(useSelector).mockImplementation((selector: unknown) => {
       if (selector === selectTokenDetailsOhlcvWsEnabled) return flags.wsEnabled;
       if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
-        return false;
+        return flags.technicalIndicatorsEnabled;
       }
       if (selector === selectTokenOverviewChartType) return ChartType.Candles;
       if (selector === selectTokenOverviewChartInterval) return '15m';
@@ -268,17 +270,34 @@ describe('usePriceChartState', () => {
       return details[1].params.onDone;
     };
 
-    it('removes MA200 from selectedMAs when it is unticked', () => {
+    it('removes MA200 from the chart indicators when it is unticked', () => {
       persisted.indicators = ['MA200', 'MA50', 'RSI'];
       const { result } = renderHook(() =>
         usePriceChartState(paramsFor('usd', ASSET_A)),
       );
-      expect(result.current.selectedMAs).toEqual(['MA200', 'MA50']);
+      expect(result.current.indicatorsArray).toEqual(['MA200', 'MA50', 'RSI']);
 
       const onDone = openPickerAndGetOnDone(result);
       act(() => onDone(['MA50']));
 
-      expect(result.current.selectedMAs).toEqual(['MA50']);
+      expect(result.current.indicatorsArray).toEqual(['RSI', 'MA50']);
+    });
+
+    it('passes the currently active MAs to the picker', () => {
+      persisted.indicators = ['MA200', 'RSI', 'MA5'];
+      const { result } = renderHook(() =>
+        usePriceChartState(paramsFor('usd', ASSET_A)),
+      );
+
+      act(() => {
+        result.current.handleMAPress();
+      });
+      const [, details] = mockNavigateWithDetails.mock.calls.at(-1) as [
+        unknown,
+        [string, { params: { selectedMAs: string[] } }],
+      ];
+
+      expect(details[1].params.selectedMAs).toEqual(['MA200', 'MA5']);
     });
 
     it('removes the last MA (empty selection) and keeps non-MA indicators', () => {
@@ -290,8 +309,35 @@ describe('usePriceChartState', () => {
       const onDone = openPickerAndGetOnDone(result);
       act(() => onDone([]));
 
-      expect(result.current.selectedMAs).toEqual([]);
       expect(result.current.indicatorsArray).toEqual(['RSI']);
+    });
+  });
+
+  describe('indicators and legend mode', () => {
+    it('excludes Volume from indicatorsArray (drawn via showVolume)', () => {
+      persisted.indicators = ['Volume', 'MA20', 'MACD'];
+      const { result } = renderHook(() =>
+        usePriceChartState(paramsFor('usd', ASSET_A)),
+      );
+
+      expect(result.current.indicatorsArray).toEqual(['MA20', 'MACD']);
+    });
+
+    it('returns legendMode none when technical indicators are disabled', () => {
+      const { result } = renderHook(() =>
+        usePriceChartState(paramsFor('usd', ASSET_A)),
+      );
+
+      expect(result.current.legendMode).toBe('none');
+    });
+
+    it('returns legendMode overlay when technical indicators are enabled', () => {
+      flags.technicalIndicatorsEnabled = true;
+      const { result } = renderHook(() =>
+        usePriceChartState(paramsFor('usd', ASSET_A)),
+      );
+
+      expect(result.current.legendMode).toBe('overlay');
     });
   });
 });

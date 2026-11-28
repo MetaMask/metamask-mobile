@@ -21,9 +21,10 @@ export interface OHLCVBar {
 }
 
 /**
- * Any TradingView study name is accepted. The three presets ('MACD', 'RSI',
- * 'MA200') get built-in parameter defaults in webview/src/features/indicators/studies.ts;
- * all other strings are forwarded to `createStudy` as-is with optional `inputs` from the payload.
+ * Indicator key. Names present in the indicator registry
+ * (`buildIndicatorDefinitions` + the `indicatorDefinitions` prop) are created
+ * from their definition; any other string is forwarded to TradingView's
+ * `createStudy` as the study name with optional `inputs` from the payload.
  */
 export type IndicatorType = string;
 
@@ -188,7 +189,6 @@ export type RNToWebViewMessageType =
   | 'SET_TRADE_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
-  | 'SET_MA_VISIBILITY'
   | 'SET_THEME_COLORS'
   | 'FOCUS_TIME'
   | 'PULSE_TRADE_MARKER'
@@ -315,10 +315,6 @@ export interface SetSubPaneLayoutPayload {
   heightRatio: number | null;
 }
 
-export interface SetMAVisibilityPayload {
-  visible: string[];
-}
-
 export interface SetThemeColorsPayload {
   lineColor: string;
   successColor: string;
@@ -373,7 +369,6 @@ export type RNToWebViewMessage =
   | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
-  | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
   | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload }
   | { type: 'FOCUS_TIME'; payload: FocusTimePayload }
   | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload }
@@ -655,10 +650,20 @@ export interface AdvancedChartProps {
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
 
-  /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
+  /**
+   * Active indicators to display (e.g. ['RSI', 'MA20', 'MA50']). Moving
+   * averages are ordinary entries. Synced declaratively via ADD/REMOVE_INDICATOR.
+   * Each name is resolved against the merged indicator registry; see
+   * `indicatorDefinitions`.
+   */
   indicators?: IndicatorType[];
-  /** Selected MA names (e.g. ['MA5', 'MA10']). Sent as a single SET_MA_VISIBILITY batch message. */
-  selectedMAs?: string[];
+  /**
+   * Extra or overriding indicator definitions, merged over the built-in
+   * registry (`buildIndicatorDefinitions(theme)`). Use this to add new studies
+   * (e.g. EMA, Stochastic) or tweak an existing one without touching the WebView.
+   * Keep the object reference stable (memoize) — a change recreates the WebView.
+   */
+  indicatorDefinitions?: IndicatorDefinitions;
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
   /**
@@ -807,20 +812,24 @@ export interface AdvancedChartProps {
   labelStyleOverrides?: ChartLabelStyleOverrides;
 
   /**
-   * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
-   * the native TradingView legend is hidden and a custom overlay renders
-   * indicator labels/values with the specified colors and abbreviations.
-   * When omitted or `enabled: false`, the native TV legend is used as-is.
+   * How indicator values are labelled on the chart. Defaults to 'none'.
+   * - 'none': no legend at all.
+   * - 'builtIn': TradingView's native legend (study titles, arguments,
+   * values, OHLC). Opt-out of the custom overlay.
+   * - 'overlay': MetaMask's custom DOM legend, rendered from the `legend`
+   * block of each indicator definition.
+   *
+   * @example
+   * // Native TradingView legend
+   * <AdvancedChart indicators={['RSI']} legendMode="builtIn" />
+   * // Custom overlay, with an extra study
+   * <AdvancedChart
+   *   indicators={['RSI', 'EMA21']}
+   *   legendMode="overlay"
+   *   indicatorDefinitions={{ EMA21: { study: { name: 'Moving Average Exponential', inputs: { length: 21 } }, legend: { plots: [{ tvTitle: 'Plot', label: 'EMA(21)', color: '#F5A623' }] } } }}
+   * />
    */
-  legendOverlay?: LegendOverlayConfig;
-
-  /**
-   * When true, TradingView's built-in native legend is shown (study titles,
-   * OHLC values, volume, bar change). By default the legend is suppressed
-   * via widget overrides. This flag re-enables it for consumers that prefer
-   * the native TV legend over the custom DOM overlay or no legend at all.
-   */
-  showBuiltInLegend?: boolean;
+  legendMode?: LegendMode;
 
   /**
    * When true, the chart surface stops capturing touches (`pointerEvents="none"`)
@@ -847,9 +856,12 @@ export interface LegendPlotConfig {
   color: string | null;
 }
 
-export interface LegendIndicatorConfig {
+/** Legend block of an indicator definition (used when legendMode is 'overlay'). */
+export interface IndicatorLegendConfig {
+  /** Plots are matched to TV values by `tvTitle` (v30.1.0 plot titles). */
   plots: LegendPlotConfig[];
-  isMA?: boolean;
+  /** When set, all plots render in one pill led by this title (e.g. BB(20,2)). */
+  title?: string;
   /**
    * 'tv' (default): show the value exactly as TradingView formats it.
    * 'compact': K/M/B abbreviation from the raw number (e.g. Volume).
@@ -859,18 +871,35 @@ export interface LegendIndicatorConfig {
   negativeColor?: string | null;
   /** tvTitle of the plot that switches to `negativeColor` when negative. */
   negativeColorPlot?: string;
-  /** Render all plots in a single pill (e.g. BB(20,2) U:… M:… L:…). */
-  combineInOnePill?: boolean;
-  /** Leading title when combineInOnePill is true (e.g. BB(20,2)). */
-  title?: string;
-  /** When true, legend pills render in the study's own sub-pane instead of the main overlay. */
-  subPaneLegend?: boolean;
 }
 
-export interface LegendOverlayConfig {
-  enabled: boolean;
-  config: Record<string, LegendIndicatorConfig>;
+/** TradingView `createStudy` arguments for an indicator. */
+export interface IndicatorStudyConfig {
+  /** TradingView study name, e.g. 'Moving Average'. */
+  name: string;
+  /** Study inputs keyed by v30.1.0 input id. */
+  inputs?: Record<string, unknown>;
+  /** Study style overrides, e.g. { 'Plot.color': '#fff' }. */
+  overrides?: Record<string, unknown>;
+  /** 'sub' places the study (and its overlay legend) in its own pane. */
+  pane?: 'main' | 'sub';
 }
+
+/**
+ * Single source of truth for one technical indicator: how TradingView creates
+ * it and how the custom legend overlay labels it.
+ */
+export interface IndicatorDefinition {
+  study: IndicatorStudyConfig;
+  /** Omit to create the study without an overlay pill. */
+  legend?: IndicatorLegendConfig;
+  /** Grouping key, e.g. 'MA' for the moving-average picker. */
+  group?: string;
+}
+
+export type IndicatorDefinitions = Record<string, IndicatorDefinition>;
+
+export type LegendMode = 'overlay' | 'builtIn' | 'none';
 
 /**
  * Imperative ref handle for AdvancedChart.

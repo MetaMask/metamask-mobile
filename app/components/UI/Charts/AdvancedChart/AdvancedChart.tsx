@@ -74,6 +74,9 @@ const INDICATORS_SYNC_FALLBACK_MS = 500;
 /** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
 const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
 
+/** Stable default so the indicator sync effect doesn't re-run every render. */
+const EMPTY_INDICATORS: IndicatorType[] = [];
+
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
     {
@@ -85,8 +88,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ohlcvPagination,
       rnBackedPagination,
       onFetchOlderBarsRequest,
-      indicators = [],
-      selectedMAs = [],
+      indicators = EMPTY_INDICATORS,
+      indicatorDefinitions,
       positionLines,
       tradeMarkers,
       positionLineColors,
@@ -117,8 +120,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
-      legendOverlay,
-      showBuiltInLegend,
+      legendMode = 'none',
       currentPriceLineColorOverride,
       labelStyleOverrides,
       scrollPassthrough = false,
@@ -145,7 +147,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const layoutSettleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
     );
-    /** Gate ADD_INDICATOR / SET_MA_VISIBILITY until post-OHLCV layout settle (see chartLogic). */
+    /** Gate ADD_INDICATOR / REMOVE_INDICATOR until post-OHLCV layout settle (see chartLogic). */
     const [indicatorsSyncReady, setIndicatorsSyncReady] = useState(false);
     const indicatorsSyncFallbackRef = useRef<ReturnType<
       typeof setTimeout
@@ -218,8 +220,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         errorColorOverride,
         currentPriceLineColorOverride,
         labelStyleOverrides,
-        legendOverlay,
-        showBuiltInLegend,
+        legendMode,
+        indicatorDefinitions,
         volumeSuccessColorOverride,
         volumeErrorColorOverride,
       });
@@ -236,8 +238,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       labelStyleOverrides,
       hidePaneSeparator,
       gridLineColorOverride,
-      legendOverlay,
-      showBuiltInLegend,
+      legendMode,
+      indicatorDefinitions,
     ]);
 
     // Reset all chart state when the WebView reloads due to htmlContent changes.
@@ -941,15 +943,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       removeIndicator,
     ]);
 
-    useEffect(() => {
-      if (chartReadyCount === 0 || !indicatorsSyncReady) return;
-
-      postMessage({
-        type: 'SET_MA_VISIBILITY',
-        payload: { visible: selectedMAs },
-      });
-    }, [selectedMAs, chartReadyCount, indicatorsSyncReady, postMessage]);
-
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
@@ -1011,10 +1004,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // On first paint, wait for indicators/legend before hiding skeleton. After the chart
     // has been revealed once, keep it visible while users toggle indicators live.
-    const expectedIndicators = useMemo(
-      () => new Set([...indicators, ...selectedMAs]),
-      [indicators, selectedMAs],
-    );
+    const expectedIndicators = useMemo(() => new Set(indicators), [indicators]);
+    const isLegendOverlay = legendMode === 'overlay';
     const awaitingInitialIndicatorPaint = !skeletonHiddenReportedRef.current;
     const waitingForIndicators =
       awaitingInitialIndicatorPaint &&
@@ -1025,7 +1016,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const waitingForLegend =
       awaitingInitialIndicatorPaint &&
       isChartReady &&
-      legendOverlay?.enabled &&
+      isLegendOverlay &&
       expectedIndicators.size > 0 &&
       !legendRendered;
 
@@ -1058,11 +1049,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         }
 
         // If legend overlay is enabled and we have indicators, wait for it to render
-        if (
-          legendOverlay?.enabled &&
-          expectedIndicators.size > 0 &&
-          !legendRendered
-        ) {
+        if (isLegendOverlay && expectedIndicators.size > 0 && !legendRendered) {
           return;
         }
       }
@@ -1079,7 +1066,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onSkeletonHidden,
       expectedIndicators,
       appliedIndicatorCount,
-      legendOverlay,
+      isLegendOverlay,
       legendRendered,
     ]);
 

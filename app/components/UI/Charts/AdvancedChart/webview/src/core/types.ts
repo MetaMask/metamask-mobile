@@ -29,39 +29,19 @@ export interface ChartTheme {
 }
 
 /**
- * Indicator color palette for MA / MACD / RSI / BOL.
- * Sourced from app/components/UI/Charts/AdvancedChart/indicatorColors.ts on the
- * RN side and injected as CONFIG.indicatorColors.
+ * Legend mode, mirrored from AdvancedChart.types.ts `LegendMode`.
+ * - 'none': no TradingView legend, no custom overlay.
+ * - 'builtIn': TradingView's native legend (legend_widget).
+ * - 'overlay': custom DOM legend overlay rendered by legend.ts.
  */
-export interface IndicatorColors {
-  MA?: Record<string, string>;
-  MACD?: Record<string, string>;
-  RSI?: Record<string, string>;
-  BOL?: Record<string, string>;
-}
+export type LegendMode = 'overlay' | 'builtIn' | 'none';
 
 export interface ChartFeaturesConfig {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   hidePaneSeparator?: boolean;
-  showBuiltInLegend?: boolean;
+  legendMode?: LegendMode;
 }
-
-/**
- * Indicator names this chart understands. Phase 3 supports the built-in
- * curated set used by Token Details — MACD, RSI, BOL, MA200, plus the
- * five MA-visibility variants (MA5/10/20/50/200). Other names fall through
- * to TradingView's generic createStudy.
- */
-export type IndicatorName =
-  | 'MACD'
-  | 'RSI'
-  | 'BOL'
-  | 'MA200'
-  | 'MA5'
-  | 'MA10'
-  | 'MA20'
-  | 'MA50';
 
 export interface LegendPlotCfg {
   tvTitle: string;
@@ -69,37 +49,43 @@ export interface LegendPlotCfg {
   color: string | null;
 }
 
-export interface LegendIndicatorCfg {
+/**
+ * Mirrors AdvancedChart.types.ts `IndicatorDefinition`. RN serializes the
+ * full registry into window.CONFIG.indicatorDefinitions; the WebView never
+ * hard-codes study names, inputs, colors or legend labels.
+ */
+export interface IndicatorLegendCfg {
   plots: LegendPlotCfg[];
-  isMA?: boolean;
+  /** When set, all plots render in one pill led by this title. */
+  title?: string;
   /**
    * 'tv' (default): show the value exactly as TradingView formats it
    * (displayedData / crosshair entityValues). 'compact': K/M/B abbreviation
    * computed from the raw number (used for Volume).
    */
   valueFormat?: 'tv' | 'compact';
-  /**
-   * Optional color used for a plot whose value is negative. Applied to the
-   * plot whose tvTitle equals `negativeColorPlot`.
-   */
+  /** Color for `negativeColorPlot` when its value is negative. */
   negativeColor?: string | null;
   negativeColorPlot?: string;
-  combineInOnePill?: boolean;
-  title?: string;
-  /** When true, legend pills render in the study's own sub-pane overlay. */
-  subPaneLegend?: boolean;
 }
 
-/**
- * Optional consumer-supplied legend overlay config inlined as
- * window.CONFIG.legendOverlay. When `enabled` is true the WebView builds a
- * DOM legend overlay above the chart container.
- */
-export interface LegendOverlayConfig {
-  enabled?: boolean;
-  /** Per-indicator legend configuration supplied by RN. */
-  config?: Record<string, LegendIndicatorCfg>;
+export interface IndicatorStudyCfg {
+  /** TradingView study name passed to createStudy. */
+  name: string;
+  inputs?: Record<string, unknown>;
+  overrides?: Record<string, unknown>;
+  /** 'sub' places the study (and its legend) in a dedicated pane. */
+  pane?: 'main' | 'sub';
 }
+
+export interface IndicatorDefinitionCfg {
+  study: IndicatorStudyCfg;
+  legend?: IndicatorLegendCfg;
+  /** Grouping key, e.g. 'MA' for moving averages. */
+  group?: string;
+}
+
+export type IndicatorDefinitionsCfg = Record<string, IndicatorDefinitionCfg>;
 
 /**
  * Visual overrides applied via TradingView's `applyOverrides`. Set by the
@@ -116,7 +102,7 @@ export interface VisualOverridesConfigInline {
 
 /**
  * Shape of window.CONFIG as inlined by AdvancedChartTemplate before this IIFE
- * runs. Phase 1 reads `libraryUrl`, `theme`, `features`, `indicatorColors`.
+ * runs. Phase 1 reads `libraryUrl`, `theme`, `features`, `indicatorDefinitions`.
  * Phase 2 adds `visualOverrides`. Future phases add more keys as they port
  * from the legacy chartLogic.js.
  */
@@ -124,11 +110,11 @@ export interface ChartConfig {
   libraryUrl: string;
   theme: ChartTheme;
   features?: ChartFeaturesConfig;
-  indicatorColors?: IndicatorColors;
+  /** Indicator registry (study + legend per indicator name) supplied by RN. */
+  indicatorDefinitions?: IndicatorDefinitionsCfg;
   useSubscriptPriceFormat?: boolean;
   priceDecimals?: number | null;
   visualOverrides?: VisualOverridesConfigInline;
-  legendOverlay?: LegendOverlayConfig;
   /** Optional sub-pane height ratio in (0, 1] for RSI/MACD sub-panes. */
   subPaneHeightRatio?: number;
 }
