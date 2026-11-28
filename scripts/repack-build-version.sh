@@ -24,6 +24,11 @@ set -euo pipefail
 
 APKTOOL_JAR="node_modules/@expo/repack-app/dist/apktool.jar"
 
+# What a native build names the app. @expo/repack-app overwrites the name with the Expo
+# config's `name`, so the repacked artifact is checked against these.
+IOS_INFO_PLIST="ios/MetaMask/Info.plist"
+ANDROID_STRINGS_XML="android/app/src/main/res/values/strings.xml"
+
 # stderr, so the message still surfaces when a helper is called inside $( ).
 fail() {
   echo "::error::$1" >&2
@@ -72,6 +77,14 @@ apk_version_name() {
   aapt2=$(find_aapt2) || fail "aapt2 not found; cannot verify the APK version name (searched \$ANDROID_SDK_ROOT/build-tools)."
   "$aapt2" dump badging "$apk" \
     | sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" \
+    | head -1
+}
+
+apk_label() {
+  local apk="$1" aapt2
+  aapt2=$(find_aapt2) || fail "aapt2 not found; cannot verify the APK label (searched \$ANDROID_SDK_ROOT/build-tools)."
+  "$aapt2" dump badging "$apk" \
+    | sed -n "s/^application-label:'\(.*\)'$/\1/p" \
     | head -1
 }
 
@@ -144,7 +157,7 @@ ios_restore_extras() {
 
 ios_verify() {
   local ipa="$1" build_number="$2" expected_short="$3"
-  local work app_dir plist actual_short actual_build app_name
+  local work app_dir plist actual_short actual_build app_name actual_display expected_display
 
   [[ -f "$ipa" ]] || fail "IPA not found: $ipa"
   work=$(mktemp -d)
@@ -159,6 +172,10 @@ ios_verify() {
   [[ "$actual_short" == "$expected_short" ]] || fail "Repacked IPA reports version $actual_short, expected $expected_short"
   [[ "$actual_build" == "$build_number" ]] || fail "Repacked IPA reports build number $actual_build, expected $build_number"
 
+  actual_display=$(plutil -extract CFBundleDisplayName raw -o - "$plist")
+  expected_display=$(plutil -extract CFBundleDisplayName raw -o - "$IOS_INFO_PLIST")
+  [[ "$actual_display" == "$expected_display" ]] || fail "Repacked IPA is named '$actual_display', expected '$expected_display'. @expo/repack-app takes the name from the Expo config resolved from app.config.js."
+
   # @expo/repack-app has been seen to drop the Mach-O binary while rebuilding the bundle
   # (symlink handling); an IPA without it installs and then dies on launch.
   app_name=$(basename "$app_dir" .app)
@@ -168,7 +185,7 @@ ios_verify() {
   codesign --verify --deep --strict "$app_dir" || fail "Repacked IPA failed code signature verification"
 
   rm -rf "$work"
-  echo "Verified repacked IPA: version $actual_short, build $actual_build, signed, executable present."
+  echo "Verified repacked IPA: '$actual_display' version $actual_short, build $actual_build, signed, executable present."
 }
 
 # Printed on stdout only, so callers can capture it. Used to build the Sentry release
@@ -234,7 +251,7 @@ android_patch() {
 
 android_verify() {
   local apk="$1" build_number="$2" expected_version_name="$3"
-  local actual_code actual_name
+  local actual_code actual_name actual_label expected_label
 
   [[ -f "$apk" ]] || fail "APK not found: $apk"
   actual_code=$(apk_version_code "$apk")
@@ -243,7 +260,12 @@ android_verify() {
   [[ "$actual_code" == "$build_number" ]] || fail "Repacked APK reports version code $actual_code, expected $build_number"
   [[ "$actual_name" == "$expected_version_name" ]] || fail "Repacked APK reports version name $actual_name, expected $expected_version_name"
 
-  echo "Verified repacked APK: versionName $actual_name, versionCode $actual_code."
+  actual_label=$(apk_label "$apk")
+  expected_label=$(sed -n 's/.*<string name="app_name">\(.*\)<\/string>.*/\1/p' "$ANDROID_STRINGS_XML" | head -1)
+  [[ -n "$expected_label" ]] || fail "No app_name string in $ANDROID_STRINGS_XML"
+  [[ "$actual_label" == "$expected_label" ]] || fail "Repacked APK is labelled '$actual_label', expected '$expected_label'. @expo/repack-app takes the name from the Expo config resolved from app.config.js."
+
+  echo "Verified repacked APK: '$actual_label' versionName $actual_name, versionCode $actual_code."
 }
 
 android_app_id() {
