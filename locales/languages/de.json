@@ -126,6 +126,9 @@
       "message": "Diese Zahlungsroute ist derzeit nicht verfügbar. Versuchen Sie, den Betrag oder die Zahlungsmethode zu ändern, und wir finden die beste Option.",
       "title": "Keine Angebote"
     },
+    "pay_amount_too_low": {
+      "message": "This amount is below the minimum for this route. Enter a higher amount to continue."
+    },
     "account_no_funds": {
       "message": "Keine Geldmittel verfügbar. Verwenden Sie ein anderes Konto.",
       "title": "Unzureichende Gelder"
@@ -138,6 +141,15 @@
     },
     "deposit_limit": {
       "title": "Maximale Einzahlung: {{amount}}"
+    },
+    "lighter_withdraw_minimum": {
+      "message": "Minimum withdrawal is {{amount}}"
+    },
+    "lighter_account_lookup_pending": {
+      "message": "Verifying Lighter account..."
+    },
+    "lighter_account_lookup_failed": {
+      "message": "Failed to verify Lighter account"
     },
     "headless_buy_error": {
       "title": "Fiat-Kauf fehlgeschlagen",
@@ -197,6 +209,12 @@
         "message": "Diese Website wurde als verdächtig eingestuft. Wir raten davon ab, mit dieser Website zu interagieren.",
         "title": "Verdächtige Website"
       }
+    },
+    "clamp_commit_failed": {
+      "message": "Failed to update transaction amount"
+    },
+    "clamp_commit_pending": {
+      "message": "Updating transaction amount"
     }
   },
   "blockaid_banner": {
@@ -1215,7 +1233,8 @@
       "bic_label": "BIC",
       "payment_reference_label": "Payment reference",
       "copy_label": "{{field}} kopieren",
-      "copied_label": "{{field}} kopiert",
+      "copied_label": "{{field}} copied",
+      "share_details_button": "Share details",
       "button": "Fertig",
       "waiting_for_details": "Ihre Kontodaten werden in Kürze hier angezeigt.",
       "loading_details": "Kontodaten werden geladen",
@@ -1552,7 +1571,7 @@
       "private_description": "Private Profile können keine Beiträge posten. Setzen Sie Ihr Profil auf „öffentlich“, um Beiträge posten zu können."
     },
     "post_trade_share": {
-      "swap_in_progress": "Swap läuft",
+      "trade_in_progress": "Trade in progress",
       "complete": "Swap abgeschlossen",
       "failed": "Swap fehlgeschlagen",
       "order_in_progress": "Order in Bearbeitung",
@@ -2324,8 +2343,8 @@
       "size_percentage_unit": "Ordergröße in Prozent ({{unit}})",
       "toggle_size_unit": "Wechsel der Nenngröße",
       "toggle_size_unit_hint": "Wechseln Sie von {{unit}} zur anderen Größeneinheit",
-      "available_balance": "{{amount}} verfügbar",
-      "available_balance_unavailable": "-- verfügbar",
+      "available_balance": "Available to trade {{amount}}",
+      "available_balance_unavailable": "Available to trade --",
       "est_liquidation": "Gesch. Liquidation",
       "before_after": "{{before}} → {{after}}",
       "tpsl": "TP / SL",
@@ -2980,9 +2999,10 @@
       "minimumDeposit": "Der Mindesteinzahlungsbetrag ist {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} für Einzahlungen nicht unterstützt",
       "unsupportedCollateral": "Die Sicherheiten dieses Marktes werden nicht unterstützt",
-      "unknownError": "Ein unbekannter Fehler ist aufgetreten",
+      "unknownError": "Something went wrong. Please try again.",
       "position_not_found": "Position nicht gefunden",
       "order_not_found": "Order nicht gefunden",
+      "marketNotFound": "Market not found",
       "clientNotInitialized": "HyperLiquid SDK-Clients nicht ordnungsgemäß eingeleitet",
       "exchangeClientNotAvailable": "ExchangeClient nach Einleiten nicht verfügbar",
       "exchangeAccountNotFound": "Laden Sie Guthaben auf Ihr Konto, bevor Sie eine Order platzieren",
@@ -3047,6 +3067,8 @@
         "scaleCountInvalid": "Anzahl der Scale-Order ungültig",
         "scaleSizeTooSmall": "Jede Scale-Order liegt unter der Mindestgröße",
         "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
+        "scaleSizeConservationFailed": "We couldn't place your scale order. Try again.",
+        "scaleExposureExceedsIntent": "We couldn't place your scale order. Try again.",
         "scaleNotionalTooSmall": "Jede Scale-Order liegt unter dem Mindestwert der Börse",
         "chaseIntervalInvalid": "Das Chase-Intervall ist ungültig",
         "chaseDurationInvalid": "Die Chase-Dauer ist ungültig",
@@ -3066,7 +3088,7 @@
       "marketsFailed": "Abrufen der Märkte fehlgeschlagen",
       "bridgeContractNotFound": "Bridge-Contract-Adresse von HyperLiquid konnte nicht abgerufen werden",
       "providerNotAvailable": "Anbieter {{providerId}} nicht verfügbar",
-      "providerRouteRequired": "Choose a provider for this order and try again.",
+      "providerRouteRequired": "No exchange selected. Select one and try again.",
       "withdrawFailed": "Auszahlung fehlgeschlagen",
       "connectionRequired": "usePerpsConnection muss innerhalb eines PerpsConnectionProvider verwendet werden",
       "assetMappingFailed": "Erstellung des Asset-Mappings fehlgeschlagen",
@@ -3083,6 +3105,10 @@
       "priceUnavailable": "Preisdaten sind nicht verfügbar. Bitte aktualisieren und erneut versuchen.",
       "batchCancelFailed": "Einige Orders konnten nicht storniert werden. Bitte versuchen Sie es erneut.",
       "batchCloseFailed": "Einige Positionen konnten nicht geschlossen werden. Bitte versuchen Sie es erneut.",
+      "batchIncomplete": "Some orders or positions couldn't be updated. Try again.",
+      "ordersFailed": "We couldn't load your orders. Try again.",
+      "orderNoLongerOpen": "This order is no longer open. It may have already been filled or cancelled.",
+      "liquidationPriceUnavailable": "Liquidation price is unavailable. Try again.",
       "insufficientMargin": "Die Margin für diesen Handel ist nicht ausreichend. Erwägen Sie die Aufstockung Ihres Kapitals oder die Verringerung Ihrer Positionsgröße.",
       "reduceOnlyViolation": "Diese Order würde Ihre Position erhöhen. Nur reduzierende Aufträge sind erlaubt.",
       "positionWouldFlip": "Diese Order würde die Richtung Ihrer Position umkehren. Bitte schließen Sie zuerst Ihre bestehende Position.",
@@ -3644,8 +3670,10 @@
     },
     "exchange_filter": {
       "title": "Filter by exchange",
-      "tagline_lighter": "Low fee, high leverage",
-      "tagline_hyperliquid": "High volume, low slippage"
+      "tagline_lighter": "Lower fee, higher leverage",
+      "tagline_hyperliquid": "Higher volume, lower slippage",
+      "trigger": "{{count}} exchange",
+      "trigger_plural": "{{count}} exchanges"
     },
     "market_type": {
       "filter_by": "Filtern nach"
@@ -3876,6 +3904,14 @@
     },
     "price_alerts": {
       "open": "Kursbenachrichtigungen öffnen"
+    },
+    "trade_on": {
+      "title": "Trade on",
+      "label": "Trade on",
+      "subtitle": "Select an exchange for this order. To set a default for all orders, go to settings.",
+      "accessibility_label": "Trade on {{venue}}",
+      "max_leverage": "max",
+      "default_tag": "Default"
     }
   },
   "market_insights": {
@@ -3939,11 +3975,45 @@
       "politics": "Politik",
       "sports": "Sport"
     },
+    "feed_screens": {
+      "titles": {
+        "sports-football-nfl": "Sports",
+        "sports-football-ncaa": "Sports",
+        "sports": "Sports",
+        "politics": "Politics"
+      },
+      "subtitles": {
+        "sports-football-nfl": "NFL",
+        "sports-football-ncaa": "NCAAF"
+      },
+      "tabs": {
+        "sports-football-nfl": {
+          "games": "Games",
+          "props": "Props"
+        },
+        "sports-football-ncaa": {
+          "games": "Games",
+          "props": "Props"
+        },
+        "sports": {
+          "nfl": "NFL",
+          "ncaaf": "NCAAF"
+        },
+        "politics": {
+          "trump": "Trump",
+          "congress": "Congress",
+          "iran": "Iran"
+        }
+      }
+    },
     "home_feed": {
       "trending": "Angesagt",
       "sports": "Sport",
       "games_error": "Die Spiele konnten nicht geladen werden.",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "preview_error": "Markets couldn’t be loaded.",
+      "preview_empty": "No markets available.",
+      "open_section": "View {{title}}"
     },
     "get_started_banner": {
       "title": "In wenigen Schritten loslegen",
@@ -3987,7 +4057,17 @@
       "game_quote_price": "· {{price}}",
       "game_quote_buy_accessibility_label": "{{team}}, {{price}}, kaufen",
       "game_quote_price_accessibility_label": "{{team}}, {{price}}",
-      "game_quote_price_unavailable_accessibility_label": "{{team}}, Preis nicht verfügbar"
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, Preis nicht verfügbar",
+      "card_volume_label": "${{volume}} vol.",
+      "game_draw_label": "Draw",
+      "game_status": {
+        "scheduled": "Scheduled",
+        "delayed": "Delayed",
+        "suspended": "Suspended",
+        "postponed": "Postponed",
+        "final": "Final",
+        "canceled": "Canceled"
+      }
     },
     "trending": {
       "search_row_chance": "{{probability}} Wahrscheinlichkeit für {{outcome}}"
@@ -4073,11 +4153,13 @@
       "proceeds_if_fully_filled": "Erlös bei vollständiger Ausführung (mit Vorzeichen)",
       "partial_fill_proceeds_description": "Dieser Betrag setzt voraus, dass alle Contracts vollständig ausgeführt werden. Sollten Contracts nur teilweise ausgeführt werden, kann dies zu einem geringeren Erlös führen. Kommt kein Vertrag zustande, erhalten Sie keinen Erlös und es wird nichts verkauft.",
       "to_win": "{{amount}} zu gewinnen",
+      "outcome_at_odds": "{{outcome}} at {{odds}}",
       "pay_with": "Bezahlen mit",
       "predictions_balance": "Tippsaldo",
       "odds": "Quoten",
       "contracts_row": "Contracts",
       "fees": "Gebühren",
+      "prediction_order_description": "~{{count}} contracts at {{price}} each. Final amount may vary based on order book availability.",
       "you_will_receive": "Sie empfangen",
       "you_will_receive_value": "{{amount}} (durchschn. {{price}})",
       "estimated_payout": "Vorauss. Auszahlung",
@@ -4090,7 +4172,7 @@
       "expired": "Dieses Angebot ist abgelaufen. Aktualisieren, um ein neues zu erhalten.",
       "refresh": "Aktualisieren",
       "retry": "Erneut versuchen",
-      "review": "Order überprüfen",
+      "cash_out": "Cash out",
       "buy": "Kaufen",
       "venue_changed": "Ihr Prognosemarkt hat sich geändert. Schließen Sie diesen Auftrag, um fortzufahren."
     },
@@ -4130,6 +4212,56 @@
     "order_notification": {
       "not_placed_title": "Order nicht platziert",
       "not_placed_description": "Es wurde nichts von Ihrem Guthaben abgebucht. Fordern Sie ein neues Angebot an, um es erneut zu versuchen."
+    },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "simulated_sandbox": "Simulated deposit (sandbox)",
+      "unavailable": "Deposits aren't available right now.",
+      "unavailable_error": "Deposits aren't available right now. Try again in a moment.",
+      "retry": "Retry",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "under_review_label": "Your deposit of {{amount}} is under review. Support reference:",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "checking_availability": "Checking deposit availability...",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      },
+      "status": {
+        "awaiting_transfer": "Deposit waiting for your transfer",
+        "processing": "Deposit processing",
+        "under_review": "Deposit under review · Ref {{reference}}",
+        "under_review_label": "Deposit under review · Ref",
+        "copy_reference": "Copy support reference",
+        "reference_copied": "Support reference copied",
+        "failed": "Deposit failed",
+        "cancelled": "Deposit cancelled"
+      },
+      "notification": {
+        "completed_title": "Deposit complete",
+        "completed_description": "{{amount}} is ready to trade."
+      }
     },
     "withdraw": {
       "title": "Auszahlen",
@@ -4342,6 +4474,10 @@
       "claim": "Einfordern"
     },
     "crypto_up_down": {
+      "market_break": {
+        "reopens_at": "Market is on a break. Live chart resumes at {{time}}.",
+        "closed": "Market is closed. Live chart resumes when trading reopens."
+      },
       "twap_info": {
         "title": "Abwicklung dieses Marktes",
         "accessibility_label": "Erfahren Sie, wie dieser Markt abgewickelt wird",
@@ -5358,6 +5494,81 @@
     "fully_diluted": "Vollständig verwässert",
     "unknown": "Unbekannt",
     "stock": "Aktie"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    },
+    "home": {
+      "empty": "No packs available",
+      "empty_description": "Check back soon or browse other packs.",
+      "opens": {
+        "one": "{{formattedCount}} open",
+        "other": "{{formattedCount}} opens"
+      },
+      "opens_trending": {
+        "one": "{{formattedCount}} open, trending",
+        "other": "{{formattedCount}} opens, trending"
+      }
+    },
+    "tabs": {
+      "popular": "Popular",
+      "packs": "Packs",
+      "collection": "Collection",
+      "marketplace": "Marketplace"
+    },
+    "landing": {
+      "just_opened": "Just opened",
+      "epic_hunt": "Epic Hunt",
+      "greatest_hits": "Greatest hits"
+    },
+    "marketplace": {
+      "coming_soon": "Coming soon"
+    },
+    "buy_sheet": {
+      "open_hint": "Opens the buy sheet for {{name}}",
+      "pack_count": {
+        "one": "{{count}} pack",
+        "other": "{{count}} packs"
+      },
+      "quantity": "Number of packs",
+      "max": "Max",
+      "auto_buyback": "Auto-buyback for Commons",
+      "skip_reveals": "Skip reveals",
+      "pay_with": "Pay with",
+      "pay_with_balance": "{{symbol}} ({{balance}})",
+      "total": "Total",
+      "no_fees": "No fees",
+      "open_packs": {
+        "one": "Open {{count}} pack",
+        "other": "Open {{count}} packs"
+      }
+    },
+    "packs": {
+      "all": "All",
+      "categories": "Pack categories",
+      "all_prices": "All prices",
+      "lowest_price": "Lowest price",
+      "filter_sort": "{{filter}} · {{sort}}",
+      "filter": "Filter packs",
+      "sort": "Sort packs",
+      "open_price": "Open · {{price}}",
+      "open_pack_price": "Open {{name}}, {{price}}",
+      "tile_label": "{{name}}, {{opens}}",
+      "empty": "No packs available right now"
+    },
+    "epic_hunt": {
+      "info": "About Epic Hunt",
+      "pulls_line": {
+        "one": "Epic {{odds}} · {{formattedCount}} pull since last Epic",
+        "other": "Epic {{odds}} · {{formattedCount}} pulls since last Epic"
+      },
+      "gauge_label": "{{value}} pulls compared with the average per Epic",
+      "info_ranking": "Packs are ranked by how many cards have been pulled since their last Epic, compared with the average number of pulls per Epic.",
+      "info_gauge": "The number on each pack shows how far it is from that average. A negative number means fewer pulls than average, a positive one means more.",
+      "info_independent": "Every pull is independent: past pulls don't change the odds of the next one."
+    }
   },
   "collectible": {
     "collectible_address": "Adresse",
@@ -7461,6 +7672,8 @@
     "network_fee_tooltip": "Der für die Bearbeitung der Transaktion im Netzwerk gezahlte Betrag.",
     "confirm_gas_fee_token_tooltip": "Diese Gebühr wird für die Bearbeitung Ihrer Transaktion an das Netzwerk gezahlt. Sie schließt eine {{metamaskFeeFiat}}-MetaMask-Gebühr für Nicht-ETH-Token oder vorfinanzierte ETH ein.",
     "paid_by_metamask": "Bezahlt von MetaMask",
+    "paid_by_sponsor": "Paid by {{sponsor}}",
+    "network_fee_info_content_sponsored_by": "This network fee is paid by {{sponsor}}, so you can transact without {{nativeToken}} in your account.",
     "confirm_gas_fee_token_metamask_fee": "Beinhaltet {{metamaskFeeFiat}} Gebühr",
     "smart_account_upgrade": "Zum Smart-Konto wechseln",
     "smart_account_downgrade": "Zum Standardkonto wechseln",
@@ -8439,6 +8652,7 @@
     "encountered_error": "Ein Fehler ist aufgetreten",
     "no_quotes_error": "Beim Abrufen der Angebote von {{provider}} ist ein Problem aufgetreten. Versuchen Sie einen anderen Betrag oder wechseln Sie den Anbieter.",
     "min_purchase_limit": "Der Mindestkauf ist {{amount}}",
+    "min_deposit_limit": "Minimum deposit is {{amount}}",
     "max_purchase_limit": "Maximaler Kauf ist {{amount}}",
     "change_provider_button": "Anbieter wechseln"
   },
@@ -8553,6 +8767,7 @@
     "maximum": "Die Höchsteinzahlung beträgt",
     "insufficient_balance": "Dieser Betrag ist höher als Ihr Kontostand",
     "insufficient_native_balance": "Sie haben nicht genug {{currency}}, um die Netzwerkgebühren zu decken.",
+    "network_fee_unavailable": "We couldn't estimate the network fee. You'll review it before you send.",
     "enter_larger_amount": "Geben Sie zum Fortfahren einen größeren Betrag ein",
     "enter_smaller_amount": "Geben Sie zum Fortfahren einen kleineren Betrag ein",
     "enter_lower_gas_fees": "Geben Sie einen niedrigeren Betrag für die Netzwerkgebühren ein",
@@ -8663,6 +8878,10 @@
       "insufficient_tron_resources": "Dieses Konto benötigt mehr TRX oder Netzwerkressourcen, um die Transaktion abzuschließen.",
       "tron_validation_failed": "Diese Überweisung konnte nicht verifiziert werden. Bitte versuchen Sie es erneut.",
       "retry_validation": "Erneut versuchen"
+    },
+    "snap_validation": {
+      "validation_unavailable": "Unable to verify this amount. Please try again.",
+      "insufficient_funds_max": "Insufficient funds. You can send up to {{amount}} {{symbol}}."
     },
     "notifications": {
       "purchase_failed_title": "Der Kauf von {{currency}} ist fehlgeschlagen. Versuchen Sie es in Kürze erneut.",
@@ -9813,12 +10032,13 @@
     "apy_premium_tag": "Premium",
     "apy_upgrading_pill": "Upgrading to Premium APY",
     "apy_downgrading_pill": "Moving to standard APY",
-    "apy_info_label": "Info zum effektiven Jahreszins (APY)",
     "balance_unavailable": "Kontostand nicht verfügbar",
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "Wir können Ihr Guthaben vorübergehend nicht anzeigen. Ihr Guthaben ist gesichert – versuchen Sie es in Kürze erneut.",
     "balance_retry": "Erneut versuchen",
     "balance_no_account": "Money Account nicht gefunden",
+    "balance_hide_hint": "Hides your balance",
+    "balance_show_hint": "Shows your balance",
     "onboarding": {
       "step_1": {
         "title": "Verdienen Sie bis zu {{apy}} % Effektivertrag",
@@ -9838,6 +10058,7 @@
           "title": "Verknüpfen Sie Ihre MetaMask Card",
           "description": "Geben Sie Ihr Guthaben aus, während es Gewinne erwirtschaftet, überall dort, wo Mastercard akzeptiert wird.",
           "cta_primary": "Karte verknüpfen",
+          "cta_log_in": "Log in",
           "cta_secondary": "Überspringen"
         }
       }
@@ -9846,18 +10067,18 @@
       "eyebrow": "MetaMask Money",
       "title": "Ein Guthaben für alles: verdienen, handeln und bezahlen",
       "body_prefix": "Der MetaMask Money Account ist ein Stablecoin-Konto. Er erwirtschaftet bis zu ",
-      "body_suffix": "und verfügt über integrierte Funktionen zum Handeln, Senden und Bezahlen.",
+      "body_suffix": "- with trading, sending, and spending built in.",
       "body_no_apy": "Der MetaMask Money Account ist ein Stablecoin-Konto mit direkt integrierten Funktionen zum Handeln, Senden und Bezahlen.",
       "benefit_convert_title": "Umtausch in MetaMask USD im Verhältnis 1:1",
-      "benefit_convert_body": "Von Ihnen eingezahlte Gelder werden gebührenfrei im Verhältnis 1:1 in MetaMask USD umgetauscht.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Automatisch verdienen",
       "benefit_earn_body": "Die Einnahmen werden Ihrem Konto in Echtzeit gutgeschrieben, ohne dass Sie etwas einfordern müssen.",
       "benefit_trade_title": "Mit demselben Guthaben handeln",
       "benefit_trade_body": "Finanzieren Sie Swaps, Perps und Prognosen direkt mit Ihrem Money Account-Guthaben.",
-      "benefit_withdraw_title": "Jederzeit abheben",
-      "benefit_withdraw_body": "Hier gibt es weder Sperr- und Kündigungsfristen noch Strafgebühren. Sie können jederzeit über Ihr Geld verfügen.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Flexibel überweisen und bezahlen",
-      "benefit_send_body": "Sie können Überweisungen an beliebige Wallets oder Banken tätigen und mit Ihrer MetaMask Card bezahlen.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Mit dem Verdienen beginnen",
       "close": "Schließen"
     },
@@ -9918,8 +10139,10 @@
     },
     "action": {
       "add": "Hinzufügen",
+      "move": "Move",
       "card": "Karte",
-      "details": "Details"
+      "details": "Details",
+      "details_new_badge": "New"
     },
     "token_list_cta": {
       "get_apy": "{{apy}} % APY"
@@ -9939,6 +10162,60 @@
     },
     "earnings": {
       "title": "Einnahmen",
+      "tab_earnings": "Earnings",
+      "tab_apy": "APY",
+      "tab_allocation": "Allocation",
+      "range_1w": "1W",
+      "range_1m": "1M",
+      "range_3m": "3M",
+      "range_6m": "6M",
+      "range_1y": "All",
+      "total_earned": "Total earned",
+      "last_30_days": "Last 30 days",
+      "lifetime": "Lifetime",
+      "projected_in_1_year": "Projected in 1 year",
+      "projection_disclaimer": "Based on current balance and APY",
+      "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
+      "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
+      "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
+      "add_funds": "Add funds",
+      "chart_allocation_accessibility_label": "{{label}}, {{percentage}}",
+      "cash_reserve": "Cash reserve",
+      "markets": "Markets",
+      "allocation": "Allocation",
+      "apy": "APY",
+      "unavailable": "Unavailable",
+      "monad": "Monad",
+      "chart_empty": "No allocation data is available yet.",
+      "chart_invalid": "We couldn't display allocation data. Try again later.",
+      "allocation_loading": "Loading allocation data",
+      "allocation_error": "We couldn't load allocation data. Try again.",
+      "allocation_retry": "Try again",
+      "allocation_empty": "No allocation data is available yet.",
+      "allocation_degraded": "Allocation data may be out of date.",
+      "allocation_details": {
+        "title": "Details",
+        "vault": "Vault",
+        "vault_value": "MetaMask Money",
+        "base_asset": "Base asset",
+        "base_asset_value": "MetaMask USD (mUSD)",
+        "average_apy": "30-day average APY",
+        "average_apy_value": "{{value}}% APY",
+        "average_apy_zero": "—",
+        "lockup_period": "Lockup period",
+        "lockup_period_value": "None",
+        "managed_by": "Managed by",
+        "managed_by_value": "Veda",
+        "monitored_by": "Monitored by",
+        "monitored_by_value": "Steakhouse Financial"
+      },
+      "risks_and_disclosures": {
+        "title": "Risks and Disclosures",
+        "description": "MetaMask Money is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. MetaMask Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
+      },
+      "error": "We couldn't load earnings. Try again.",
+      "retry": "Retry",
+      "empty": "No earnings history yet.",
       "estimated_monthly": "Monatlich",
       "estimated_lifetime": "Lebenslang",
       "monthly_info_label": "Informationen zu monatlichen Einnahmen",
@@ -9984,6 +10261,8 @@
       "virtual_card": "Virtuelle Karte",
       "metal_card": "Metallkarte",
       "link_title": "Karte verknüpfen",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Geben Sie Ihr Guthaben aus, während es Gewinne erwirtschaftet, überall dort, wo Mastercard akzeptiert wird.",
       "link_subtitle_no_apy": "Geben Sie Ihr Guthaben aus, während es Gewinne erwirtschaftet, überall dort, wo Mastercard akzeptiert wird.",
       "link_bullet_apy": "Verdienen Sie bis zu ~{{apy}} % effektiven Jahreszins",
@@ -10039,6 +10318,8 @@
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Perps-Konto",
       "predictions_account": "Predictions-Konto",
       "send_external": "Externe Adresse",
@@ -10091,6 +10372,8 @@
       "deposit_failed_title_card": "Einzahlung fehlgeschlagen",
       "deposit_failed_body_convert": "Konvertierung nicht möglich. Versuchen Sie es erneut.",
       "deposit_failed_body_add_musd": "Geld hinzufügen nicht möglich. Versuchen Sie es erneut.",
+      "deposit_declined_title_card": "Card payment declined",
+      "deposit_declined_body_card": "Your card payment was declined. Try again or choose a different payment method.",
       "withdraw_failed_title": "Überweisung fehlgeschlagen",
       "withdraw_failed_body": "Gelder können nicht überwiesen werden. Versuchen Sie es erneut.",
       "send_in_progress_title": "Geld wird überwiesen",
@@ -10103,15 +10386,32 @@
       "send_destination_predict": "Prognostizieren"
     },
     "apy_tooltip": {
-      "title": "Effektivertrag",
+      "subtitle": "Annual Percentage Yield",
+      "lead": "This is the rate your MetaMask Money balance is earning right now.",
       "paragraph_1": "Ihr Money Account verdient automatisch bis zu {{percentage}} %.",
-      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Pro Premium APY.",
+      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Orange Premium APY.",
       "migration_upgrading": "Your funds are moving to the Premium vault. The APY shown is for the vault your funds are in right now.",
       "migration_downgrading": "Your funds are moving to the standard vault. The APY shown is for the vault your funds are in right now.",
-      "paragraph_2": "Der angegebene effektive Jahreszins (APY) ist ein Schätzwert, der auf den aktuellen Marktbedingungen basiert. Der APY ist variabel und nicht garantiert. Die Gelder fließen in einen DeFi-Tresor, der von Veda verwaltet und von Steakhouse Financial risikoüberwacht wird und Renditen auf den etablierten Kreditmärkten erwirtschaftet.",
+      "how_it_works_title": "How it works",
+      "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+      "why_it_changes_title": "Why it changes",
+      "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+      "where_it_comes_from_title": "Where it comes from",
+      "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk.",
       "paragraph_3": "Wenn Sie Ihre MetaMask-Karte verknüpfen, werden Einkäufe von diesem Saldo abgebucht.",
-      "paragraph_4": "Das Money Account wird durch Monad betrieben.",
-      "deposit_body": "Der angegebene effektive Jahreszins (APY) ist ein auf den aktuellen Marktbedingungen basierender Schätzwert. Der effektive Jahreszins ist variabel und wird nicht garantiert."
+      "paragraph_4": "Das Money Account wird durch Monad betrieben."
+    },
+    "estimated_balance_sheet": {
+      "title": "Your {{depositAmount}} could grow to {{projectedAmount}}",
+      "subtitle_prefix": "Estimated balance after one year in MetaMask Money at ",
+      "subtitle_apy": "{{percentage}}% APY",
+      "subtitle_suffix": ".",
+      "subtitle_no_apy": "Estimated balance after one year in MetaMask Money.",
+      "bullet_compound_title": "Earnings compound automatically",
+      "bullet_compound_body": "Earnings are added to your balance in real time, so they start earning too.",
+      "bullet_no_lockups_title": "No lockups",
+      "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds.",
+      "disclaimer": "This estimate assumes {{percentage}}% APY for a full year. APY is variable and isn't guaranteed."
     },
     "earnings_tooltip": {
       "monthly": {
@@ -10125,7 +10425,6 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Verdienen Sie an Ihrem Krypto",
-      "deposit_title": "Prognostizierter 1-Jahres-Saldo",
       "body": "Die Prognose geht davon aus, dass der {{percentage}} % Effektivertrag (APY) über einen Zeitraum von einem Jahr unverändert bleibt. Der Effektivertrag ist variabel und wird nicht garantiert. Keine Garantie für die Rendite.",
       "go_to_money_account": "Zum Money Account"
     },
@@ -10595,6 +10894,7 @@
       "now": "Jetzt",
       "switching_to": "Wechseln zu",
       "bridge_estimated_time": "Geschätzte Zeit",
+      "convert": "Convert",
       "pay_with": "Bezahlen mit",
       "payment_method": "Zahlungsmethode",
       "receive_as": "Empfangen",
@@ -10610,6 +10910,7 @@
       "network_fee": "Netzwerk-Gebühr",
       "bridge_fee": "Gebühr für Bridge-Anbieter",
       "provider_fee": "Anbietergebühr",
+      "lighter_fee": "Lighter fee",
       "sending": "Senden"
     },
     "title": {
@@ -10627,7 +10928,8 @@
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
       "predict_withdraw": "Auszahlen",
-      "money_account_deposit_header": "Zu MetaMask Money hinzufügen"
+      "money_account_deposit_header": "Zu MetaMask Money hinzufügen",
+      "money_account_move": "Move"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -10766,8 +11068,36 @@
       "buy_button": "Krypto kaufen",
       "buy_predict": "Fügen Sie Ihrer Wallet Gelder hinzu, um Prognosen zu nutzen.",
       "buy_perps": "Fügen Sie Ihrer Wallet Gelder hinzu, um Perps zu nutzen.",
-      "projected_balance": "Voraussichtliches {{projectedYears}}-Jahressaldo:",
+      "projected_balance": "Est. {{projectedYears}}-year balance:",
       "earn_up_to_apy": "{{percentage}} % Effektivertrag verdienen"
+    },
+    "money_deposit": {
+      "to_metamask_money": "MetaMask Money",
+      "to_separator": " • ",
+      "apy_label": "{{percentage}}% APY",
+      "less_than_one_min": "Less than 1 min",
+      "apy_info_sheet": {
+        "subtitle": "Annual Percentage Yield",
+        "lead": "This is the rate your MetaMask Money balance is earning right now.",
+        "how_it_works_title": "How it works",
+        "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+        "why_it_changes_title": "Why it changes",
+        "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+        "where_it_comes_from_title": "Where it comes from",
+        "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk."
+      },
+      "musd_info_sheet": {
+        "title": "You'll receive {{amount}} of MetaMask USD",
+        "lead": "MetaMask USD (mUSD) is a dollar stablecoin.",
+        "bullet_worth_title": "Always worth $1",
+        "bullet_worth_body": "It's backed 1:1 by short-term US Treasury bills and cash.",
+        "bullet_backed_title": "Backed by names you know",
+        "bullet_backed_body": "BlackRock manages the reserves and JPMorgan Chase holds them. mUSD is issued by Bridge, a Stripe company.",
+        "bullet_earns_title_prefix": "Earns up to ",
+        "bullet_earns_body": "It starts earning automatically in your MetaMask Money account.",
+        "bullet_no_lockups_title": "No lockups",
+        "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds."
+      }
     },
     "unlimited": "Unbegrenzt",
     "all": "Alle",
@@ -10784,6 +11114,7 @@
     "deposit_edit_amount_done": "Gelder hinzufügen",
     "deposit_edit_amount_convert_token": "{{symbol}} umtauschen",
     "deposit_edit_amount_predict_withdraw": "Auszahlen",
+    "deposit_edit_amount_money_account_move": "Move",
     "deposit_edit_amount_musd_conversion": "Zu mUSD konvertieren",
     "preparing_order": "Order wird vorbereitet"
   },
@@ -10843,6 +11174,7 @@
       "try_again": "Erneut versuchen",
       "today": "Heute"
     },
+    "money_name": "MetaMask USD",
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expires after: {{timeLeft}}",
@@ -10951,7 +11283,7 @@
       "est_receiving_per_order": "Gesch. Einnahmen (pro Order)",
       "est_receiving_all_orders": "Gesch. Einnahmen (alle Orders)",
       "expires_after": "Läuft ab nach",
-      "slippage_all_orders": "Slippage (alle Orders)",
+      "default_price_tolerance_description": "Your recurring order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
       "est_network_fee_per_order": "Gesch. Netzwerkgebühr (pro Order)",
       "account_upgrade_fee": "Gebühr für Konto-Upgrade",
       "account_upgrade_fee_info_title": "Gebühr für Konto-Upgrade",
@@ -11036,6 +11368,7 @@
       "failed": "Fehlgeschlagen",
       "filled": "Ausgeführt",
       "skipped": "Übersprungen",
+      "swap_issue_warning": "Some swaps were skipped or failed",
       "reason": "Grund",
       "swap_details_title": "{{source}} an {{dest}} geswappt",
       "order_not_found": "Order nicht gefunden",
@@ -11100,6 +11433,7 @@
     "slippage": "Slippage",
     "slippage_info": "Wenn der Preis sich zwischen dem Zeitpunkt Ihrer Order und deren Bestätigung ändert, bezeichnet man dies als „Slippage“. Ihr Swap wird automatisch storniert, wenn diese Slippage die von Ihnen hier festgelegte Toleranz überschreitet.",
     "network_fee": "Netzwerk-Gebühr",
+    "stablecoin_account": "Stablecoin account",
     "relayer_fee": "Relayer-Gebühr",
     "gas_fees_sponsored": "Bezahlt von MetaMask",
     "included": "Beinhaltet",
@@ -11148,6 +11482,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Beinhaltet {{feePercentage}} % MetaMask-Gebühr",
     "discount_badge_promo": "Promotion",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "Keine MM-Gebühr",
     "token_suspicious": "Verdächtig",
@@ -11370,6 +11705,21 @@
     "ios_google_login_unsupported_blocking_rehydration_description_2": "Aktualisieren Sie Ihr iPhone auf iOS 17.4 oder höher, um die Google-Anmeldung weiterhin nutzen zu können.",
     "ios_google_login_unsupported_blocking_rehydration_description_3": "Keine Aktualisierung möglich? Sie können trotzdem auf Ihre Wallet zugreifen, indem Sie sich auf einem anderen Gerät mit demselben Google-Login und -Passwort anmelden oder mit Ihrer geheimen Wiederherstellungsphrase importieren.",
     "ios_google_login_unsupported_blocking_rehydration_button": "Schließen"
+  },
+  "wallet_recovery_mfa": {
+    "verify_title": "Verify it's you",
+    "verify_description": "Choose a security method to recover your wallet.",
+    "use_passkey": "Use passkey",
+    "or": "or",
+    "method_password": "Password",
+    "method_email": "Email",
+    "method_totp": "Authenticator app",
+    "method_failed": "Verification failed. Try again or choose another method.",
+    "offline_reason": "Connect to the internet to use these methods.",
+    "cant_use_these": "Can't use any of these?",
+    "password_description": "Enter your password to continue",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "password_hint": {
     "title": "Passworthinweis",
@@ -11872,20 +12222,40 @@
       "kyc_failed": {
         "title": "Sie sind derzeit nicht für die MetaMask Card berechtigt",
         "description": "Die Berechtigung wird durch die regulatorischen und Verifizierungsprüfungen unserer Partner ermittelt.",
-        "close_button": "Zurück zur Startseite"
+        "close_button": "Zurück zur Startseite",
+        "ineligible_title": "We can't offer you a MetaMask Card",
+        "ineligible_description": "This decision is based on our card partner's checks. Contact support if you have questions.",
+        "support_title": "There's a problem with your application",
+        "support_description": "Contact support for help with your application."
       },
-      "kyc_rejected": {
-        "retry_title": "Ihre Identität konnte nicht verifiziert werden",
-        "reasons": {
-          "id_document": "Ihr Ausweisdokument konnte nicht verifiziert werden. Versuchen Sie es mit einem anderen Dokument erneut.",
-          "document_photo": "Das Foto Ihres Dokuments war nicht scharf genug. Versuchen Sie es noch einmal in besseren Lichtverhältnissen.",
-          "personal_details": "Ihr Name, Ihr Geburtsdatum oder Ihre Adresse konnte nicht verifiziert werden.",
-          "proof_of_address": "Ihr Adressnachweis konnte nicht verifiziert werden.",
-          "biometrics": "Gesichtsscan entsprach nicht Ihrem Gesicht. Bitte versuchen Sie es erneut.",
-          "ineligible": "Sie sind derzeit nicht für die MetaMask Card berechtigt.",
-          "generic": "Versuchen Sie die Verifizierung erneut. Bitte wenden Sie sich an den Support, falls diese weiterhin fehlschlägt.",
-          "generic_permanent": "Die Verifizierung für dieses Konto kann nicht abgeschlossen werden."
-        }
+      "kyc_reasons": {
+        "contact_details_required": "Add your email and phone number to continue.",
+        "expected_spend_required": "Add how much you expect to spend to continue.",
+        "residential_address_required": "Add your home address to continue.",
+        "proof_of_address_required": "Upload a recent proof of address to continue.",
+        "idv_not_completed": "Finish verifying your ID and selfie to continue.",
+        "id_document_required": "Upload an ID document to continue.",
+        "id_not_verified": "Check that the ID details you entered match your document exactly.",
+        "name_not_verified": "Check that your name matches your ID exactly.",
+        "address_not_verified": "Check that your home address is correct.",
+        "dob_not_verified": "Check that your date of birth matches your ID.",
+        "dob_or_address_not_verified": "Check that your date of birth and home address are correct.",
+        "details_not_verified": "Check that your details match your ID.",
+        "visa_not_found": "Check your visa details. If they're correct, contact support.",
+        "id_document_not_accepted": "This type of ID isn't accepted. Use a different ID.",
+        "id_document_expired": "Your ID has expired. Use a valid ID.",
+        "id_document_missing_dob": "Use an ID that shows your full date of birth.",
+        "id_document_side_missing": "Upload both sides, or all pages, of your ID.",
+        "id_document_other": "Try again with a clear photo of a valid ID. If it fails again, contact support.",
+        "document_photo_unclear": "Take a clear, well-lit photo where every detail is readable.",
+        "document_photo_not_original": "Take a photo of the original document, not a copy or a screen.",
+        "document_photo_other": "Retake the photo of your document. If it fails again, contact support.",
+        "proof_of_address_too_old": "Use a more recent proof of address.",
+        "proof_of_address_not_accepted": "Use an accepted proof of address, like a utility bill or bank statement.",
+        "proof_of_address_incomplete": "Use a proof of address that clearly shows your full name and address.",
+        "proof_of_address_other": "Try a different proof of address. If it fails again, contact support.",
+        "biometrics_failed": "Retake your selfie in good light, or use a device with a better camera.",
+        "generic_retry": "Try verifying again with your original ID."
       },
       "personal_details": {
         "title": "Geben Sie Ihre Daten ein",
@@ -11983,9 +12353,46 @@
     },
     "card_home": {
       "title": "Karte",
+      "done": "Done",
+      "setup_pending": {
+        "reviewing": {
+          "title": "We're reviewing your identity",
+          "description": "This can take a little while. We'll update this screen when it's ready."
+        },
+        "creating": {
+          "title": "Creating your card",
+          "description": "This only takes a moment."
+        },
+        "checking": {
+          "title": "Checking your card",
+          "description": "We'll update this screen when it's ready."
+        },
+        "signed_out_pending": {
+          "title": "Setting up your card",
+          "description": "We’ll update this screen when it’s ready. You can leave and come back anytime."
+        }
+      },
       "authentication_error": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an.",
       "onboarding_token_revoked": "Wir konnten Ihre Kartensitzung nicht fortsetzen. Melden Sie sich erneut an.",
       "available_balance": "Verfügbares Guthaben",
+      "available_balance_info": "Learn what makes up your available balance",
+      "action_buttons": {
+        "add": "Add",
+        "details": "Details",
+        "hide_details": "Hide",
+        "view_pin": "View PIN",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze"
+      },
+      "segments": {
+        "activity": "Activity",
+        "manage": "Manage"
+      },
+      "recent_activity": {
+        "see_all": "See all"
+      },
+      "activity_empty_title": "No transactions yet",
+      "activity_empty_description": "Your card purchases will show here.",
       "error_title": "Daten können nicht abgerufen werden",
       "error_description": "Es scheint ein Problem zu geben, das Sie an der Anzeige des Inhalts dieser Seite hindert. Überprüfen Sie Ihre Verbindung oder aktualisieren Sie die Seite.",
       "try_again": "Erneut versuchen",
@@ -12001,6 +12408,10 @@
       "logout_confirmation_message": "Möchten Sie sich wirklich von Ihrem MetaMask-Karte-Konto abmelden?",
       "logout_confirmation_cancel": "Stornieren",
       "logout_confirmation_confirm": "Abmelden",
+      "more_button_label": "More options",
+      "more_sheet": {
+        "title": "More"
+      },
       "enable_card_error": "Aktivierung der Karte fehlgeschlagen. Versuchen Sie es später erneut.",
       "view_card_details_error": "Kartendaten können nicht geladen werden. Versuchen Sie es erneut.",
       "biometric_verification_required": "Zur Anzeige der Kartendetails ist eine Authentifizierung erforderlich.",
@@ -12048,12 +12459,13 @@
         },
         "setup_incomplete": {
           "title": "Einrichtung Ihrer Karte abschließen",
+          "rejected_title": "We couldn't complete your card application",
           "descriptions": {
             "contact": "Bitte geben Sie Ihre Kontaktdaten ein, um fortzufahren.",
             "kyc": "Bestätigen Sie Ihre Identität, um fortzufahren.",
             "expected_spend": "Geben Sie an, wie Sie Ihre Karte nutzen möchten, um fortzufahren.",
             "funding": "Genehmigen Sie die Aufladung, damit Sie mit der Karte bezahlen können.",
-            "rejected": "Ihre Identität konnte nicht bestätigt werden. Bitte versuchen Sie es erneut, um fortzufahren."
+            "rejected": "Continue to see details or contact support."
           },
           "confirm_button_label": "Fortfahren"
         }
@@ -12089,6 +12501,7 @@
         "set_pin_description": "Für Abhebungen am Geldautomaten und Zahlungen mit Chipkarte",
         "manage_spending_limit": "Limit verwalten",
         "manage_spending_limit_description_restricted": "Begrenzte Ausgaben sind an",
+        "manage_spending_limit_description_remaining": "{{remaining}} {{symbol}} of {{total}} {{symbol}} left",
         "manage_spending_limit_description_full": "Vollzugriff ist an",
         "unlink_money_account": "Money Account entkoppeln",
         "unlink_money_account_description": "Finanzierungsquelle Ihrer Karte ändern",
@@ -12250,7 +12663,8 @@
       "to": "Bis",
       "withdraw": "Auszahlen",
       "withdraw_unavailable": "Auszahlung nicht verfügbar",
-      "withdrawal_success": "Auszahlung erfolgreich abgeschlossen",
+      "withdrawal_success": "Withdrawal completed",
+      "withdrawal_success_description": "It may take up to a few minutes for these funds to appear in your account.",
       "withdrawal_failed": "Auszahlung fehlgeschlagen. Versuchen Sie es erneut.",
       "no_cashback": "Kein mUSD zurück verfügbar",
       "loading_error": "Das Laden von mUSD zurück ist fehlgeschlagen. Versuchen Sie es erneut.",
@@ -12597,6 +13011,11 @@
       "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "retry_button": "Erneut versuchen"
     },
+    "earnings_summary_error": {
+      "error_fetching_title": "Earnings couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "active_activity_error": {
       "error_fetching_title": "Aktivität konnte nicht geladen werden",
       "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
@@ -12620,10 +13039,7 @@
       "cannot_use_own_referral_code": "Sie können nicht Ihren eigenen Empfehlungscode verwenden.",
       "referrer_cannot_be_referred": "Sie können nicht von einer anderen Person empfohlen werden.",
       "active_trader_cannot_be_referred": "Dieser Einladungscode gilt nur für neue Händler.",
-      "rate_limited": "Zu viele Versuche. Einen Moment bitte.",
-      "invalid_bonus_code": "Ungültiger Bonuscode",
-      "already_redeemed": "Sie haben diesen Bonuscode bereits eingelöst",
-      "reached_maximum": "Dieser Bonuscode hat seine maximale Anzahl an Nutzungen erreicht"
+      "rate_limited": "Zu viele Versuche. Einen Moment bitte."
     },
     "claim_reward_error": {
       "title": "Einforderung der Belohnung fehlgeschlagen"
@@ -12789,10 +13205,6 @@
       "off_device_accounts_sheet_description": "Diese gehören möglicherweise zu einer Wallet, die nach der Neuinstallation von MetaMask noch nicht hinzugefügt wurde. Erkennen Sie eine dieser Adressen nicht?",
       "off_device_accounts_sheet_let_us_know": "Sagen Sie uns Bescheid"
     },
-    "bonus_code": {
-      "input_placeholder": "Bonuscode eingeben",
-      "apply_success": "Bonuscode angewandt!"
-    },
     "optout": {
       "title": "Von Prämienaktionen abmelden",
       "description": "Dadurch werden Ihre Konten von Prämienaktionen und -vorteilen ausgeschlossen und Ihr Fortschritt in allen Kampagnen, an denen Sie teilgenommen haben, wird entfernt. Tun Sie dies nur, wenn Sie sich absolut sicher sind, dass Sie Ihren Fortschritt löschen möchten.",
@@ -12828,8 +13240,7 @@
       "account_not_supported": {
         "title": "Konto wird nicht unterstützt",
         "description_hardware": "Hardware-Wallet-Konten sind bisher nicht berechtigt. Wechseln Sie zu einem anderen Konto, um fortzufahren.",
-        "description_general": "Derzeit sind nur interne Ethereum- und Solana-Konten ohne Hardware berechtigt. Wechseln Sie zu einem anderen Konto, um fortzufahren.",
-        "confirm": "Zurück"
+        "description_general": "Currently only non-hardware Ethereum, Solana, Bitcoin, and Tron accounts are eligible. Switch to a different account to proceed."
       }
     },
     "ways_to_earn": {
@@ -12882,6 +13293,9 @@
       "title_claim": "Vorteil einfordern",
       "action": "Einfordern",
       "empty-list": "Sie haben derzeit keine Vorteile.",
+      "error_title": "Unable to load benefits",
+      "error_description": "We couldn't load your benefits. Try again.",
+      "retry_button": "Retry",
       "powered_by": "Unterstützt durch",
       "available_count": "{{count}} verfügbar"
     },
@@ -12904,6 +13318,8 @@
     "campaign": {
       "starts_date": "Beginnt am {{date}}",
       "ends_date": "Endet am {{date}}",
+      "live_until_date": "Live until {{date}}",
+      "join_campaign": "Join the {{campaignName}}",
       "ended_date": "Beendet am {{date}}",
       "pill_up_next": "Demnächst verfügbar",
       "up_next": "Als Nächstes",
@@ -12914,6 +13330,9 @@
       "entered": "Eingegeben",
       "participant_count": "Nr. {{count}}",
       "opt_in_cta": "Anmelden",
+      "opt_in_section_title": "Discover campaigns and benefits",
+      "opt_in_section_description": "Win prizes, claim perks, and discover more ways to earn!",
+      "opt_in_section_legal": "Turning this on will opt-in all accounts on your devices to Rewards campaigns and Benefits powered by theMiracle.",
       "create_username": "Create a username",
       "opt_in_sheet_title": "An der Kampagne teilnehmen",
       "geo_restriction_banner_title": "In Ihrer Region nicht verfügbar",
@@ -13377,6 +13796,14 @@
     "perps_movers_pill_gainers": "Gewinner",
     "perps_movers_pill_losers": "Verlierer",
     "trending_tokens": "Angesagt",
+    "crypto_tokens_section": "Tokens",
+    "crypto_token_count": "{{count}} token",
+    "crypto_token_count_plural": "{{count}} tokens",
+    "crypto_pills": {
+      "trending": "Trending",
+      "most_traded": "Most traded",
+      "robinhood": "Robinhood"
+    },
     "crypto": "Krypto",
     "stocks": "Aktien",
     "price_change": "Preisänderung",
@@ -13656,15 +14083,27 @@
     "added_to_watchlist": "Zur Watchlist hinzugefügt",
     "removed_from_watchlist": "Aus der Watchlist entfernt",
     "add_to_watchlist": "Zur Watchlist hinzufügen",
+    "remove_from_watchlist": "Remove from watchlist",
+    "market_data_unavailable": "Market data unavailable",
     "home_empty_title": "Watchlist",
     "home_empty_subtitle": "Sie haben noch keine Watchlist-Elemente",
     "suggested": "Empfohlen",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Token",
+    "token_tag": "Token",
+    "perp_tag": "Perp",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "loading_more_results": "Loading more results",
+    "load_error": "Unable to load watchlist items",
+    "save_error": "Unable to save watchlist order",
+    "retry": "Try again",
     "edit": "Bearbeiten",
     "done": "Fertig",
     "empty_add_tokens_cta": "{{count}} Token hinzufügen",
     "empty_add_tokens_cta_plural": "{{count}} Tokens hinzufügen",
+    "no_tokens_found": "No tokens in watchlist",
+    "no_tokens_description": "Tap the star icon on any token to add it to your watchlist",
     "search_placeholder": "Suchen Sie nach einem beliebigen Asset zum Hinzufügen"
   },
   "asset_spendable_balance": {
@@ -13795,6 +14234,7 @@
       "money_account": "Money Account",
       "renews_on": "Verlängert sich am",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} Monat auf unsere Kosten",
       "months_on_us_other": "{{count}} Monate auf unsere Kosten",
       "manage": "Plan verwalten",
