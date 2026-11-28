@@ -111,6 +111,8 @@ import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import PerpsAvailableBalanceLabel from '../../components/PerpsAvailableBalanceLabel';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
@@ -420,6 +422,10 @@ const PerpsHomeView = () => {
   const spendableBalance = perpsAccount?.spendableBalance || '0';
   const totalBn = BigNumber(totalBalance);
   const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+  const isAggregatedBalance = Boolean(
+    perpsAccount?.providerStates &&
+      Object.keys(perpsAccount.providerStates).length > 1,
+  );
 
   const {
     isCrossMarginEnabled,
@@ -435,6 +441,15 @@ const PerpsHomeView = () => {
     () => setIsBalanceSheetVisible(false),
     [],
   );
+  const { isMultiProviderEnabled } = usePerpsProvider();
+  // Hardware picks the position skeleton length. Network NONE shows the
+  // positions already on the stream instead of a spinner. Null stays on the
+  // full skeleton, so an unknown device or transport is not treated as low-end
+  // or offline.
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const positionSkeletonCount = hardwareTier === 'LOW' ? 1 : 2;
+  const showPositionLoadingSkeleton = networkTier !== 'NONE';
   const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
 
   let availableBalance: React.ReactNode;
@@ -446,35 +461,36 @@ const PerpsHomeView = () => {
         variant={TextVariant.BodySm}
       />
     );
-    availableBalance = isCrossMarginEnabled ? (
-      <Pressable
-        onPress={openBalanceSheet}
-        accessibilityRole="button"
-        testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-          accessible={false}
+    availableBalance =
+      isCrossMarginEnabled ||
+      (isMultiProviderEnabled && isAggregatedBalance) ? (
+        <Pressable
+          onPress={openBalanceSheet}
+          accessibilityRole="button"
+          testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
         >
-          {availableBalanceLabel}
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-            testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON}
-          />
-        </Box>
-      </Pressable>
-    ) : (
-      availableBalanceLabel
-    );
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            accessible={false}
+          >
+            {availableBalanceLabel}
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+              testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_CHEVRON}
+            />
+          </Box>
+        </Pressable>
+      ) : (
+        availableBalanceLabel
+      );
   }
 
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
-  const { isMultiProviderEnabled } = usePerpsProvider();
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -911,7 +927,9 @@ const PerpsHomeView = () => {
     () => [
       {
         key: 'positions',
-        visible: isLoading.positions || positions.length > 0,
+        visible:
+          (showPositionLoadingSkeleton && isLoading.positions) ||
+          positions.length > 0,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS),
         content: (
           <PerpsHomeSection
@@ -920,16 +938,18 @@ const PerpsHomeView = () => {
             subtitleColor={positionsSubtitleColor}
             subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
             subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
-            isLoading={isLoading.positions}
+            isLoading={showPositionLoadingSkeleton && isLoading.positions}
             isEmpty={positions.length === 0}
             showWhenEmpty={false}
             onActionPress={handleCloseAllPress}
-            renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+            renderSkeleton={() => (
+              <PerpsRowSkeleton count={positionSkeletonCount} />
+            )}
           >
             <View>
               {positions.map((position, index) => (
                 <PerpsCard
-                  key={`${position.symbol}-${index}`}
+                  key={`${position.symbol}-${position.providerId ?? 'venue'}-${index}`}
                   position={position}
                   source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
                   source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS}
@@ -1228,6 +1248,8 @@ const PerpsHomeView = () => {
     ],
     [
       isLoading,
+      positionSkeletonCount,
+      showPositionLoadingSkeleton,
       positions,
       orders,
       ordersError,
@@ -1441,16 +1463,37 @@ const PerpsHomeView = () => {
             }}
             amount={
               !isBalanceEmpty ? (
-                <SensitiveText
-                  variant={TextVariant.AmountDisplayLg}
-                  fontFamily={FontFamily.Hero}
-                  color={TextColor.TextDefault}
-                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                >
-                  {formatPerpsBalance(totalBalance)}
-                </SensitiveText>
+                isMultiProviderEnabled && isAggregatedBalance ? (
+                  <Pressable
+                    onPress={openBalanceSheet}
+                    accessibilityRole="button"
+                    testID={PerpsHomeViewSelectorsIDs.BALANCE_BUTTON}
+                  >
+                    <SensitiveText
+                      variant={TextVariant.AmountDisplayLg}
+                      fontFamily={FontFamily.Hero}
+                      color={TextColor.TextDefault}
+                      testID={
+                        PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE
+                      }
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Medium}
+                    >
+                      {formatPerpsBalance(totalBalance)}
+                    </SensitiveText>
+                  </Pressable>
+                ) : (
+                  <SensitiveText
+                    variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
+                    color={TextColor.TextDefault}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Medium}
+                  >
+                    {formatPerpsBalance(totalBalance)}
+                  </SensitiveText>
+                )
               ) : undefined
             }
             bottomLabel={availableBalance}

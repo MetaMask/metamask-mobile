@@ -6618,9 +6618,6 @@
     }
   },
   "app/components/UI/Perps/components/PerpsBalanceBottomSheet/PerpsBalanceBottomSheet.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 4
     }
@@ -7358,9 +7355,6 @@
   "app/components/UI/Perps/hooks/usePerpsHomeActions.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 4
-    },
-    "typescript/promise-function-async": {
-      "count": 2
     }
   },
   "app/components/UI/Perps/hooks/usePerpsHomeData.test.ts": {

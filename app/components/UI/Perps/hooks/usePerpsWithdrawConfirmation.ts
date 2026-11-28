@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { Hex } from '@metamask/utils';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
@@ -47,10 +48,17 @@ export function usePerpsWithdrawConfirmation() {
   }) as Hex;
 
   const withdrawWithConfirmation = useCallback(
-    async function runWithdrawWithConfirmation() {
+    async function runWithdrawWithConfirmation(providerId?: PerpsProviderType) {
+      const transactionType =
+        providerId === 'lighter'
+          ? TransactionType.perpsLighterWithdraw
+          : TransactionType.perpsWithdraw;
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.PERPS.ROOT,
+        ...(providerId === 'hyperliquid' || providerId === 'lighter'
+          ? { perpsProvider: providerId }
+          : {}),
       });
 
       try {
@@ -68,7 +76,7 @@ export function usePerpsWithdrawConfirmation() {
                 to: ARBITRUM_USDC.address,
                 data: transferData,
               },
-              type: TransactionType.perpsWithdraw,
+              type: transactionType,
             },
           ],
         });
@@ -85,7 +93,8 @@ export function usePerpsWithdrawConfirmation() {
         navigation.goBack();
         showToast(
           PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
-            () => runWithdrawWithConfirmation().catch(() => undefined),
+            () =>
+              runWithdrawWithConfirmation(providerId).catch(() => undefined),
           ),
         );
         throw errorObj;

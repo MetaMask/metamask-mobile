@@ -204,6 +204,33 @@ describe('usePerpsHomeActions', () => {
       }
     });
 
+    it('opens the deposit confirmation on the exchange named by the row', async () => {
+      jest.useFakeTimers();
+      try {
+        const { result } = renderHook(() => usePerpsHomeActions());
+
+        await act(async () => {
+          await result.current.handleDepositToProvider('lighter');
+        });
+
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: ConfirmationLoader.CustomAmount,
+          stack: Routes.PERPS.ROOT,
+          perpsProvider: 'lighter',
+        });
+
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
+        expect(mockDepositWithConfirmation).toHaveBeenCalledWith(undefined, {
+          providerId: 'lighter',
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('pushes confirmation on the current stack when opened in place', async () => {
       jest.useFakeTimers();
       try {
@@ -539,6 +566,20 @@ describe('usePerpsHomeActions', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });
+    });
+
+    it('withdraws from the chosen venue via confirmation instead of the legacy screen', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdrawFromProvider('lighter');
+      });
+
+      expect(mockWithdrawWithConfirmation).toHaveBeenCalledWith('lighter');
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        { screen: Routes.PERPS.WITHDRAW },
+      );
     });
 
     it('triggers onWithdrawSuccess callback', async () => {

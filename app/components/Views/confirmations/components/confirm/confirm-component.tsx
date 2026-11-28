@@ -139,6 +139,11 @@ export interface ConfirmationParams {
   };
   /** Funding intent for this confirmation. Set by the Money add-funds sheet. */
   depositIntent?: MoneyAccountDepositIntent;
+  /**
+   * Exchange the Perps amount screen should open on. Set by a home balance
+   * row so deposit and withdraw are already that venue.
+   */
+  perpsProvider?: 'hyperliquid' | 'lighter';
 }
 
 /**

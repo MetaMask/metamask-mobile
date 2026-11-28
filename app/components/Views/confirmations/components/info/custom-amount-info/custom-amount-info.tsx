@@ -235,13 +235,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         ? CustomAmountStage.NoQuote
         : amountStage;
 
-    const perpsProvider = perpsProviderSelectionForType(
+    const confirmationParams = useParams<ConfirmationParams>();
+    const perpsProviderFromType = perpsProviderSelectionForType(
       getPerpsWithdrawType(transactionMeta) ?? transactionMeta?.type,
     );
+    const requestedPerpsProvider = confirmationParams?.perpsProvider;
+    const initialPerpsProvider =
+      requestedPerpsProvider === 'lighter' ||
+      requestedPerpsProvider === 'hyperliquid'
+        ? requestedPerpsProvider
+        : perpsProviderFromType;
     const [perpsReceiveDestination, setPerpsReceiveDestination] =
-      useState<PerpsReceiveDestination>(perpsProvider);
+      useState<PerpsReceiveDestination>(initialPerpsProvider);
     const [perpsWithdrawSource, setPerpsWithdrawSource] =
-      useState<PerpsWithdrawSource>(perpsProvider);
+      useState<PerpsWithdrawSource>(initialPerpsProvider);
     useSyncPerpsLighterTransactionType({
       destination: perpsReceiveDestination,
       source: perpsWithdrawSource,

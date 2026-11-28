@@ -47,6 +47,7 @@ import {
   type SubscribePositionsParams,
   type UpdateMarginParams,
   type UpdatePositionTPSLParams,
+  type PerpsProviderType,
   type WithdrawParams,
   type WithdrawResult,
 } from '@metamask/perps-controller';
@@ -339,12 +340,17 @@ export function usePerpsTrading() {
   const depositWithConfirmation = useCallback(
     async (
       amount?: string,
+      options?: { providerId?: PerpsProviderType },
     ): Promise<{
       result: Promise<string>;
     }> => {
       await ensureArbitrumNetworkExists();
       const controller = Engine.context.PerpsController;
-      return controller.depositWithConfirmation({ amount, placeOrder: false });
+      return controller.depositWithConfirmation({
+        amount,
+        placeOrder: false,
+        ...(options?.providerId ? { providerId: options.providerId } : {}),
+      });
     },
     [ensureArbitrumNetworkExists],
   );

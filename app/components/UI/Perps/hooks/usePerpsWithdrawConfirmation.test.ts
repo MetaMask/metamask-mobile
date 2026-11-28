@@ -172,6 +172,29 @@ describe('usePerpsWithdrawConfirmation', () => {
     });
   });
 
+  it('opens a Lighter withdraw when the row names Lighter', async () => {
+    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
+
+    await act(async () => {
+      await result.current.withdrawWithConfirmation('lighter');
+    });
+
+    expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.PERPS.ROOT,
+      perpsProvider: 'lighter',
+    });
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactions: [
+          expect.objectContaining({
+            type: TransactionType.perpsLighterWithdraw,
+          }),
+        ],
+      }),
+    );
+  });
+
   it('resolves the from address from the selected group EVM account (eip155:0)', async () => {
     mockScopedSelector.mockReturnValue({ address: MOCK_EVM_ACCOUNT });
 

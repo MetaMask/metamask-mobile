@@ -1,6 +1,7 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import type { PerpsProviderType } from '@metamask/perps-controller';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -17,6 +18,7 @@ import {
   IconName,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -24,7 +26,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { usePerpsLiveAccount } from '../../hooks/stream';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_AVAILABLE_BALANCE_LOGO_SIZE } from '../../constants/perpsUIConfig';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import {
+  usePerpsLiveAccount,
+  usePerpsVenueBalances,
+  type PerpsVenueBalance,
+} from '../../hooks/stream';
+import { selectPerpsDefaultProvider } from '../../selectors/perpsController';
+import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
+import PerpsProviderLogos from '../PerpsProviderLogos';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
 import {
@@ -34,12 +46,113 @@ import {
 } from '../../utils/formatUtils';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsInlineInfoScreen } from '../PerpsInlineInfoScreen/PerpsInlineInfoScreen';
-import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsBalanceBottomSheetSelectorsIDs,
+  getPerpsBalanceVenueSelector,
+} from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import PerpsCrossMarginSummary, {
   type PerpsCrossMarginSummaryTooltipKey,
 } from './PerpsCrossMarginSummary';
+
+const VENUE_ROW_LOGO_SIZE = PERPS_AVAILABLE_BALANCE_LOGO_SIZE * 2;
+
+const isExchangeId = (
+  providerId: string,
+): providerId is 'hyperliquid' | 'lighter' =>
+  providerId === 'hyperliquid' || providerId === 'lighter';
+
+const PerpsVenueBalanceRow: React.FC<{
+  venue: PerpsVenueBalance;
+  isDefault: boolean;
+  isHidden: boolean;
+  onDeposit: (providerId: PerpsProviderType) => void;
+  onWithdraw: (providerId: PerpsProviderType) => void;
+}> = ({ venue, isDefault, isHidden, onDeposit, onWithdraw }) => {
+  const { providerId } = venue;
+  if (!isExchangeId(providerId)) {
+    return null;
+  }
+  const name = PROVIDER_DISPLAY_INFO[providerId].name;
+  const rowTestId = getPerpsBalanceVenueSelector.row(providerId);
+  const canMoveFunds = venue.status === 'available';
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={3}
+      twClassName="w-full"
+      testID={rowTestId}
+    >
+      <PerpsProviderLogos
+        providerIds={[providerId]}
+        size={VENUE_ROW_LOGO_SIZE}
+        isDecorative
+      />
+      <Box twClassName="flex-1">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {name}
+          </Text>
+          {isDefault ? (
+            <Tag testID={getPerpsBalanceVenueSelector.defaultTag(providerId)}>
+              {strings('perps.trade_on.default_tag')}
+            </Tag>
+          ) : null}
+        </Box>
+        {venue.status === 'available' ? (
+          <SensitiveText
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            isHidden={isHidden}
+            length={SensitiveTextLength.Short}
+            testID={getPerpsBalanceVenueSelector.balance(providerId)}
+          >
+            {formatPerpsBalance(venue.state.spendableBalance)}
+          </SensitiveText>
+        ) : null}
+        {venue.status === 'pending' ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('perps.balance_bottom_sheet.venue_pending')}
+          </Text>
+        ) : null}
+        {venue.status === 'unavailable' ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            testID={getPerpsBalanceVenueSelector.error(providerId)}
+          >
+            {strings('perps.balance_bottom_sheet.venue_unavailable')}
+          </Text>
+        ) : null}
+      </Box>
+      {canMoveFunds ? (
+        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+          <ButtonIcon
+            size={ButtonIconSize.Md}
+            iconName={IconName.Minus}
+            onPress={() => onWithdraw(providerId)}
+            accessibilityLabel={`${strings('perps.withdraw')} ${name}`}
+            testID={getPerpsBalanceVenueSelector.withdraw(providerId)}
+          />
+          <ButtonIcon
+            size={ButtonIconSize.Md}
+            iconName={IconName.Add}
+            onPress={() => onDeposit(providerId)}
+            accessibilityLabel={`${strings('perps.add_funds')} ${name}`}
+            testID={getPerpsBalanceVenueSelector.deposit(providerId)}
+          />
+        </Box>
+      ) : null}
+    </Box>
+  );
+};
 
 /**
  * Perps account balance bottom sheet.
@@ -58,6 +171,24 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const privacyMode = useSelector(selectPrivacyMode);
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const { isMultiProviderEnabled } = usePerpsProvider();
+  const { venues } = usePerpsVenueBalances({ throttleMs: 1000 });
+  const defaultProvider =
+    useSelector(selectPerpsDefaultProvider) ?? PROVIDER_CONFIG.DefaultProvider;
+  const orderedVenues = useMemo(
+    () =>
+      venues
+        .filter((venue): venue is PerpsVenueBalance =>
+          isExchangeId(venue.providerId),
+        )
+        .sort((a, b) => {
+          if (a.providerId === defaultProvider) return -1;
+          if (b.providerId === defaultProvider) return 1;
+          return a.providerId.localeCompare(b.providerId);
+        }),
+    [defaultProvider, venues],
+  );
+  const showVenueBreakdown = isMultiProviderEnabled && orderedVenues.length > 1;
   const {
     hasCrossExposure,
     accountRatio,
@@ -79,6 +210,8 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const {
     handleAddFunds,
     handleWithdraw,
+    handleDepositToProvider,
+    handleWithdrawFromProvider,
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
@@ -115,7 +248,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   // mounted underneath the next screen.
   const handleWithdrawPress = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      handleWithdraw();
+      void handleWithdraw();
     });
   }, [handleWithdraw]);
 
@@ -126,14 +259,36 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
       // gated behind `isVisible` (see the early return below), so closing
       // the sheet first would set `isVisible` to false before the tooltip
       // ever gets a chance to render.
-      handleAddFunds();
+      void handleAddFunds();
       return;
     }
 
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      handleAddFunds();
+      void handleAddFunds();
     });
   }, [isEligible, handleAddFunds]);
+
+  const handleVenueDeposit = useCallback(
+    (providerId: PerpsProviderType) => {
+      if (!isEligible) {
+        void handleAddFunds();
+        return;
+      }
+      bottomSheetRef.current?.onCloseBottomSheet(() => {
+        void handleDepositToProvider(providerId);
+      });
+    },
+    [handleAddFunds, handleDepositToProvider, isEligible],
+  );
+
+  const handleVenueWithdraw = useCallback(
+    (providerId: PerpsProviderType) => {
+      bottomSheetRef.current?.onCloseBottomSheet(() => {
+        void handleWithdrawFromProvider(providerId);
+      });
+    },
+    [handleWithdrawFromProvider],
+  );
 
   if (!isVisible) return null;
 
@@ -176,51 +331,55 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
                   }
                   amountWrapperProps={{ twClassName: 'w-full' }}
                   bottomLabel={
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      gap={6}
-                    >
-                      <Box>
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.TextAlternative}
-                        >
-                          {strings('perps.balance_bottom_sheet.available')}
-                        </Text>
-                        <SensitiveText
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextDefault}
-                          isHidden={privacyMode}
-                          length={SensitiveTextLength.Short}
-                          testID={
-                            PerpsBalanceBottomSheetSelectorsIDs.AVAILABLE_VALUE
-                          }
-                        >
-                          {formatPerpsBalance(spendableBalance)}
-                        </SensitiveText>
-                      </Box>
+                    showVenueBreakdown ? undefined : (
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        gap={6}
+                      >
+                        <Box>
+                          <Text
+                            variant={TextVariant.BodySm}
+                            color={TextColor.TextAlternative}
+                          >
+                            {strings('perps.balance_bottom_sheet.available')}
+                          </Text>
+                          <SensitiveText
+                            variant={TextVariant.BodySm}
+                            fontWeight={FontWeight.Medium}
+                            color={TextColor.TextDefault}
+                            isHidden={privacyMode}
+                            length={SensitiveTextLength.Short}
+                            testID={
+                              PerpsBalanceBottomSheetSelectorsIDs.AVAILABLE_VALUE
+                            }
+                          >
+                            {formatPerpsBalance(spendableBalance)}
+                          </SensitiveText>
+                        </Box>
 
-                      <Box>
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.TextAlternative}
-                        >
-                          {strings('perps.unrealized_pnl')}
-                        </Text>
-                        <SensitiveText
-                          variant={TextVariant.BodySm}
-                          fontWeight={FontWeight.Medium}
-                          color={pnlColor}
-                          isHidden={privacyMode}
-                          length={SensitiveTextLength.Short}
-                          testID={PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE}
-                        >
-                          {`${formatPnl(unrealizedPnl)} (${formatPercentage(roe, 1)})`}
-                        </SensitiveText>
+                        <Box>
+                          <Text
+                            variant={TextVariant.BodySm}
+                            color={TextColor.TextAlternative}
+                          >
+                            {strings('perps.unrealized_pnl')}
+                          </Text>
+                          <SensitiveText
+                            variant={TextVariant.BodySm}
+                            fontWeight={FontWeight.Medium}
+                            color={pnlColor}
+                            isHidden={privacyMode}
+                            length={SensitiveTextLength.Short}
+                            testID={
+                              PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE
+                            }
+                          >
+                            {`${formatPnl(unrealizedPnl)} (${formatPercentage(roe, 1)})`}
+                          </SensitiveText>
+                        </Box>
                       </Box>
-                    </Box>
+                    )
                   }
                   bottomLabelWrapperProps={{ twClassName: 'w-full' }}
                 />
@@ -239,7 +398,22 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
               </Box>
             </Box>
 
-            {hasCrossExposure && (
+            {showVenueBreakdown ? (
+              <Box twClassName="w-full gap-2 px-4 pb-4">
+                {orderedVenues.map((venue) => (
+                  <PerpsVenueBalanceRow
+                    key={venue.providerId}
+                    venue={venue}
+                    isDefault={venue.providerId === defaultProvider}
+                    isHidden={privacyMode}
+                    onDeposit={handleVenueDeposit}
+                    onWithdraw={handleVenueWithdraw}
+                  />
+                ))}
+              </Box>
+            ) : null}
+
+            {!showVenueBreakdown && hasCrossExposure && (
               <PerpsCrossMarginSummary
                 accountRatio={accountRatio}
                 maintenanceMargin={maintenanceMargin}
@@ -251,21 +425,23 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
               />
             )}
 
-            <BottomSheetFooter
-              buttonsAlignment={ButtonsAlignment.Horizontal}
-              secondaryButtonProps={{
-                children: strings('perps.withdraw'),
-                onPress: handleWithdrawPress,
-                size: ButtonSize.Lg,
-                testID: PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON,
-              }}
-              primaryButtonProps={{
-                children: strings('perps.add_funds'),
-                onPress: handleAddFundsPress,
-                size: ButtonSize.Lg,
-                testID: PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
-              }}
-            />
+            {showVenueBreakdown ? null : (
+              <BottomSheetFooter
+                buttonsAlignment={ButtonsAlignment.Horizontal}
+                secondaryButtonProps={{
+                  children: strings('perps.withdraw'),
+                  onPress: handleWithdrawPress,
+                  size: ButtonSize.Lg,
+                  testID: PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON,
+                }}
+                primaryButtonProps={{
+                  children: strings('perps.add_funds'),
+                  onPress: handleAddFundsPress,
+                  size: ButtonSize.Lg,
+                  testID: PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+                }}
+              />
+            )}
           </>
         )}
       </BottomSheet>
