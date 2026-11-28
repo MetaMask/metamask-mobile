@@ -91,16 +91,20 @@ const createMockState = (detectedGeolocation?: string) => ({
 });
 
 describe('useRampTokens', () => {
-  const originalEnv = process.env.METAMASK_ENVIRONMENT;
+  const originalApiEnv = process.env.MM_API_ENV;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.METAMASK_ENVIRONMENT = 'dev';
+    process.env.MM_API_ENV = 'dev';
   });
 
   afterEach(() => {
     jest.resetAllMocks();
-    process.env.METAMASK_ENVIRONMENT = originalEnv;
+    if (originalApiEnv !== undefined) {
+      process.env.MM_API_ENV = originalApiEnv;
+    } else {
+      delete process.env.MM_API_ENV;
+    }
   });
 
   describe('fetches tokens with correct parameters', () => {
@@ -204,13 +208,32 @@ describe('useRampTokens', () => {
   });
 
   describe('environment-based URL selection', () => {
-    it('uses production URL for production environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
+    it.each([
+      ['dev', 'https://on-ramp.dev-api.cx.metamask.io'],
+      ['uat', 'https://on-ramp-cache.uat-api.cx.metamask.io'],
+      ['prod', 'https://on-ramp-cache.api.cx.metamask.io'],
+    ] as const)('MM_API_ENV=%s fetches %s', async (apiEnv, host) => {
+      process.env.MM_API_ENV = apiEnv;
+      mockHandleFetch.mockResolvedValueOnce(
+        createMockResponse([createMockToken()], [createMockToken()]),
       );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
+
+      renderHookWithProvider(() => useRampTokens(), {
+        state: createMockState('us-ca'),
+      });
+
+      await waitFor(() => {
+        expect(mockHandleFetch).toHaveBeenCalledWith(
+          `${host}/regions/us-ca/tokens?action=buy&sdk=2.1.5`,
+        );
+      });
+    });
+
+    it('uses the production cache when MM_API_ENV is unset', async () => {
+      delete process.env.MM_API_ENV;
+      mockHandleFetch.mockResolvedValueOnce(
+        createMockResponse([createMockToken()], [createMockToken()]),
+      );
 
       renderHookWithProvider(() => useRampTokens(), {
         state: createMockState('us-ca'),
@@ -219,120 +242,6 @@ describe('useRampTokens', () => {
       await waitFor(() => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
           'https://on-ramp-cache.api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
-        );
-      });
-    });
-
-    it('uses production URL for beta environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'beta';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
-        );
-      });
-    });
-
-    it('uses production URL for rc environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'rc';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
-        );
-      });
-    });
-
-    it('uses staging URL for dev environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'dev';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
-        );
-      });
-    });
-
-    it('uses staging URL for exp environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'exp';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
-        );
-      });
-    });
-
-    it('uses staging URL for test environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'test';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
-        );
-      });
-    });
-
-    it('uses staging URL for e2e environment', async () => {
-      process.env.METAMASK_ENVIRONMENT = 'e2e';
-      const mockResponse = createMockResponse(
-        [createMockToken()],
-        [createMockToken()],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
         );
       });
     });
