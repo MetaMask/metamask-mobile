@@ -6,6 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import render from '#app/util/test/renderWithProvider';
 import { getFormatters } from '#app/components/hooks/useFormatters';
 import { collectiblesRoutes } from '#app/components/UI/Collectibles/routeNames';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import { mockHomePacks } from '#app/components/UI/Collectibles/mocks/homePacks';
 import { PackTile } from '#app/components/UI/Collectibles/components/PackTile';
 import { Text } from '@metamask/design-system-react-native';
@@ -16,6 +17,11 @@ const [pack] = mockHomePacks;
 function BuySheetStub() {
   const { params } = useRoute();
   return <Text>{`buy sheet: ${JSON.stringify(params)}`}</Text>;
+}
+
+function PackDetailStub() {
+  const { params } = useRoute();
+  return <Text>{`pack detail: ${JSON.stringify(params)}`}</Text>;
 }
 
 describe('PackTile', () => {
@@ -69,6 +75,33 @@ describe('PackTile', () => {
     expect(
       screen.getByHintText(
         strings('collectibles.buy_sheet.open_hint', { name: pack.name }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the pack detail when the art is pressed', async () => {
+    render(
+      <Stack.Navigator>
+        <Stack.Screen name="Tile">
+          {() => <PackTile pack={pack} />}
+        </Stack.Screen>
+        <Stack.Screen
+          name={collectiblesRoutes.root}
+          component={PackDetailStub}
+        />
+      </Stack.Navigator>,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(collectiblesTestIds.tileDetail(pack.code)),
+    );
+
+    expect(
+      await screen.findByText(
+        `pack detail: ${JSON.stringify({
+          screen: collectiblesRoutes.packDetail,
+          params: { packCode: pack.code },
+        })}`,
       ),
     ).toBeOnTheScreen();
   });

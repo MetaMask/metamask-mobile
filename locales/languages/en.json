@@ -5568,6 +5568,40 @@
       "info_ranking": "Packs are ranked by how many cards have been pulled since their last Epic, compared with the average number of pulls per Epic.",
       "info_gauge": "The number on each pack shows how far it is from that average. A negative number means fewer pulls than average, a positive one means more.",
       "info_independent": "Every pull is independent: past pulls don't change the odds of the next one."
+    },
+    "rarity": {
+      "epic": "Epic",
+      "rare": "Rare",
+      "uncommon": "Uncommon",
+      "common": "Common"
+    },
+    "pack_detail": {
+      "category_tier": "{{category}} · Tier {{tier}}",
+      "buyback_rate": "Buyback rate",
+      "avg_card_value": "Avg. card value",
+      "top_card": "Top card",
+      "no_value": "-",
+      "opened_by": "Opened by {{name}} and {{count}} others",
+      "pulled_epic": "{{name}} pulled an Epic card",
+      "pulled_rare": "{{name}} pulled a Rare card",
+      "pulled_uncommon": "{{name}} pulled an Uncommon card",
+      "pulled_common": "{{name}} pulled a Common card",
+      "just_opened": "Just opened",
+      "since_last_epic": "Cards pulled since last epic",
+      "odds_by_rarity": "Odds by rarity",
+      "rarity_odds": "{{rarity}} · {{odds}}",
+      "value_range": "{{min}} – {{max}}",
+      "value_from": "{{min}}+",
+      "in_this_pack": "In this pack",
+      "card_label": "{{name}}, {{value}}",
+      "value_grade": "{{value}} · {{grade}}",
+      "no_cards": "No cards to show yet",
+      "cards_error": "Couldn't load these cards",
+      "error": "Couldn't load this pack",
+      "retry": "Try again",
+      "unavailable": "This pack isn't available right now",
+      "open": "Open",
+      "see_more": "See more"
     }
   },
   "collectible": {

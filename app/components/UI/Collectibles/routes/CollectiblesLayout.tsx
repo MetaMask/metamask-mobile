@@ -5,6 +5,7 @@ import {
   type CollectiblesStackParamList,
 } from '../routeNames';
 import { CollectiblesHomeScreen } from './CollectiblesHomeScreen';
+import { PackDetailScreen } from './PackDetailScreen';
 
 const Stack = createNativeStackNavigator<CollectiblesStackParamList>();
 
@@ -14,6 +15,10 @@ export function CollectiblesLayout() {
       <Stack.Screen
         name={collectiblesRoutes.home}
         component={CollectiblesHomeScreen}
+      />
+      <Stack.Screen
+        name={collectiblesRoutes.packDetail}
+        component={PackDetailScreen}
       />
     </Stack.Navigator>
   );
