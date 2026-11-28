@@ -57,12 +57,10 @@ export interface UseMoneyVaultApyOptions {
  *
  * Non-subscribers keep the base vault APY. Subscribers with the `premiumApy`
  * entitlement see the premium vault rate from `useMoneyPremiumVaultRate`.
- * `premiumVaultApyOverride` wins when set. A rate of zero or less (the backend
- * sends "0.0000" when it has no data) counts as missing. The APY then uses
- * `premiumVaultApyFallback`, but only after the positions query settles with
- * an error or no usable rate. While it is still loading the APY stays blank
- * so neither the base rate nor the fallback flashes. Entitled users never see
- * the base APY or `vaultApyFallback`.
+ * `premiumVaultApyOverride` wins when set. `premiumVaultApyFallback` is used
+ * only after the positions query settles with an error or no premium rate.
+ * While the rate is still loading the APY stays blank, so neither the base
+ * rate nor the fallback flashes for a newly entitled user.
  *
  * @param options - Optional enable flag and premium positions poll interval.
  * @returns Effective APY values and the query backing the displayed rate.
@@ -115,21 +113,15 @@ const useMoneyVaultApy = ({
       refetchInterval: positionsRefetchInterval,
     }),
   });
-  // The backend sends "0.0000" when it has no data for the premium vault, so
-  // a non-positive live rate counts as missing.
-  const premiumServiceRate = parseApy(rate);
-  const livePremiumApy =
-    premiumServiceRate !== undefined && premiumServiceRate > 0
-      ? premiumServiceRate
-      : undefined;
+  const premiumServiceApy = parseApy(rate);
   const shouldUsePremiumFallback =
     !vaultRateQuery.isLoading &&
-    (vaultRateQuery.isError || livePremiumApy === undefined);
+    (vaultRateQuery.isError || premiumServiceApy === undefined);
   // Entitled users never fall back to the base APY (including while the
   // premium rate is loading), so the base rate does not flash after subscribe.
   const premiumApyDecimal =
     premiumVaultApyOverride ??
-    livePremiumApy ??
+    premiumServiceApy ??
     (shouldUsePremiumFallback ? premiumVaultApyFallback : undefined);
   const apyDecimal = isEntitled ? premiumApyDecimal : baseApyDecimal;
   const apyPercent = toApyPercent(apyDecimal);
