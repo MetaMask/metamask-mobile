@@ -2012,7 +2012,9 @@ describe('PerpsHomeView', () => {
 
       expect(
         Engine.context.PerpsController.toggleWatchlistMarket,
-      ).toHaveBeenCalledWith(btcMarket.symbol);
+      ).toHaveBeenCalledWith(btcMarket.symbol, undefined, [
+        expect.objectContaining({ symbol: btcMarket.symbol }),
+      ]);
     });
 
     it('hides suggestions once the watchlist has five markets', async () => {

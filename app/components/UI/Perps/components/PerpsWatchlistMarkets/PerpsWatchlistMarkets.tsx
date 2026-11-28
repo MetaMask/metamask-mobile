@@ -433,7 +433,19 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
                     showBadge={false}
                     displayMetric={displayMetric}
                     onPress={() => handleMarketPress(market)}
-                    onAddPress={() => addToWatchlist(market.symbol)}
+                    onAddPress={() =>
+                      addToWatchlist(market.symbol, {
+                        marketKey: market.marketKey,
+                        venues:
+                          'venues' in market
+                            ? (
+                                market as PerpsMarketData & {
+                                  venues?: PerpsMarketData[];
+                                }
+                              ).venues
+                            : undefined,
+                      })
+                    }
                   />
                 </Animated.View>
               ))}

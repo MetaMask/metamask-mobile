@@ -283,7 +283,10 @@ describe('PerpsWatchlistMarkets', () => {
       );
       fireEvent.press(screen.getByTestId('perps-market-row-SOL-add-button'));
       expect(mockAddToWatchlist).toHaveBeenCalledTimes(1);
-      expect(mockAddToWatchlist).toHaveBeenCalledWith('SOL');
+      expect(mockAddToWatchlist).toHaveBeenCalledWith('SOL', {
+        marketKey: undefined,
+        venues: undefined,
+      });
     });
 
     it('renders the Watchlist section header', () => {

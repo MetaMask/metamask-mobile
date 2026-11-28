@@ -42,6 +42,8 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   size = 32,
   testID,
   recyclingKey,
+  marketKey,
+  iconProviderId,
   providerId,
 }) => {
   const { colors, themeAppearance } = useTheme();
@@ -71,9 +73,12 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   }, [symbol, themeAppearance, colors.icon.default]);
 
   const iconUrls = useMemo(() => {
-    if (!symbol) return null;
-    return getAssetIconUrls(symbol, K_PREFIX_ASSETS);
-  }, [symbol]);
+    if (!symbol && !marketKey) return null;
+    return getAssetIconUrls(symbol, K_PREFIX_ASSETS, {
+      marketKey,
+      providerId: iconProviderId ?? providerId,
+    });
+  }, [symbol, marketKey, iconProviderId, providerId]);
 
   const imageUri = useMemo(
     () => selectAvailablePerpsIconUrl(iconUrls, failedIconUrlRevision),
@@ -142,12 +147,17 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   return (
     <Box twClassName="relative" testID={testID ? `${testID}-venue` : undefined}>
       {avatar}
-      <Box twClassName="absolute -bottom-1 -right-1">
+      <Box
+        twClassName="absolute -bottom-1 -right-1"
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={PROVIDER_DISPLAY_INFO[providerId].name}
+        testID={testID ? `${testID}-venue-badge` : undefined}
+      >
         <BadgeNetwork
           src={VENUE_DISPLAY[providerId].logo}
           name={PROVIDER_DISPLAY_INFO[providerId].name}
           accessible={false}
-          testID={testID ? `${testID}-venue-badge` : undefined}
         />
       </Box>
     </Box>

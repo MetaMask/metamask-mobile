@@ -5,6 +5,7 @@ import {
   PerpsMode,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -19,6 +20,9 @@ import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection'
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
   symbol?: string;
+  /** Grouped row identity so the star matches a legacy favorite. */
+  marketKey?: string;
+  venues?: readonly PerpsMarketData[];
   /**
    * Where Back goes when there is no stack to pop.
    * Lite uses `'home'` (Perps hub). Pro uses `'wallet'` because Pro's stack
@@ -52,6 +56,8 @@ export interface UsePerpsMarketHeaderActionsResult {
  */
 export const usePerpsMarketHeaderActions = ({
   symbol,
+  marketKey,
+  venues,
   backFallback = 'wallet',
 }: UsePerpsMarketHeaderActionsParams): UsePerpsMarketHeaderActionsResult => {
   const {
@@ -70,10 +76,20 @@ export const usePerpsMarketHeaderActions = ({
   );
 
   const selectIsWatchlist = useMemo(
-    () => createSelectIsWatchlistMarket(symbol || ''),
-    [symbol],
+    () => createSelectIsWatchlistMarket(symbol || '', marketKey, venues),
+    [symbol, marketKey, venues],
   );
   const isWatchlist = useSelector(selectIsWatchlist);
+  const watchlistTarget = useMemo(
+    () =>
+      marketKey || venues
+        ? {
+            marketKey,
+            venues,
+          }
+        : undefined,
+    [marketKey, venues],
+  );
 
   const leaveViaFallback = useCallback(() => {
     if (backFallback === 'home') {
@@ -125,13 +141,19 @@ export const usePerpsMarketHeaderActions = ({
     // swallow their own errors (toast on failure). Do not await here.
     if (isWatchlist) {
       // eslint-disable-next-line no-void
-      void removeFromWatchlist(symbol);
+      void removeFromWatchlist(symbol, watchlistTarget);
       return;
     }
 
     // eslint-disable-next-line no-void
-    void addToWatchlist(symbol);
-  }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
+    void addToWatchlist(symbol, watchlistTarget);
+  }, [
+    symbol,
+    isWatchlist,
+    watchlistTarget,
+    addToWatchlist,
+    removeFromWatchlist,
+  ]);
 
   const handlePerpsModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {

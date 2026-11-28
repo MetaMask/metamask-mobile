@@ -19,6 +19,8 @@ import {
   Platform,
 } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
@@ -74,7 +76,10 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { orderPerpsProviderLogoIds } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
-import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
+import {
+  shouldSubscribeToMarketRowPrices,
+  WATCHLIST_LIMIT,
+} from '../../utils/marketUtils';
 import { preserveHomeDroppedFromHistory } from '../../utils/perpsModeSwitch';
 import { usePerpsDroppedHomeBack } from '../../hooks/usePerpsDroppedHomeBack';
 import {
@@ -166,6 +171,14 @@ const PerpsMarketListView = ({
   const marketCountLogoIds = exchangeFilterState?.isVisible
     ? orderPerpsProviderLogoIds(exchangeFilterState.selectedProviderIds)
     : undefined;
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const enableRowLivePrices = shouldSubscribeToMarketRowPrices(
+    hardwareTier,
+    networkTier,
+  );
+  const showSingleVenueBadges =
+    (exchangeFilterState?.selectedProviderIds.length ?? 0) > 1;
 
   const { searchQuery, setSearchQuery } = searchState;
 
@@ -986,6 +999,8 @@ const PerpsMarketListView = ({
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
           showBadge={false}
+          showSingleVenueBadges={showSingleVenueBadges}
+          enableLivePrices={enableRowLivePrices}
           filterKey={marketTypeFilter}
           // Reset scroll to the top (revealing the rail) on category change and
           // when search toggles on/off — clearing search keeps the same

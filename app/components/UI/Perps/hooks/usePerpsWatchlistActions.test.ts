@@ -20,6 +20,11 @@ jest.mock('../../../../core/Engine', () => ({
       toggleWatchlistMarket: (...args: unknown[]) =>
         mockToggleWatchlistMarket(...args),
       getWatchlistMarkets: () => mockGetWatchlistMarkets(),
+      state: {
+        isTestnet: false,
+        activeProvider: 'hyperliquid',
+        watchlistMarkets: { mainnet: ['BTC'], testnet: [] },
+      },
     },
   },
 }));
@@ -235,6 +240,36 @@ describe('usePerpsWatchlistActions', () => {
       });
 
       expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('ETH');
+    });
+
+    it('passes the market key and venue rows for a grouped row', async () => {
+      const venues = [
+        {
+          symbol: 'BTC',
+          providerId: 'hyperliquid' as const,
+          name: 'Bitcoin',
+          maxLeverage: '40x',
+          price: '$1',
+          change24h: '$0',
+          change24hPercent: '0%',
+          volume: '$1',
+          openInterest: '$1',
+        },
+      ];
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+
+      await act(async () => {
+        await result.current.addToWatchlist('LIGHTERBTC', {
+          marketKey: 'BTC',
+          venues,
+        });
+      });
+
+      expect(mockToggleWatchlistMarket).toHaveBeenCalledWith(
+        'LIGHTERBTC',
+        'BTC',
+        venues,
+      );
     });
 
     it('fires PERPS_UI_INTERACTION analytics with FAVORITE_TOGGLED and FAVORITE_MARKET', async () => {

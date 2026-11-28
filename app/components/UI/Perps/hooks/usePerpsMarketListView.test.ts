@@ -25,6 +25,8 @@ import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
+  selectPerpsDefaultProvider,
+  selectPerpsControllerState,
 } from '../selectors/perpsController';
 
 // Mock sortMarkets utility
@@ -108,6 +110,16 @@ const mockSelectorState = (overrides: {
     }
     if (selector === selectAvailableProviderIds) {
       return DEFAULT_VENUE_FILTER;
+    }
+    if (selector === selectPerpsDefaultProvider) {
+      return 'hyperliquid';
+    }
+    if (selector === selectPerpsControllerState) {
+      return {
+        isTestnet: false,
+        activeProvider: 'hyperliquid',
+        watchlistMarkets: { mainnet: watchlist, testnet: [] },
+      };
     }
     return undefined;
   });

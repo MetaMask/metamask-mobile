@@ -36,6 +36,8 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
+const titleStyle = { flexShrink: 1 };
+
 const PerpsMarketRowItem = ({
   market,
   onPress,
@@ -43,6 +45,7 @@ const PerpsMarketRowItem = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false,
+  venueProviderId,
   showTypeTag = false,
   compact = false,
   enableLivePrices = true,
@@ -191,6 +194,9 @@ const PerpsMarketRowItem = ({
       avatar={
         <PerpsTokenLogo
           symbol={displayMarket.symbol}
+          marketKey={displayMarket.marketKey}
+          iconProviderId={displayMarket.providerId}
+          providerId={venueProviderId}
           size={iconSize}
           recyclingKey={displayMarket.symbol}
           testID={getPerpsMarketRowItemSelector.tokenLogo(displayMarket.symbol)}
@@ -202,8 +208,7 @@ const PerpsMarketRowItem = ({
         numberOfLines: 1,
         // flexShrink lets the title text yield space to the leverage badge so
         // it doesn't overflow into the price column on long asset names.
-        // eslint-disable-next-line react-native/no-inline-styles
-        style: { flexShrink: 1 },
+        style: titleStyle,
       }}
       titleEndAccessory={
         showTypeTag ? (

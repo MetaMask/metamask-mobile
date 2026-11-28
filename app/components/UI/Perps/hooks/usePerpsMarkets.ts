@@ -48,6 +48,11 @@ export interface UsePerpsMarketsResult {
    */
   markets: PerpsMarketRow[];
   /**
+   * Ungrouped channel rows. Saved watchlist and recently viewed entries
+   * resolve against this catalog.
+   */
+  catalog?: PerpsMarketData[];
+  /**
    * Loading state for initial data fetch
    */
   isLoading: boolean;
@@ -379,6 +384,7 @@ export const usePerpsMarkets = (
 
   return {
     markets,
+    catalog,
     isLoading,
     error,
     hasResolvedInitialData,

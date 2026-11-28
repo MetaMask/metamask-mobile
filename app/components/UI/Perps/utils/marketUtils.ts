@@ -10,8 +10,72 @@ import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
   METAMASK_PERPS_ICONS_BASE_URL,
   type PerpsMarketData,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
+
+/**
+ * Symbol the icon URL is built from.
+ * Hyperliquid keeps the trading symbol so its CDN paths stay the same.
+ * Any other venue uses `marketKey` when the row has one.
+ */
+export const resolvePerpsIconSymbol = (
+  symbol: string,
+  options?: {
+    marketKey?: string;
+    providerId?: PerpsProviderType | string;
+  },
+): string => {
+  if (
+    options?.providerId &&
+    options.providerId !== 'hyperliquid' &&
+    options.marketKey
+  ) {
+    return options.marketKey;
+  }
+  return symbol;
+};
+
+/**
+ * Venue mark on a list row. Shared rows and a single selected provider
+ * show no badge. A row that exists on one venue shows that venue.
+ */
+export const marketRowVenueBadgeProvider = (
+  market: {
+    providerId?: PerpsProviderType;
+    venues?: readonly { providerId?: PerpsProviderType }[];
+  },
+  selectedProviderCount: number,
+): PerpsProviderType | undefined => {
+  if (selectedProviderCount < 2) {
+    return undefined;
+  }
+  if (market.venues?.length !== 1) {
+    return undefined;
+  }
+  return market.providerId;
+};
+
+/**
+ * Per-row live prices. Offline and slow cellular skip them. A low-memory
+ * device on a fast network also skips them. Unknown hardware or network
+ * keeps the product default.
+ */
+export const shouldSubscribeToMarketRowPrices = (
+  hardware: 'LOW' | 'MID' | 'HIGH' | null,
+  network: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null,
+): boolean => {
+  if (network === 'NONE' || network === 'SLOW_CELLULAR') {
+    return false;
+  }
+  if (
+    hardware === 'LOW' &&
+    (network === 'WIFI' || network === 'FAST_CELLULAR')
+  ) {
+    return false;
+  }
+  return true;
+};
 
 /**
  * Determine badge type for a market based on its metadata
@@ -36,15 +100,20 @@ export const getMarketBadgeType = (
 export const getAssetIconUrl = (
   symbol: string,
   kPrefixAssets?: Set<string>,
+  options?: {
+    marketKey?: string;
+    providerId?: PerpsProviderType | string;
+  },
 ): string => {
-  if (!symbol) return '';
+  const lookup = resolvePerpsIconSymbol(symbol, options);
+  if (!lookup) return '';
 
-  if (symbol.includes(':')) {
-    const [dex, assetSymbol] = symbol.split(':');
+  if (lookup.includes(':')) {
+    const [dex, assetSymbol] = lookup.split(':');
     return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${dex.toLowerCase()}:${assetSymbol.toUpperCase()}.svg`;
   }
 
-  let processedSymbol = symbol.toUpperCase();
+  let processedSymbol = lookup.toUpperCase();
 
   if (kPrefixAssets?.has(processedSymbol)) {
     processedSymbol = processedSymbol.substring(1);
@@ -73,11 +142,16 @@ export interface AssetIconUrls {
 export const getAssetIconUrls = (
   symbol: string,
   kPrefixAssets?: Set<string>,
+  options?: {
+    marketKey?: string;
+    providerId?: PerpsProviderType | string;
+  },
 ): AssetIconUrls | null => {
-  if (!symbol) return null;
+  const lookup = resolvePerpsIconSymbol(symbol, options);
+  if (!lookup) return null;
 
-  if (symbol.includes(':')) {
-    const [dex, assetSymbol] = symbol.split(':');
+  if (lookup.includes(':')) {
+    const [dex, assetSymbol] = lookup.split(':');
     const hyperliquidFormat = `${dex.toLowerCase()}:${assetSymbol.toUpperCase()}`;
     const metamaskFormat = `hip3:${dex.toLowerCase()}_${assetSymbol.toUpperCase()}`;
     return {
@@ -86,7 +160,7 @@ export const getAssetIconUrls = (
     };
   }
 
-  let processedSymbol = symbol.toUpperCase();
+  let processedSymbol = lookup.toUpperCase();
 
   if (kPrefixAssets?.has(processedSymbol)) {
     processedSymbol = processedSymbol.substring(1);
@@ -121,10 +195,10 @@ export const getSuggestedWatchlistMarkets = (
   markets: PerpsMarketData[],
   watchlistSymbols: string[],
   limit = SUGGESTED_WATCHLIST_LIMIT,
+  isWatchlisted: (market: PerpsMarketData) => boolean = (market) =>
+    watchlistSymbols.includes(market.symbol),
 ): PerpsMarketData[] => {
   const targetCount = Math.max(1, limit - watchlistSymbols.length);
-  const nonWatchlisted = markets.filter(
-    (m) => !watchlistSymbols.includes(m.symbol),
-  );
+  const nonWatchlisted = markets.filter((market) => !isWatchlisted(market));
   return nonWatchlisted.slice(0, targetCount);
 };

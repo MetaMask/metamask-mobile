@@ -10,6 +10,7 @@ import styleSheet from './PerpsMarketList.styles';
 import type { PerpsMarketListProps } from './PerpsMarketList.types';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PerpsMarketRow } from '../../hooks/usePerpsMarkets';
+import { marketRowVenueBadgeProvider } from '../../utils/marketUtils';
 import {
   Text,
   TextColor,
@@ -58,6 +59,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   sortBy = 'volume',
   showBadge = true,
+  showSingleVenueBadges = false,
+  enableLivePrices = true,
   contentContainerStyle,
   filterKey,
   scrollResetKey,
@@ -119,6 +122,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       if (item.type === 'sticky') {
         return stickyHeader ? React.cloneElement(stickyHeader) : null;
       }
+      const row = item.market as PerpsMarketRow;
       return (
         <PerpsMarketRowItem
           market={item.market}
@@ -129,10 +133,24 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
           iconSize={iconSize}
           displayMetric={sortBy}
           showBadge={showBadge}
+          venueProviderId={
+            showSingleVenueBadges
+              ? marketRowVenueBadgeProvider(row, 2)
+              : undefined
+          }
+          enableLivePrices={enableLivePrices}
         />
       );
     },
-    [stickyHeader, onMarketPress, iconSize, sortBy, showBadge],
+    [
+      stickyHeader,
+      onMarketPress,
+      iconSize,
+      sortBy,
+      showBadge,
+      showSingleVenueBadges,
+      enableLivePrices,
+    ],
   );
 
   const keyExtractor = useCallback(
@@ -146,6 +164,11 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   );
 
   const getItemType = useCallback((item: MarketListRow) => item.type, []);
+
+  const listExtraData = useMemo(
+    () => ({ filterKey, enableLivePrices }),
+    [filterKey, enableLivePrices],
+  );
 
   const emptyState = emptyComponent ?? (
     <View style={styles.emptyContainer} testID={`${testID}-empty`}>
@@ -163,7 +186,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     <FlashList
       ref={listRef}
       data={listData}
-      extraData={filterKey}
+      extraData={listExtraData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}

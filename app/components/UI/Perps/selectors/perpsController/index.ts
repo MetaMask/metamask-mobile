@@ -16,13 +16,14 @@ import {
   InitializationState,
   type OrderBookPreferences,
   type PerpsActiveProviderMode,
+  type PerpsMarketData,
   type PerpsProviderType,
   type PerpsMode,
   type ProLayoutPreferences,
 } from '@metamask/perps-controller';
 import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../constants/perpsConfig';
 
-const selectPerpsControllerState = (state: RootState) =>
+export const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
 
 const selectPerpsProvider = createSelector(
@@ -406,11 +407,20 @@ const selectPerpsProOrdersSortConfig = createSelector(
 );
 
 // Factory function to create selector for specific market
-export const createSelectIsWatchlistMarket = (symbol: string) =>
+export const createSelectIsWatchlistMarket = (
+  symbol: string,
+  marketKey?: string,
+  venues?: readonly PerpsMarketData[],
+) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) => {
     try {
       return perpsControllerState
-        ? selectIsWatchlistMarket(perpsControllerState, symbol)
+        ? selectIsWatchlistMarket(
+            perpsControllerState,
+            symbol,
+            marketKey,
+            venues,
+          )
         : false;
     } catch {
       return false;

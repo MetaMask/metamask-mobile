@@ -3,6 +3,8 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  selectIsWatchlistMarket,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -21,13 +23,25 @@ interface UsePerpsWatchlistActionsResult {
    * optimistic local update and syncs to AuthenticatedUserStorageService.
    * Falls back to local-only when unauthenticated.
    */
-  addToWatchlist: (symbol: string) => Promise<boolean>;
+  addToWatchlist: (
+    symbol: string,
+    market?: {
+      marketKey?: string;
+      venues?: readonly PerpsMarketData[];
+    },
+  ) => Promise<boolean>;
   /**
    * Removes a market from the watchlist.
    *
    * Same optimistic-update and AUS sync behaviour as addToWatchlist.
    */
-  removeFromWatchlist: (symbol: string) => Promise<boolean>;
+  removeFromWatchlist: (
+    symbol: string,
+    market?: {
+      marketKey?: string;
+      venues?: readonly PerpsMarketData[];
+    },
+  ) => Promise<boolean>;
 }
 
 interface UsePerpsWatchlistActionsOptions {
@@ -47,6 +61,49 @@ const findWatchedSymbol = (
 const includesSymbol = (symbols: string[], symbol: string): boolean =>
   findWatchedSymbol(symbols, symbol) !== undefined;
 
+const hasMarketIdentity = (market?: {
+  marketKey?: string;
+  venues?: readonly PerpsMarketData[];
+}): boolean => Boolean(market?.marketKey) || Boolean(market?.venues?.length);
+
+const toggleWatchlist = async (
+  symbol: string,
+  market?: {
+    marketKey?: string;
+    venues?: readonly PerpsMarketData[];
+  },
+): Promise<void> => {
+  const controller = Engine.context.PerpsController;
+  if (hasMarketIdentity(market)) {
+    await controller.toggleWatchlistMarket(
+      symbol,
+      market?.marketKey,
+      market?.venues,
+    );
+    return;
+  }
+  await controller.toggleWatchlistMarket(symbol);
+};
+
+const isWatchlisted = (
+  symbol: string,
+  market?: {
+    marketKey?: string;
+    venues?: readonly PerpsMarketData[];
+  },
+): boolean => {
+  const controller = Engine.context.PerpsController;
+  if (market && hasMarketIdentity(market)) {
+    return selectIsWatchlistMarket(
+      controller.state,
+      symbol,
+      market.marketKey,
+      market.venues,
+    );
+  }
+  return includesSymbol(controller.getWatchlistMarkets(), symbol);
+};
+
 /**
  * Provides add/remove watchlist actions with analytics and error reporting.
  * The controller handles optimistic UI, AUS sync, and graceful degradation.
@@ -62,12 +119,21 @@ export const usePerpsWatchlistActions = (
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const addToWatchlist = useCallback(
-    async (symbol: string): Promise<boolean> => {
+    async (
+      symbol: string,
+      market?: {
+        marketKey?: string;
+        venues?: readonly PerpsMarketData[];
+      },
+    ): Promise<boolean> => {
       try {
         const controller = Engine.context.PerpsController;
         const watchlistBefore = controller.getWatchlistMarkets();
+        const alreadySaved = hasMarketIdentity(market)
+          ? isWatchlisted(symbol, market)
+          : includesSymbol(watchlistBefore, symbol);
 
-        if (includesSymbol(watchlistBefore, symbol)) {
+        if (alreadySaved) {
           return true;
         }
 
@@ -82,10 +148,13 @@ export const usePerpsWatchlistActions = (
         // and only then persists to AUS. Awaiting the network write delayed the
         // toast and its haptic by the round-trip. The controller handles AUS
         // failures by reverting its optimistic update before resolving.
-        const persisted = controller.toggleWatchlistMarket(symbol);
+        const persisted = toggleWatchlist(symbol, market);
 
         const watchlistAfter = controller.getWatchlistMarkets();
-        if (includesSymbol(watchlistAfter, symbol)) {
+        const savedAfterToggle = hasMarketIdentity(market)
+          ? isWatchlisted(symbol, market)
+          : includesSymbol(watchlistAfter, symbol);
+        if (savedAfterToggle) {
           if (showToasts) {
             showToast(PerpsToastOptions.watchlist.added(symbol));
           }
@@ -96,7 +165,9 @@ export const usePerpsWatchlistActions = (
           flushEngineState();
         });
         const finalWatchlist = controller.getWatchlistMarkets();
-        const didAdd = includesSymbol(finalWatchlist, symbol);
+        const didAdd = hasMarketIdentity(market)
+          ? isWatchlisted(symbol, market)
+          : includesSymbol(finalWatchlist, symbol);
         if (didAdd) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -132,19 +203,35 @@ export const usePerpsWatchlistActions = (
   );
 
   const removeFromWatchlist = useCallback(
-    async (symbol: string): Promise<boolean> => {
+    async (
+      symbol: string,
+      market?: {
+        marketKey?: string;
+        venues?: readonly PerpsMarketData[];
+      },
+    ): Promise<boolean> => {
       try {
         const controller = Engine.context.PerpsController;
         const watchlistBefore = controller.getWatchlistMarkets();
-        const storedSymbol = findWatchedSymbol(watchlistBefore, symbol);
-        if (!storedSymbol) {
+        const storedSymbol = hasMarketIdentity(market)
+          ? symbol
+          : findWatchedSymbol(watchlistBefore, symbol);
+        const alreadySaved = hasMarketIdentity(market)
+          ? isWatchlisted(symbol, market)
+          : Boolean(storedSymbol);
+        if (!alreadySaved || !storedSymbol) {
           return true;
         }
         // Not awaited before the toast — see addToWatchlist.
-        const persisted = controller.toggleWatchlistMarket(storedSymbol);
+        const persisted = hasMarketIdentity(market)
+          ? toggleWatchlist(symbol, market)
+          : controller.toggleWatchlistMarket(storedSymbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
-        if (!includesSymbol(watchlistAfter, symbol)) {
+        const stillSaved = hasMarketIdentity(market)
+          ? isWatchlisted(symbol, market)
+          : includesSymbol(watchlistAfter, symbol);
+        if (!stillSaved) {
           if (showToasts) {
             showToast(PerpsToastOptions.watchlist.removed(symbol));
           }
@@ -155,7 +242,9 @@ export const usePerpsWatchlistActions = (
           flushEngineState();
         });
         const finalWatchlist = controller.getWatchlistMarkets();
-        const didRemove = !includesSymbol(finalWatchlist, symbol);
+        const didRemove = hasMarketIdentity(market)
+          ? !isWatchlisted(symbol, market)
+          : !includesSymbol(finalWatchlist, symbol);
         if (didRemove) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
