@@ -57,10 +57,8 @@ export interface UseMoneyVaultApyOptions {
  *
  * Non-subscribers keep the base vault APY. Subscribers with the `premiumApy`
  * entitlement see the premium vault rate from `useMoneyPremiumVaultRate`.
- * `premiumVaultApyOverride` wins when set. `premiumVaultApyFallback` is used
- * only after the positions query settles with an error or no premium rate.
- * While the rate is still loading the APY stays blank, so neither the base
- * rate nor the fallback flashes for a newly entitled user.
+ * While that rate is still loading the APY stays blank so the base rate does
+ * not flash for a newly entitled user.
  *
  * @param options - Optional enable flag and premium positions poll interval.
  * @returns Effective APY values and the query backing the displayed rate.
@@ -69,12 +67,9 @@ const useMoneyVaultApy = ({
   enabled = true,
   positionsRefetchInterval,
 }: UseMoneyVaultApyOptions = {}): UseMoneyVaultApyResult => {
-  const {
-    vaultApyFallback,
-    vaultApyOverride,
-    premiumVaultApyFallback,
-    premiumVaultApyOverride,
-  } = useSelector(selectMoneyVaultApyRemoteConfig);
+  const { vaultApyFallback, vaultApyOverride } = useSelector(
+    selectMoneyVaultApyRemoteConfig,
+  );
   const isEntitled = useSelector(selectHasMoneyAccountPremiumApyEntitlement);
   const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
   const baseVaultConfig = useSelector(selectMoneyAccountVaultConfig);
@@ -113,17 +108,9 @@ const useMoneyVaultApy = ({
       refetchInterval: positionsRefetchInterval,
     }),
   });
-  const premiumServiceApy = parseApy(rate);
-  const shouldUsePremiumFallback =
-    !vaultRateQuery.isLoading &&
-    (vaultRateQuery.isError || premiumServiceApy === undefined);
   // Entitled users never fall back to the base APY (including while the
   // premium rate is loading), so the base rate does not flash after subscribe.
-  const premiumApyDecimal =
-    premiumVaultApyOverride ??
-    premiumServiceApy ??
-    (shouldUsePremiumFallback ? premiumVaultApyFallback : undefined);
-  const apyDecimal = isEntitled ? premiumApyDecimal : baseApyDecimal;
+  const apyDecimal = isEntitled ? parseApy(rate) : baseApyDecimal;
   const apyPercent = toApyPercent(apyDecimal);
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
