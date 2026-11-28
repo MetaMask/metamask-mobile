@@ -48,11 +48,14 @@ const settingsState = (
   },
 });
 
+type MockablePerpsController = Partial<
+  Pick<typeof Engine.context.PerpsController, 'setDefaultProvider'>
+>;
+
 describe('PerpsSettingsView', () => {
   afterEach(() => {
-    delete (
-      Engine.context.PerpsController as { setDefaultProvider?: jest.Mock }
-    ).setDefaultProvider;
+    delete (Engine.context.PerpsController as MockablePerpsController)
+      .setDefaultProvider;
     cleanup();
   });
 
@@ -96,9 +99,8 @@ describe('PerpsSettingsView', () => {
       success: true,
       defaultProvider: 'lighter',
     });
-    const perpsController = Engine.context.PerpsController as {
-      setDefaultProvider?: jest.Mock;
-    };
+    const perpsController = Engine.context
+      .PerpsController as MockablePerpsController;
     perpsController.setDefaultProvider = setDefaultProvider;
 
     renderPerpsSettingsView({ overrides: settingsState(true) });
