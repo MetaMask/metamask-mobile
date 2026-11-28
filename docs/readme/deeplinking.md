@@ -142,6 +142,8 @@ switch (urlObj.protocol.replace(':', '')) {
 ```
 
 > **Note**: `metamask://` URLs are automatically converted to `https://link.metamask.io/` format before processing.
+>
+> **Branch routing**: Open/warm `metamask://` links are routed directly to React Native Linking on iOS and Android and do not use Branch. Universal links (`https://link.metamask.io/...`) and the other custom schemes still use Branch. Branch session initialization at cold start is unchanged.
 
 ### 3. Signature Verification (for HTTPS links)
 
