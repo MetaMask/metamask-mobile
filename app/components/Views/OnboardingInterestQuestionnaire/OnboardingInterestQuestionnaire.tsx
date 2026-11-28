@@ -257,7 +257,7 @@ const OnboardingInterestQuestionnaire = () => {
                 )
               }
               onPress={() => handleOptionPress(option.id)}
-              className={`rounded-full border pl-6 pr-6 py-4 ${
+              className={`rounded-full border px-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
               }`}
               startAccessory={
