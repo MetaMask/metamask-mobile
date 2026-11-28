@@ -187,9 +187,7 @@ const OrderBookRow = ({
       fontWeight={FontWeight.Medium}
       color={sideColor}
       numberOfLines={1}
-      twClassName={
-        isMirrored ? PRICE_COLUMN_CLASS_MIRRORED : PRICE_COLUMN_CLASS
-      }
+      className={isMirrored ? PRICE_COLUMN_CLASS_MIRRORED : PRICE_COLUMN_CLASS}
       testID={`${testID}-price`}
     >
       {priceLabel}
@@ -202,9 +200,7 @@ const OrderBookRow = ({
       fontWeight={FontWeight.Medium}
       color={sideColor}
       numberOfLines={1}
-      twClassName={
-        isMirrored ? VALUE_COLUMN_CLASS_MIRRORED : VALUE_COLUMN_CLASS
-      }
+      className={isMirrored ? VALUE_COLUMN_CLASS_MIRRORED : VALUE_COLUMN_CLASS}
       testID={`${testID}-value`}
     >
       {formatColumnValue(level, currency, metric, szDecimals)}
@@ -245,7 +241,7 @@ const OrderBookRow = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="relative h-full gap-2"
+          className="relative h-full gap-2"
         >
           {content}
         </Box>
@@ -257,7 +253,7 @@ const OrderBookRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="relative h-8 gap-2"
+      className="relative h-8 gap-2"
       testID={testID}
     >
       {content}
@@ -334,7 +330,7 @@ const OrderBookViewIcon = ({
   const widths = [18, 14, 10, 6] as const;
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-0.5">
+    <Box flexDirection={BoxFlexDirection.Column} className="gap-0.5">
       {widths.map((width, index) => (
         <View
           key={width}
@@ -387,7 +383,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.End}
-        twClassName="h-8"
+        className="h-8"
       >
         <Skeleton height={12} width="48%" />
       </Box>
@@ -406,15 +402,12 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
         </Box>
       ))}
 
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="gap-1 pt-2 pb-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Column} className="gap-1 pb-1 pt-2">
         <Skeleton height={4} width="100%" twClassName="rounded-full" />
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="w-full"
+          className="w-full"
         >
           <Skeleton height={12} width={52} />
           <Skeleton height={12} width={52} />
@@ -769,7 +762,7 @@ const PerpsProOrderBookPanel = ({
       fontWeight={FontWeight.Medium}
       color={TextColor.TextAlternative}
       numberOfLines={1}
-      twClassName={isLadderMirrored ? 'flex-1 text-right' : 'flex-1'}
+      className={isLadderMirrored ? 'flex-1 text-right' : 'flex-1'}
       testID={`${testID}-column-header-price`}
     >
       {strings('perps.order_book.price')}
@@ -782,7 +775,7 @@ const PerpsProOrderBookPanel = ({
       fontWeight={FontWeight.Medium}
       color={TextColor.TextAlternative}
       numberOfLines={1}
-      twClassName={isLadderMirrored ? 'shrink-0' : 'shrink-0 text-right'}
+      className={isLadderMirrored ? 'shrink-0' : 'shrink-0 text-right'}
       testID={`${testID}-column-header-value`}
     >
       {`${metricLabel} (${unitLabel})`}
@@ -797,7 +790,7 @@ const PerpsProOrderBookPanel = ({
       testID={testID}
       flexDirection={BoxFlexDirection.Column}
       collapsable={false}
-      twClassName="w-full py-2"
+      className="w-full py-2"
     >
       {/* Header: collapse stays on the leading edge while settings stays flush
           with the ladder's trailing edge. */}
@@ -805,7 +798,7 @@ const PerpsProOrderBookPanel = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-1"
+        className="pb-1"
         testID={`${testID}-header`}
         accessible={false}
       >
@@ -843,7 +836,7 @@ const PerpsProOrderBookPanel = ({
           ) : null}
         </Box>
         <Box
-          twClassName="-mr-1"
+          className="-mr-1"
           testID={`${testID}-header-trailing`}
           accessible={false}
         >
@@ -860,7 +853,7 @@ const PerpsProOrderBookPanel = ({
       {/* Column headers, mirrored with the ladder rows below. */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="gap-2 pb-1"
+        className="gap-2 pb-1"
         testID={`${testID}-column-headers`}
       >
         {columnHeaders}
@@ -874,13 +867,13 @@ const PerpsProOrderBookPanel = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-3 px-2 py-8"
+          className="gap-3 px-2 py-8"
           testID={hasConnectionError ? `${testID}-connection-error` : undefined}
         >
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
           >
             {placeholderMessage}
           </Text>
@@ -928,7 +921,7 @@ const PerpsProOrderBookPanel = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="h-8"
+            className="h-8"
             testID={`${testID}-spread`}
           >
             {spreadDisplay ? (
@@ -937,7 +930,7 @@ const PerpsProOrderBookPanel = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
-                twClassName="flex-1 text-right"
+                className="flex-1 text-right"
                 accessibilityLabel={strings('perps.order_book.spread_value', {
                   value: spreadDisplay,
                 })}
@@ -975,13 +968,13 @@ const PerpsProOrderBookPanel = ({
       {depthRatio ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="gap-1 pt-2 pb-1"
+          className="gap-1 pb-1 pt-2"
           testID={`${testID}-ratio`}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="w-full gap-1"
+            className="w-full gap-1"
             accessibilityLabel={strings('perps.order_book.depth_ratio', {
               buy: String(depthRatio.buyPercent),
               sell: String(depthRatio.sellPercent),
@@ -1001,12 +994,12 @@ const PerpsProOrderBookPanel = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="w-full"
+            className="w-full"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-0.5"
+              className="gap-0.5"
               accessible
               accessibilityLabel={strings('perps.order_book.buy_percent', {
                 percent: String(depthRatio.buyPercent),
@@ -1029,7 +1022,7 @@ const PerpsProOrderBookPanel = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-0.5"
+              className="gap-0.5"
               accessible
               accessibilityLabel={strings('perps.order_book.sell_percent', {
                 percent: String(depthRatio.sellPercent),

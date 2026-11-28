@@ -157,7 +157,7 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
               variant={TextVariant.BodyMd}
               color={TextColor.TextDefault}
               fontWeight={FontWeight.Bold}
-              twClassName="underline"
+              className="underline"
             >
               {strings('perps.market.read_more')}
             </Text>

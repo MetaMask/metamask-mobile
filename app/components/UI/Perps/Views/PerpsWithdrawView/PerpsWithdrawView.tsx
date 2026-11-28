@@ -347,7 +347,7 @@ const PerpsWithdrawView: React.FC = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         {/* Header */}
         <HeaderStandardGlass
           isGlass={isBrandRefresh}
@@ -361,7 +361,7 @@ const PerpsWithdrawView: React.FC = () => {
 
         {/* Amount Display */}
         <Pressable onPress={handleAmountPress}>
-          <Box alignItems={BoxAlignItems.Center} twClassName="py-12 px-4">
+          <Box alignItems={BoxAlignItems.Center} className="px-4 py-12">
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -396,12 +396,12 @@ const PerpsWithdrawView: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
           alignItems={BoxAlignItems.Center}
-          twClassName="px-5 py-2"
+          className="px-5 py-2"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -425,7 +425,7 @@ const PerpsWithdrawView: React.FC = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            className="gap-2"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -448,7 +448,7 @@ const PerpsWithdrawView: React.FC = () => {
         </Box>
 
         {/* Provider Fee */}
-        <Box twClassName="px-5 py-2">
+        <Box className="px-5 py-2">
           <KeyValueRow
             field={{
               label: (
@@ -491,7 +491,7 @@ const PerpsWithdrawView: React.FC = () => {
         </Box>
 
         {/* Estimated Time */}
-        <Box twClassName="px-5 py-2">
+        <Box className="px-5 py-2">
           <KeyValueRow
             field={{
               label: (
@@ -524,7 +524,7 @@ const PerpsWithdrawView: React.FC = () => {
         </Box>
 
         {/* You'll Receive */}
-        <Box twClassName="px-5 py-2">
+        <Box className="px-5 py-2">
           <KeyValueRow
             field={{
               label: (
@@ -547,12 +547,12 @@ const PerpsWithdrawView: React.FC = () => {
         </Box>
 
         {/* Spacer to push content to bottom */}
-        <Box twClassName="flex-1" />
+        <Box className="flex-1" />
 
         {/* Bottom Section - Always at bottom */}
-        <Box twClassName="px-4 pb-6">
+        <Box className="px-4 pb-6">
           {/* Error Message - Always present, visibility controlled */}
-          <Box twClassName="mb-4">
+          <Box className="mb-4">
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
@@ -573,10 +573,10 @@ const PerpsWithdrawView: React.FC = () => {
             </Text>
           </Box>
           {/* Dynamic action row - either percentage buttons or withdrawal button */}
-          <Box twClassName="mb-4">
+          <Box className="mb-4">
             {showPercentageButtons && isInputFocused ? (
               /* Show percentage buttons */
-              <Box twClassName="flex-row justify-between gap-2 pt-1">
+              <Box className="flex-row justify-between gap-2 pt-1">
                 <Pressable
                   style={({ pressed }) =>
                     tw.style(

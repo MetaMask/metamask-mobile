@@ -138,12 +138,12 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
         {strings('perps.slippage.config_title')}
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="px-4 pb-4">
+      <Box className="px-4 pb-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.slippage.config_description')}
         </Text>
 
-        <Box twClassName="mt-4 w-full">
+        <Box className="mt-4 w-full">
           <FilterButtonGroup
             value={groupValue}
             onChange={handleFilterChange}

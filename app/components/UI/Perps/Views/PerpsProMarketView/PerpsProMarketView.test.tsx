@@ -209,7 +209,7 @@ const mockPerpsProChartPanel = jest.fn(
       >
         <Box
           testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
-          twClassName="h-[344px]"
+          className="h-[344px]"
         />
         <ButtonBase testID="mock-pro-chart-more-button" onPress={onMorePress}>
           <Box />

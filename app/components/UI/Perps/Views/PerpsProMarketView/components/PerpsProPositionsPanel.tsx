@@ -855,7 +855,7 @@ const PerpsProPositionsPanel = ({
     }
 
     return (
-      <Box twClassName="items-center justify-center px-2 pt-6">
+      <Box className="items-center justify-center px-2 pt-6">
         <PerpsProPositionsEmptyState
           filteredTicker={filteredTicker}
           filteredSideDescriptionKey={sideFilterEmptyDescriptionKey}
@@ -907,7 +907,7 @@ const PerpsProPositionsPanel = ({
     }
 
     return (
-      <Box twClassName="items-center justify-center px-2 pt-6">
+      <Box className="items-center justify-center px-2 pt-6">
         <PerpsProOrdersEmptyState
           filteredTicker={filteredOrdersTicker}
           filteredSideDescriptionKey={orderSideFilterEmptyDescriptionKey}
@@ -917,10 +917,7 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderTwapTab = () => (
-    <Box
-      twClassName="pt-3"
-      testID={PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY}
-    >
+    <Box className="pt-3" testID={PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY}>
       <PerpsProTwapPanel
         view={twapView}
         activeTwapOrders={activeTwapOrders}
@@ -1135,7 +1132,7 @@ const PerpsProPositionsPanel = ({
         )}
       >
         <Box
-          twClassName="gap-3 py-3"
+          className="gap-3 py-3"
           testID={getPerpsProChaseHandleSelector(order.symbol, order.handle)}
         >
           <Pressable
@@ -1154,14 +1151,14 @@ const PerpsProPositionsPanel = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="gap-4 px-2 py-2"
+              className="gap-4 p-2"
             >
               <PerpsTokenLogo symbol={order.symbol} size={40} />
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
+                  className="gap-1"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -1210,12 +1207,12 @@ const PerpsProPositionsPanel = ({
               </View>
             </Box>
           </Pressable>
-          <Box twClassName="px-2">
+          <Box className="px-2">
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
+              className="gap-4 rounded-xl border border-muted px-4 py-3"
             >
-              <Box twClassName="flex-1 gap-3">
+              <Box className="flex-1 gap-3">
                 <ChaseKeyValueItem
                   label={strings('perps.order.chase.card.size')}
                   value={`${formatPositionSize(order.originalSize)} ${displayOrderSymbol}`}
@@ -1225,7 +1222,7 @@ const PerpsProPositionsPanel = ({
                   value={`${formatPositionSize(filledSize)} ${displayOrderSymbol}`}
                 />
               </Box>
-              <Box twClassName="flex-1 gap-3">
+              <Box className="flex-1 gap-3">
                 <ChaseKeyValueItem
                   label={strings('perps.order.limit_price')}
                   value={restingPrice}
@@ -1256,7 +1253,7 @@ const PerpsProPositionsPanel = ({
             </Box>
           </Box>
           {isCancelable ? (
-            <Box twClassName="px-2">
+            <Box className="px-2">
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Sm}
@@ -1282,11 +1279,11 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderChaseTab = () => (
-    <Box twClassName="gap-2 px-2 pt-3">
+    <Box className="gap-2 px-2 pt-3">
       {displayedChaseOrders.length === 0 ? (
         <Box
           testID={PerpsProMarketViewSelectorsIDs.CHASE_EMPTY_STATE}
-          twClassName="items-center justify-center pt-3"
+          className="items-center justify-center pt-3"
         >
           <PerpsProTabEmptyState
             filteredTicker={filteredChaseTicker}
@@ -1323,7 +1320,7 @@ const PerpsProPositionsPanel = ({
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL}
-      twClassName="py-3"
+      className="py-3"
     >
       {/* TabsBar hardcodes its own px-4 (16px) internally — 8px more than
           the px-2 (8px) inset the rest of this panel's rows use below, which
@@ -1333,9 +1330,9 @@ const PerpsProPositionsPanel = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="pr-2"
+        className="pr-2"
       >
-        <Box twClassName="flex-1">
+        <Box className="flex-1">
           <TabsBar
             tabs={tabs}
             activeIndex={activeTabIndex}
@@ -1369,7 +1366,7 @@ const PerpsProPositionsPanel = ({
         {/* TWAP schedules are venue-ordered. Chase has its own activity
             filters. The sort sheet only knows Positions and Orders. */}
         {!isChaseTab && !isTwapTab ? (
-          <Box twClassName="bg-muted rounded-full">
+          <Box className="rounded-full bg-muted">
             <ButtonIcon
               iconName={IconName.Customize}
               accessibilityLabel={strings(
@@ -1405,7 +1402,7 @@ const PerpsProPositionsPanel = ({
                 : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
           }
         />
-        <Box twClassName="bg-muted rounded-full px-2 py-1">
+        <Box className="rounded-full bg-muted px-2 py-1">
           {renderTickerOnlyCheckbox()}
         </Box>
         {/* Sits after the side and ticker filters, so those two keep the same
@@ -1438,7 +1435,7 @@ const PerpsProPositionsPanel = ({
           </Button>
         ) : null}
         {(isChaseTab || isTwapTab) && activityView === 'history' ? (
-          <Box twClassName="bg-muted rounded-full px-2 py-1">
+          <Box className="rounded-full bg-muted px-2 py-1">
             <Checkbox
               label={strings('perps.order.chase.filled_only')}
               labelProps={{ variant: TextVariant.BodySm }}

@@ -175,7 +175,7 @@ const PerpsClosePositionView: React.FC = () => {
         />
 
         {/* Toggle Button for USD/Token Display */}
-        <Box twClassName="items-center px-4 pt-0 pb-2">
+        <Box className="items-center px-4 pb-2 pt-0">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {`${formatPositionSize(liveCloseAmount, szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
@@ -183,7 +183,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+          <Box className="p-4" onTouchCancel={handleSliderDragCancel}>
             <PerpsSlider
               value={displayClosePercentage}
               onValueChange={handleSliderValueChange}
@@ -195,8 +195,8 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {effectiveOrderType === 'limit' && !isInputFocused && (
-          <Box twClassName="px-4 pb-0">
-            <Box twClassName="bg-background-section rounded-xl overflow-hidden">
+          <Box className="px-4 pb-0">
+            <Box className="overflow-hidden rounded-xl bg-background-section">
               <TouchableOpacity
                 testID={PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW}
                 onPress={() => setIsLimitPriceVisible(true)}
@@ -226,15 +226,15 @@ const PerpsClosePositionView: React.FC = () => {
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}
       {isInputFocused && (
-        <Box twClassName="pt-4">
+        <Box className="pt-4">
           {/* Summary shown above keypad while editing */}
           {Summary}
-          <Box twClassName="flex-row justify-between px-4 mb-3 gap-2">
+          <Box className="mb-3 flex-row justify-between gap-2 px-4">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.25)}
-              twClassName="flex-1"
+              className="flex-1"
             >
               25%
             </Button>
@@ -242,7 +242,7 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.5)}
-              twClassName="flex-1"
+              className="flex-1"
             >
               50%
             </Button>
@@ -250,7 +250,7 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleMaxPress}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -258,13 +258,13 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleDonePress}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('perps.deposit.done_button')}
             </Button>
           </Box>
 
-          <Box twClassName="px-4">
+          <Box className="px-4">
             <Keypad
               value={closeAmountUSDString}
               onChange={handleKeypadChange}
@@ -276,7 +276,7 @@ const PerpsClosePositionView: React.FC = () => {
       )}
 
       {/* Summary + Action Buttons - Always visible (button hidden when keypad active) */}
-      <Box twClassName="w-full pb-4" style={styles.footerWithSummary}>
+      <Box className="w-full pb-4" style={styles.footerWithSummary}>
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (

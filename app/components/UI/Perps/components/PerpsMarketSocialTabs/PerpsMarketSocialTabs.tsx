@@ -121,14 +121,14 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
         testID={PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS}
       />
       {activeTab === 'overview' ? (
-        <Box twClassName="pt-3" onLayout={onOverviewLayout}>
+        <Box className="pt-3" onLayout={onOverviewLayout}>
           {overview}
           {footer}
         </Box>
       ) : null}
       {activeTab === 'top_traders' ? (
         <Box
-          twClassName="pt-2"
+          className="pt-2"
           testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_TAB_CONTENT}
         >
           {isPerpsLeaderboardEnabled ? (

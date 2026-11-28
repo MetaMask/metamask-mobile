@@ -62,12 +62,12 @@ const PerpsSelectionBottomSheet: React.FC<PerpsSelectionBottomSheetProps> = ({
       >
         {title}
       </BottomSheetHeaderGlass>
-      <Box accessible={false} twClassName="px-4 pb-3" gap={4}>
+      <Box accessible={false} className="px-4 pb-3" gap={4}>
         {description ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center"
+            className="text-center"
             testID={PerpsSelectionBottomSheetSelectorsIDs.DESCRIPTION}
           >
             {description}

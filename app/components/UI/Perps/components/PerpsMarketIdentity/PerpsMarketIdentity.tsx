@@ -88,7 +88,7 @@ const PerpsMarketIdentity = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={gap}
-      twClassName={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
+      className={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
     >
       <PerpsTokenLogo
         symbol={symbol}
@@ -96,12 +96,12 @@ const PerpsMarketIdentity = ({
         testID={testIDs?.assetIcon}
         providerId={providerId}
       />
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
+      <Box flexDirection={BoxFlexDirection.Column} className="min-w-0 flex-1">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          twClassName="min-w-0"
+          className="min-w-0"
         >
           <Text
             variant={TextVariant.BodyMd}

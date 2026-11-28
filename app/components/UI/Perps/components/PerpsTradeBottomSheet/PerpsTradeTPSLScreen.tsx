@@ -99,7 +99,7 @@ const RoeSign: React.FC<{ sign: '+' | '-'; testID: string }> = ({
     importantForAccessibility="no-hide-descendants"
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
-    twClassName="h-6 w-6 shrink-0 self-center rounded-full bg-muted"
+    className="size-6 shrink-0 self-center rounded-full bg-muted"
   >
     <Icon
       name={sign === '+' ? IconName.Add : IconName.Minus}
@@ -130,7 +130,7 @@ const ClearButton: React.FC<ClearButtonProps> = ({
     accessibilityLabel={accessibilityLabel}
     accessibilityState={{ disabled: isDisabled }}
     disabled={isDisabled}
-    twClassName={isDisabled ? 'opacity-50' : undefined}
+    className={isDisabled ? 'opacity-50' : undefined}
     testID={testID}
     onPress={onPress}
   >
@@ -596,7 +596,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       : handleStopLossPercentageButton;
 
   return (
-    <Box accessible={false} twClassName="flex-1">
+    <Box accessible={false} className="flex-1">
       <HeaderStandard
         title={strings('perps.tpsl.title')}
         onBack={goBack}
@@ -635,7 +635,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
           />
         </Box>
 
-        <Box accessible={false} twClassName="my-3 h-px bg-muted" />
+        <Box accessible={false} className="my-3 h-px bg-muted" />
 
         <Box accessible={false} paddingHorizontal={4} gap={3}>
           <View ref={takeProfitSectionRef} collapsable={false}>
@@ -645,7 +645,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="min-h-8"
+                className="min-h-8"
               >
                 <Text
                   variant={TextVariant.BodySm}
@@ -668,7 +668,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 gap={2}
               >
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   value={takeProfitPrice}
                   inputRef={(ref) => {
                     inputRefs.current.takeProfitPrice = ref;
@@ -694,7 +694,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                   }}
                 />
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   value={formattedTakeProfitPercentage}
                   inputRef={(ref) => {
                     inputRefs.current.takeProfitPercentage = ref;
@@ -745,7 +745,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-right"
+                  className="text-right"
                 >
                   {formatExpectedPnL(expectedTakeProfitPnL)}
                 </Text>
@@ -760,7 +760,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="min-h-8"
+                className="min-h-8"
               >
                 <Text
                   variant={TextVariant.BodySm}
@@ -783,7 +783,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 gap={2}
               >
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   value={stopLossPrice}
                   inputRef={(ref) => {
                     inputRefs.current.stopLossPrice = ref;
@@ -809,7 +809,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                   }}
                 />
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   value={formattedStopLossPercentage}
                   inputRef={(ref) => {
                     inputRefs.current.stopLossPercentage = ref;
@@ -860,7 +860,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-right"
+                  className="text-right"
                 >
                   {formatExpectedPnL(expectedStopLossPnL)}
                 </Text>
@@ -869,7 +869,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
           </View>
         </Box>
 
-        <Box accessible={false} twClassName="my-3 h-px bg-muted" />
+        <Box accessible={false} className="my-3 h-px bg-muted" />
 
         <Box accessible={false} paddingHorizontal={4} paddingBottom={3}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -879,7 +879,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       </ScrollView>
       <Box
         accessible={false}
-        twClassName="w-full"
+        className="w-full"
         onLayout={handleKeypadFooterLayout}
       >
         <BottomSheetFooter primaryButtonProps={saveButtonProps} />

@@ -61,10 +61,10 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   return (
     <View testID={testID}>
       {isPromotionalDiscount && discountPercentage !== undefined ? (
-        <Box twClassName="mb-3">
+        <Box className="mb-3">
           <BannerBase
             backgroundColor={BoxBackgroundColor.BackgroundMuted}
-            twClassName="gap-2"
+            className="gap-2"
             startAccessory={
               <SealPercentIcon
                 size={SEAL_PERCENT_ICON_SIZE.banner}

@@ -74,7 +74,7 @@ const PerpsSocialFeedSectionInner: React.FC<
         onPress={handleOpenSocial}
         testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER}
       />
-      <Box twClassName="px-4 mt-1 mb-3">
+      <Box className="mb-3 mt-1 px-4">
         <FilterButtonGroup
           value={tab}
           onChange={(value) => setSelectedTab(value as SocialFeedTab)}
@@ -84,7 +84,7 @@ const PerpsSocialFeedSectionInner: React.FC<
             <FilterButton
               value="live_trades"
               startIconName={IconName.Fire}
-              twClassName={tab !== 'live_trades' ? 'bg-muted' : undefined}
+              className={tab !== 'live_trades' ? 'bg-muted' : undefined}
               testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL}
             >
               {strings('perps.home.live_trades')}
@@ -93,7 +93,7 @@ const PerpsSocialFeedSectionInner: React.FC<
           <FilterButton
             value="trending"
             startIconName={IconName.Trophy}
-            twClassName={tab !== 'trending' ? 'bg-muted' : undefined}
+            className={tab !== 'trending' ? 'bg-muted' : undefined}
             testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL}
           >
             {strings('perps.home.trending')}
@@ -101,7 +101,7 @@ const PerpsSocialFeedSectionInner: React.FC<
           <FilterButton
             value="top_traders"
             startIconName={IconName.People}
-            twClassName={tab !== 'top_traders' ? 'bg-muted' : undefined}
+            className={tab !== 'top_traders' ? 'bg-muted' : undefined}
             testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL}
           >
             {strings('perps.home.top_traders')}
@@ -119,7 +119,7 @@ const PerpsSocialFeedSectionInner: React.FC<
             location="perps_home"
             limit={TOP_TRADERS_LIMIT}
           />
-          <Box twClassName="px-4 pt-3">
+          <Box className="px-4 pt-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}

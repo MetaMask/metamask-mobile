@@ -3606,7 +3606,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* OI Cap Warning - Shows when market is at capacity */}
       {!isInputFocused && isAtOICap && (
-        <Box twClassName="px-4 mb-4">
+        <Box className="mb-4 px-4">
           <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
         </Box>
       )}
@@ -3622,7 +3622,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             notionalUsd={orderForm.amount}
             twClassName="mb-3"
           />
-          <Box twClassName="-mx-4 mb-3 border-t border-muted" />
+          <Box className="-mx-4 mb-3 border-t border-muted" />
 
           {footerErrors.length > 0 &&
             !isLoadingMarketData &&

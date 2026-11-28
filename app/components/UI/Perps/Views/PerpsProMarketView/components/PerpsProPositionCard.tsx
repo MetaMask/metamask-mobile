@@ -112,7 +112,7 @@ const KeyValueItem = ({
           color={isHidden ? TextColor.TextDefault : valueColor}
           isHidden={isHidden}
           length={SensitiveTextLength.Short}
-          twClassName="shrink"
+          className="shrink"
         >
           {value}
         </SensitiveText>
@@ -125,7 +125,7 @@ const KeyValueItem = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        className="gap-1"
       >
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {label}
@@ -143,7 +143,7 @@ const KeyValueItem = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            className="gap-1"
             testID={valueTestID}
           >
             {valueContent}
@@ -153,7 +153,7 @@ const KeyValueItem = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          className="gap-1"
           testID={valueTestID}
         >
           {valueContent}
@@ -262,7 +262,7 @@ const PerpsProPositionCard = ({
       accessible={false}
       testID={testID ?? PerpsProMarketViewSelectorsIDs.POSITION_ROW}
     >
-      <Box twClassName="gap-3 py-3">
+      <Box className="gap-3 py-3">
         {/* Header: asset, direction, size, unrealized PnL */}
         <Pressable
           onPress={handlePress}
@@ -280,19 +280,19 @@ const PerpsProPositionCard = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-4 px-4 py-2"
+            className="gap-4 px-4 py-2"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 gap-4"
+              className="flex-1 gap-4"
             >
               <PerpsTokenLogo symbol={position.symbol} size={40} />
-              <Box twClassName="flex-1">
+              <Box className="flex-1">
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
+                  className="gap-1"
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -314,7 +314,7 @@ const PerpsProPositionCard = ({
                 </SensitiveText>
               </Box>
             </Box>
-            <Box twClassName="items-end gap-0">
+            <Box className="items-end gap-0">
               <SensitiveText
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -338,13 +338,13 @@ const PerpsProPositionCard = ({
         </Pressable>
 
         {/* Summary: key figures in two columns so translated labels can wrap */}
-        <Box twClassName="px-4">
+        <Box className="px-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
+            className="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box twClassName="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.entry_price')}
                 value={entryPriceDisplay}
@@ -390,7 +390,7 @@ const PerpsProPositionCard = ({
                 }
               />
             </Box>
-            <Box twClassName="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
@@ -450,14 +450,14 @@ const PerpsProPositionCard = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 px-4"
+          className="gap-2 px-4"
         >
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
             startIconName={IconName.Close}
-            twClassName="flex-1"
+            className="flex-1"
             onPress={() => onClose?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_CLOSE}
           >
@@ -467,7 +467,7 @@ const PerpsProPositionCard = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             startIconName={IconName.Refresh}
-            twClassName="flex-1"
+            className="flex-1"
             onPress={() => onReverse?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
           >
@@ -477,7 +477,7 @@ const PerpsProPositionCard = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             startIconName={IconName.Share}
-            twClassName="flex-1"
+            className="flex-1"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
           >

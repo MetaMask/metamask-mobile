@@ -114,7 +114,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full"
+      className="w-full"
     >
       <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
         {title}

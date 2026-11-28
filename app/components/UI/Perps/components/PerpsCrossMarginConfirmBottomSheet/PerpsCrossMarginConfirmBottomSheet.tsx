@@ -151,15 +151,15 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
       >
         {strings('perps.cross_margin_confirm.title')}
       </BottomSheetHeaderGlass>
-      <Box twClassName="px-4 pb-3 gap-4" accessible={false}>
+      <Box className="gap-4 px-4 pb-3" accessible={false}>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
-          twClassName="text-center"
+          className="text-center"
         >
           {strings('perps.cross_margin_confirm.description')}
         </Text>
-        <Box twClassName="gap-2" accessible={false}>
+        <Box className="gap-2" accessible={false}>
           {ACKNOWLEDGEMENT_ITEMS.map(({ key, testID, title, description }) => (
             <ListItemMultiSelect
               key={key}
@@ -172,7 +172,7 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
               accessibilityRole="checkbox"
               accessibilityState={{ checked: acknowledged[key] }}
               accessoryGap={4}
-              twClassName={`bg-muted rounded-2xl py-4 border ${
+              className={`rounded-2xl border bg-muted py-4 ${
                 acknowledged[key] ? 'border-default' : 'border-transparent'
               }`}
             />

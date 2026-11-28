@@ -35,17 +35,13 @@ const PerpsValidationErrors: React.FC<PerpsValidationErrorsProps> = ({
   alignment = 'center',
   testID,
 }) => (
-  <Box
-    twClassName={twClassName}
-    testID={testID}
-    accessibilityLiveRegion="polite"
-  >
+  <Box className={twClassName} testID={testID} accessibilityLiveRegion="polite">
     {errors.map((error) => (
       <HelpText
         key={error}
         severity={HelpTextSeverity.Danger}
         accessibilityRole="alert"
-        twClassName={
+        className={
           alignment === 'center'
             ? 'w-full justify-center text-center'
             : 'w-full'

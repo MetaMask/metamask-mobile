@@ -163,7 +163,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
   onInfoPress,
 }) => (
   <Box
-    twClassName="mx-4 mb-3 rounded-xl bg-muted p-4"
+    className="mx-4 mb-3 rounded-xl bg-muted p-4"
     gap={3}
     testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_SUMMARY}
   >

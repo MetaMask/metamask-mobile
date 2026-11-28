@@ -229,7 +229,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         {strings('perps.order.limit_price_modal.title')}
       </BottomSheetHeaderGlass>
 
-      <Box twClassName="gap-2 px-4">
+      <Box className="gap-2 px-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.order.limit_price')}
         </Text>
@@ -265,7 +265,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           </Text>
         )}
 
-        <Box twClassName="mb-4 flex-row gap-2">
+        <Box className="mb-4 flex-row gap-2">
           {presets.map((preset) => (
             <Button
               key={preset.label}
@@ -281,7 +281,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         </Box>
       </Box>
 
-      <Box twClassName="mb-4 px-4">
+      <Box className="mb-4 px-4">
         <Keypad
           value={limitPrice}
           // This is intentionaly not a real currecy

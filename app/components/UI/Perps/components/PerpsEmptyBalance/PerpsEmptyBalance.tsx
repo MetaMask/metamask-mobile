@@ -25,7 +25,7 @@ const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="px-4 -mt-2">
+    <Box className="-mt-2 px-4">
       <Text
         variant={TextVariant.AmountDisplayLg}
         fontFamily={FontFamily.Hero}

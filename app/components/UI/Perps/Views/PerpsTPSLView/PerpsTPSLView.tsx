@@ -219,14 +219,14 @@ const SectionHelpText: React.FC<{
       <HelpText
         severity={HelpTextSeverity.Danger}
         showIcon
-        twClassName="opacity-0"
+        className="opacity-0"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
         {errorMessage ?? '\u00A0'}
       </HelpText>
       {errorMessage ? (
-        <Box twClassName="absolute inset-x-0 top-0">
+        <Box className="absolute inset-x-0 top-0">
           <HelpText
             severity={HelpTextSeverity.Danger}
             showIcon
@@ -236,7 +236,7 @@ const SectionHelpText: React.FC<{
           </HelpText>
         </Box>
       ) : expectedMessage ? (
-        <Box twClassName="absolute inset-x-0 top-0">
+        <Box className="absolute inset-x-0 top-0">
           <HelpText>{expectedMessage}</HelpText>
         </Box>
       ) : null}
@@ -1110,7 +1110,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   );
 
   const keypad = (
-    <Box twClassName="px-4 pt-2 bg-default">
+    <Box className="bg-default px-4 pt-2">
       <Keypad
         value={(() => {
           if (focusedInput === 'takeProfitPrice') return takeProfitPrice;
@@ -1136,7 +1136,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     footerContent = (
       <>
         {reviewFooter}
-        <Box twClassName="flex-row gap-2 px-4 pt-3">
+        <Box className="flex-row gap-2 px-4 pt-3">
           {keypadPresets.map((preset) => (
             <Button
               key={preset.key}
@@ -1189,10 +1189,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Box
-          twClassName={isSheet ? undefined : 'flex-1'}
-          testID="scroll-content"
-        >
+        <Box className={isSheet ? undefined : 'flex-1'} testID="scroll-content">
           {isPositionReviewUnavailable && (
             <HelpText
               severity={HelpTextSeverity.Warning}
@@ -1203,7 +1200,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
             </HelpText>
           )}
           {/* Current price and liquidation price info */}
-          <Box twClassName={isSheet ? undefined : 'mb-6 gap-2'}>
+          <Box className={isSheet ? undefined : 'mb-6 gap-2'}>
             {position && (
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
@@ -1270,16 +1267,16 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
           {/* Spacing lives on the divider so it sits equidistant from the
               rows either side of it. */}
-          {isSheet ? <SectionDivider twClassName="my-4" /> : null}
+          {isSheet ? <SectionDivider className="my-4" /> : null}
 
           {/* Take Profit Section */}
           <View ref={takeProfitSectionRef} collapsable={false}>
-            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
+            <Box className={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="mb-2 -mr-3 min-h-8"
+                className="-mr-3 mb-2 min-h-8"
               >
                 <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
@@ -1303,7 +1300,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               {isSheet ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="mb-3 gap-2"
+                  className="mb-3 gap-2"
                 >
                   {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
                     <Button
@@ -1323,12 +1320,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 </Box>
               )}
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="mb-2 gap-2"
-              >
+              <Box flexDirection={BoxFlexDirection.Row} className="mb-2 gap-2">
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={takeProfitPriceRef}
                   isError={takeProfitHasError}
                   value={takeProfitPrice}
@@ -1357,7 +1351,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   }}
                 />
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={takeProfitPercentageRef}
                   isError={takeProfitHasError}
                   value={formattedTakeProfitPercentage}
@@ -1421,12 +1415,12 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
           {/* Stop Loss Section */}
           <View ref={stopLossSectionRef} collapsable={false}>
-            <Box twClassName={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
+            <Box className={isSheet ? 'mb-2 px-4' : 'mb-6 px-4'}>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
-                twClassName="mb-2 -mr-3 min-h-8"
+                className="-mr-3 mb-2 min-h-8"
               >
                 <Label {...sectionLabelProps}>
                   {actualDirection === 'short'
@@ -1450,7 +1444,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
               {isSheet ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
-                  twClassName="mb-3 gap-2"
+                  className="mb-3 gap-2"
                 >
                   {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
                     <Button
@@ -1470,12 +1464,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                 </Box>
               )}
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="mb-2 gap-2"
-              >
+              <Box flexDirection={BoxFlexDirection.Row} className="mb-2 gap-2">
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={stopLossPriceRef}
                   isError={stopLossHasError}
                   value={stopLossPrice}
@@ -1504,7 +1495,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
                   }}
                 />
                 <TextField
-                  twClassName="flex-1"
+                  className="flex-1"
                   inputRef={stopLossPercentageRef}
                   isError={stopLossHasError}
                   value={formattedStopLossPercentage}
@@ -1566,7 +1557,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         </Box>
       </ScrollView>
 
-      <Box twClassName="px-0 pb-4 w-full" onLayout={handleKeypadFooterLayout}>
+      <Box className="w-full px-0 pb-4" onLayout={handleKeypadFooterLayout}>
         {footerContent}
       </Box>
     </>

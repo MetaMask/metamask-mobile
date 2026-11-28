@@ -76,7 +76,7 @@ const ModeCard = ({
       // the shorter card grow with it. `min-w-0` lets flex children shrink so
       // descriptions wrap instead of overflowing the 2-column row. `justify-start`
       // keeps copy top-aligned when a card is stretched to match its neighbor.
-      twClassName={(pressed) =>
+      className={(pressed) =>
         // Dropping `h-auto` falls back to ButtonBase's `height: 48`; dropping
         // `self-stretch` falls back to its `alignSelf: flex-start`.
         `h-auto min-w-0 flex-1 self-stretch items-stretch justify-start rounded-xl border p-4 ${
@@ -87,7 +87,7 @@ const ModeCard = ({
         twClassName: 'min-w-0 w-full flex-1 items-stretch justify-start',
       }}
     >
-      <Box twClassName="min-w-0 w-full">
+      <Box className="w-full min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
@@ -96,9 +96,7 @@ const ModeCard = ({
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
-            twClassName={`size-14 rounded-full ${
-              isLite ? 'bg-error-muted' : ''
-            }`}
+            className={`size-14 rounded-full ${isLite ? 'bg-error-muted' : ''}`}
             style={isLite ? undefined : proIconTileStyle}
             testID={
               isLite
@@ -131,7 +129,7 @@ const ModeCard = ({
             <Box
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
-              twClassName="size-5 rounded-full bg-icon-default"
+              className="size-5 rounded-full bg-icon-default"
               testID={
                 PerpsModeSelectionBottomSheetSelectorsIDs.SELECTED_INDICATOR
               }
@@ -148,14 +146,14 @@ const ModeCard = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
-          twClassName="mt-4 w-full"
+          className="mt-4 w-full"
         >
           {title}
         </Text>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="w-full"
+          className="w-full"
         >
           {description}
         </Text>

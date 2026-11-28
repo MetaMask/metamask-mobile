@@ -656,7 +656,7 @@ const PerpsProMarketView = ({
     return (
       <View style={styles.container}>
         <Box
-          twClassName="flex-1 items-center justify-center px-4"
+          className="flex-1 items-center justify-center px-4"
           testID={PerpsProMarketViewSelectorsIDs.ERROR}
         >
           <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
@@ -685,14 +685,14 @@ const PerpsProMarketView = ({
           its title row once the content is scrolled. Outer flag guard avoids
           mounting the padded wrapper (and banner hooks) when disabled. */}
       {isServiceInterruptionBannerEnabled && (
-        <Box twClassName="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
+        <Box className="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
           <PerpsServiceInterruptionBanner
             scrollY={scrollY}
             testID={PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
         </Box>
       )}
-      <Box twClassName="flex-1">
+      <Box className="flex-1">
         <PerpsMarketHeader
           market={{ ...market, symbol: market.symbol }}
           testIDs={createProMarketHeaderTestIDs()}

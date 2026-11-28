@@ -262,9 +262,9 @@ const PerpsServiceInterruptionBanner: React.FC<
         alignItems={BoxAlignItems.Start}
         gap={3}
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        twClassName="rounded-xl pl-4 pr-2 pt-2 pb-3"
+        className="rounded-xl pb-3 pl-4 pr-2 pt-2"
       >
-        <Box twClassName="pt-1">
+        <Box className="pt-1">
           <Icon
             name={IconName.Danger}
             size={IconSize.Sm}
@@ -272,7 +272,7 @@ const PerpsServiceInterruptionBanner: React.FC<
             testID={`${testID}-icon`}
           />
         </Box>
-        <Box twClassName="flex-1 pt-1">
+        <Box className="flex-1 pt-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -301,7 +301,7 @@ const PerpsServiceInterruptionBanner: React.FC<
                     key={`${segment.link}-${index}`}
                     variant={TextVariant.BodyXs}
                     color={TextColor.TextAlternative}
-                    twClassName="underline"
+                    className="underline"
                     onPress={
                       segment.link === 'faq'
                         ? handleFaqPress

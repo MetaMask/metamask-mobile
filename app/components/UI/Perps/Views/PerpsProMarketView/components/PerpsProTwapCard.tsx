@@ -150,7 +150,7 @@ const PerpsProTwapCard = ({
       accessible={false}
       testID={getPerpsProTwapRowSelector(providerId, twapOrder.orderId)}
     >
-      <Box twClassName="gap-3 py-3">
+      <Box className="gap-3 py-3">
         <Pressable
           onPress={handlePress}
           disabled={!handlePress}
@@ -176,19 +176,19 @@ const PerpsProTwapCard = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-4 px-2 py-2"
+            className="gap-4 p-2"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-1 gap-4"
+              className="flex-1 gap-4"
             >
               <PerpsTokenLogo symbol={twapOrder.symbol} size={40} />
               <Box>
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
+                  className="gap-1"
                 >
                   <Box testID={getPerpsProTwapMarketSelector(displaySymbol)}>
                     <Text
@@ -245,13 +245,13 @@ const PerpsProTwapCard = ({
           </Box>
         </Pressable>
 
-        <Box twClassName="px-2">
+        <Box className="px-2">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
+            className="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box twClassName="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings(
                   'perps.pro_positions_panel.twap_card.total_size',
@@ -283,7 +283,7 @@ const PerpsProTwapCard = ({
                 )}
               />
             </Box>
-            <Box twClassName="flex-1 min-w-0 gap-3">
+            <Box className="min-w-0 flex-1 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.twap_card.progress')}
                 value={formatTwapProgressPercent(twapOrder.fillProgressBps)}
@@ -329,7 +329,7 @@ const PerpsProTwapCard = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 px-2"
+            className="gap-2 px-2"
           >
             <Button
               variant={ButtonVariant.Secondary}
@@ -340,7 +340,7 @@ const PerpsProTwapCard = ({
                 fontWeight: FontWeight.Medium,
               }}
               startIconName={IconName.Close}
-              twClassName="flex-1"
+              className="flex-1"
               onPress={() => onTerminate(twapOrder)}
               isDisabled={isTerminateDisabled}
               testID={getPerpsProTwapTerminateSelector(

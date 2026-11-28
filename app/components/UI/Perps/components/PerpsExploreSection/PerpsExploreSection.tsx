@@ -343,7 +343,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
   }
 
   return (
-    <Box testID={TEST_ID} twClassName="pb-4">
+    <Box testID={TEST_ID} className="pb-4">
       <SectionHeader
         title={strings('perps.home.explore')}
         isInteractive={activeTab !== null}
@@ -392,7 +392,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
               testID={`${TEST_ID}-list`}
             />
           )}
-          <Box accessible={false} twClassName="px-4 pt-3">
+          <Box accessible={false} className="px-4 pt-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}

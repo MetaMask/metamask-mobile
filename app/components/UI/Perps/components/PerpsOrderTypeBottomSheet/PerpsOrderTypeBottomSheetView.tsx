@@ -204,7 +204,7 @@ const OrderTypeStartAccessory = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-10 w-10"
+      className="size-10"
       testID={`${testID}-icon`}
       accessibilityLabel={`${testID}-icon-${themeAppearance}`}
     >
@@ -333,7 +333,7 @@ const PerpsOrderTypeBottomSheetView = ({
       showSelectedIcon={false}
       onPress={() => handleSelect(orderType.type)}
       testID={orderType.testID}
-      twClassName="min-h-[78px] py-4"
+      className="min-h-[78px] py-4"
     />
   );
 

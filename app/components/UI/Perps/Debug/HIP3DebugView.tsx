@@ -477,13 +477,13 @@ const HIP3DebugView: React.FC = () => {
 
   if (!__DEV__) {
     return (
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandard
           title="Debug Tools"
           onBack={handleBack}
           includesTopInset
         />
-        <Box twClassName="px-4 py-4" style={{ paddingBottom: insets.bottom }}>
+        <Box className="p-4" style={{ paddingBottom: insets.bottom }}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             Only available in development builds
           </Text>
@@ -494,13 +494,13 @@ const HIP3DebugView: React.FC = () => {
 
   if (!provider) {
     return (
-      <Box twClassName="flex-1 bg-default">
+      <Box className="flex-1 bg-default">
         <HeaderStandard
           title="HIP-3 Debug Tools"
           onBack={handleBack}
           includesTopInset
         />
-        <Box twClassName="px-4 py-4" style={{ paddingBottom: insets.bottom }}>
+        <Box className="p-4" style={{ paddingBottom: insets.bottom }}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             Provider not initialized
           </Text>
@@ -510,7 +510,7 @@ const HIP3DebugView: React.FC = () => {
   }
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <Box className="flex-1 bg-default">
       <HeaderStandard
         title="HIP-3 Debug Tools"
         onBack={handleBack}
@@ -531,12 +531,12 @@ const HIP3DebugView: React.FC = () => {
           </SectionHeader>
 
           {loadingDexs && (
-            <Box twClassName="px-4">
+            <Box className="px-4">
               <Spinner />
             </Box>
           )}
           {!loadingDexs && availableDexs.length === 0 && (
-            <Box twClassName="px-4">
+            <Box className="px-4">
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
@@ -577,12 +577,12 @@ const HIP3DebugView: React.FC = () => {
               </SectionHeader>
 
               {loadingMarkets && (
-                <Box twClassName="px-4">
+                <Box className="px-4">
                   <Spinner />
                 </Box>
               )}
               {!loadingMarkets && markets.length === 0 && (
-                <Box twClassName="px-4">
+                <Box className="px-4">
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
@@ -623,7 +623,7 @@ const HIP3DebugView: React.FC = () => {
             </Text>
           </SectionHeader>
 
-          <Box twClassName="px-4 gap-2">
+          <Box className="gap-2 px-4">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -634,7 +634,7 @@ const HIP3DebugView: React.FC = () => {
             </Button>
 
             {balanceInfo && (
-              <Box twClassName="p-3 rounded-lg bg-success-muted gap-1">
+              <Box className="gap-1 rounded-lg bg-success-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
@@ -670,7 +670,7 @@ const HIP3DebugView: React.FC = () => {
 
                 {balanceInfo.subAccountBreakdown &&
                   Object.keys(balanceInfo.subAccountBreakdown).length > 0 && (
-                    <Box twClassName="mt-2 pt-2 border-t border-success-default gap-1">
+                    <Box className="mt-2 gap-1 border-t border-success-default pt-2">
                       <Text
                         variant={TextVariant.BodySm}
                         fontWeight={FontWeight.Medium}
@@ -680,7 +680,7 @@ const HIP3DebugView: React.FC = () => {
                       </Text>
                       {Object.entries(balanceInfo.subAccountBreakdown).map(
                         ([subAccount, breakdown]) => (
-                          <Box key={subAccount} twClassName="pl-2 gap-0.5">
+                          <Box key={subAccount} className="gap-0.5 pl-2">
                             <Text
                               variant={TextVariant.BodySm}
                               color={TextColor.SuccessDefault}
@@ -714,7 +714,7 @@ const HIP3DebugView: React.FC = () => {
         <Box paddingBottom={3}>
           <SectionHeader title="Manual Transfer Testing" />
 
-          <Box twClassName="px-4 gap-2">
+          <Box className="gap-2 px-4">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -738,7 +738,7 @@ const HIP3DebugView: React.FC = () => {
             {transferResult.status === 'loading' && <Spinner />}
 
             {transferResult.status === 'error' && (
-              <Box twClassName="p-3 rounded-lg bg-error-muted">
+              <Box className="rounded-lg bg-error-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
@@ -749,7 +749,7 @@ const HIP3DebugView: React.FC = () => {
             )}
 
             {transferResult.status === 'success' && (
-              <Box twClassName="p-3 rounded-lg bg-success-muted">
+              <Box className="rounded-lg bg-success-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.SuccessDefault}
@@ -766,7 +766,7 @@ const HIP3DebugView: React.FC = () => {
         <Box paddingBottom={3}>
           <SectionHeader title="Auto-Transfer Testing" />
 
-          <Box twClassName="px-4 gap-2">
+          <Box className="gap-2 px-4">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
@@ -779,7 +779,7 @@ const HIP3DebugView: React.FC = () => {
             {orderResult.status === 'loading' && <Spinner />}
 
             {orderResult.status === 'error' && (
-              <Box twClassName="p-3 rounded-lg bg-error-muted">
+              <Box className="rounded-lg bg-error-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
@@ -790,7 +790,7 @@ const HIP3DebugView: React.FC = () => {
             )}
 
             {orderResult.status === 'success' && (
-              <Box twClassName="p-3 rounded-lg bg-success-muted">
+              <Box className="rounded-lg bg-success-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.SuccessDefault}
@@ -812,7 +812,7 @@ const HIP3DebugView: React.FC = () => {
             {closeResult.status === 'loading' && <Spinner />}
 
             {closeResult.status === 'error' && (
-              <Box twClassName="p-3 rounded-lg bg-error-muted">
+              <Box className="rounded-lg bg-error-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
@@ -823,7 +823,7 @@ const HIP3DebugView: React.FC = () => {
             )}
 
             {closeResult.status === 'success' && (
-              <Box twClassName="p-3 rounded-lg bg-success-muted">
+              <Box className="rounded-lg bg-success-muted p-3">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.SuccessDefault}
@@ -837,7 +837,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Debug Info */}
         <SectionDivider />
-        <Box twClassName="px-4 pb-4">
+        <Box className="px-4 pb-4">
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             Check DevLogger console for detailed logs
           </Text>

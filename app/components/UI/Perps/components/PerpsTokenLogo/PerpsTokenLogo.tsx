@@ -140,9 +140,9 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   // background ring, overlapping the bottom-right corner. It names the
   // exchange the trade goes to.
   return (
-    <Box twClassName="relative" testID={testID ? `${testID}-venue` : undefined}>
+    <Box className="relative" testID={testID ? `${testID}-venue` : undefined}>
       {avatar}
-      <Box twClassName="absolute -bottom-1 -right-1">
+      <Box className="absolute -bottom-1 -right-1">
         <BadgeNetwork
           src={VENUE_DISPLAY[providerId].logo}
           name={PROVIDER_DISPLAY_INFO[providerId].name}

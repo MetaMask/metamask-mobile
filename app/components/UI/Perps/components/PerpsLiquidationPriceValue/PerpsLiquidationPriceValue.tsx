@@ -50,7 +50,7 @@ const PerpsLiquidationPriceValue = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={isCross ? 'shrink' : undefined}
+      className={isCross ? 'shrink' : undefined}
       accessible={false}
     >
       <SensitiveText
@@ -60,7 +60,7 @@ const PerpsLiquidationPriceValue = ({
         isHidden={privacyMode}
         length={SensitiveTextLength.Short}
         testID={priceTestID}
-        twClassName={isCross ? 'shrink text-right' : undefined}
+        className={isCross ? 'shrink text-right' : undefined}
       >
         {priceDisplay}
       </SensitiveText>

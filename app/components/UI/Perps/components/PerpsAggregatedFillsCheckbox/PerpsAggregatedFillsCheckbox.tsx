@@ -34,7 +34,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
     size={ButtonBaseSize.Md}
     startAccessory={
       <Box
-        twClassName={`size-4 shrink-0 items-center justify-center rounded border ${
+        className={`size-4 shrink-0 items-center justify-center rounded border ${
           isSelected ? 'border-icon-default bg-icon-default' : 'border-default'
         }`}
       >
@@ -49,7 +49,7 @@ const PerpsAggregatedFillsCheckbox: React.FC<
       </Box>
     }
     contentWrapperProps={{ style: { gap: 6 } }}
-    twClassName={isGlass ? 'pl-4 bg-transparent' : 'pl-4'}
+    className={isGlass ? 'bg-transparent pl-4' : 'pl-4'}
     role="checkbox"
     accessibilityState={{ checked: isSelected }}
     onPress={() => onChange(!isSelected)}

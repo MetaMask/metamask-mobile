@@ -355,7 +355,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   if ((!routePosition && !position) || !mode) {
     return (
       <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 items-center justify-center p-6">
+        <Box className="flex-1 items-center justify-center p-6">
           <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.errors.position_not_found')}
           </Text>
@@ -382,7 +382,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     testID: string,
   ) =>
     showTransition ? (
-      <Box twClassName="flex-row items-center gap-2">
+      <Box className="flex-row items-center gap-2">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {currentDisplay}
         </Text>
@@ -403,7 +403,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     );
 
   const Summary = (
-    <Box twClassName="pt-4 pb-4 gap-1">
+    <Box className="gap-1 py-4">
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
         keyLabel={strings('perps.adjust_margin.margin_in_position')}
@@ -490,7 +490,7 @@ const PerpsAdjustMarginView: React.FC = () => {
         />
 
         {!isInputFocused && (
-          <Box twClassName="px-4 py-4">
+          <Box className="p-4">
             <PerpsSlider
               value={sliderPercentage}
               onValueChange={handleSliderChange}
@@ -504,7 +504,7 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {hasNoRemovableMargin && (
           <HelpText
-            twClassName="px-4 justify-center text-center"
+            className="justify-center px-4 text-center"
             testID={PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN}
           >
             {strings('perps.adjust_margin.no_removable_margin')}
@@ -513,14 +513,14 @@ const PerpsAdjustMarginView: React.FC = () => {
       </ScrollView>
 
       {isInputFocused && (
-        <Box twClassName="pt-4">
+        <Box className="pt-4">
           {Summary}
-          <Box twClassName="flex-row justify-between px-4 mb-3 gap-2">
+          <Box className="mb-3 flex-row justify-between gap-2 px-4">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.25)}
-              twClassName="flex-1"
+              className="flex-1"
             >
               25%
             </Button>
@@ -528,7 +528,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.5)}
-              twClassName="flex-1"
+              className="flex-1"
             >
               50%
             </Button>
@@ -536,7 +536,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleMaxPress}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -545,13 +545,13 @@ const PerpsAdjustMarginView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleDonePress}
-              twClassName="flex-1"
+              className="flex-1"
             >
               {strings('perps.deposit.done_button')}
             </Button>
           </Box>
 
-          <Box twClassName="px-4">
+          <Box className="px-4">
             <Keypad
               value={marginAmountString}
               onChange={handleKeypadChange}
@@ -562,14 +562,14 @@ const PerpsAdjustMarginView: React.FC = () => {
         </Box>
       )}
 
-      <Box twClassName="w-full pb-4">
+      <Box className="w-full pb-4">
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <Box twClassName="px-4 pt-2">
+          <Box className="px-4 pt-2">
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              twClassName="w-full"
+              className="w-full"
               onPress={handleConfirm}
               isDisabled={isConfirmDisabled}
               isLoading={isAdjusting}

@@ -52,7 +52,7 @@ const StatItem: React.FC<StatItemProps> = ({
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="gap-2"
+    className="gap-2"
     testID={testID}
   >
     <Text
@@ -205,7 +205,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.oraclePrice);
 
   return (
-    <Box testID={testID} twClassName="border-b border-border-muted">
+    <Box testID={testID} className="border-b border-border-muted">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -217,7 +217,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-2 gap-4"
+          className="gap-4 px-4 py-2"
         >
           <StatItem
             label={strings('perps.market.funding')}

@@ -459,7 +459,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const fadeMask = (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="flex-1"
+      className="flex-1"
       accessible={false}
     >
       <LinearGradient
@@ -468,7 +468,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         end={{ x: 1, y: 0 }}
         style={tw.style(`w-[${LEVERAGE_PICKER_FADE_WIDTH}px]`)}
       />
-      <Box twClassName="flex-1 bg-black" />
+      <Box className="flex-1 bg-black" />
       <LinearGradient
         colors={['black', 'transparent']}
         start={{ x: 0, y: 0 }}
@@ -582,7 +582,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-center px-4 py-4"
+            className="p-4 text-center"
           >
             {strings('perps.order.leverage_modal.price_unavailable')}
           </Text>
@@ -593,7 +593,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         <Box
           paddingTop={3}
           paddingBottom={6}
-          twClassName={`h-[${LEVERAGE_PICKER_CONTAINER_HEIGHT}px]`}
+          style={{ height: LEVERAGE_PICKER_CONTAINER_HEIGHT }}
           accessible={false}
         >
           <MaskedView
@@ -671,11 +671,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <>
             {/* SectionDivider defaults to 20px vertical margin; drop the bottom
                 one so the explainer sits 16px below the rule. */}
-            <SectionDivider twClassName="mb-0" />
+            <SectionDivider className="mb-0" />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="px-4 pt-4 pb-3"
+              className="px-4 pb-3 pt-4"
               testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
             >
               {strings('perps.order.leverage_modal.description')}
