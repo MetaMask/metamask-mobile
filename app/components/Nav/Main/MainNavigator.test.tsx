@@ -1044,6 +1044,7 @@ describe('MainNavigator', () => {
       expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
       expect(groupedScreenNames(group)).toEqual([
         Routes.MONEY.ROOT,
+        Routes.MONEY.ACTIVITY,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
         Routes.MONEY.EARNINGS,
