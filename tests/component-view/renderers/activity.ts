@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import renderWithProvider, {
   type DeepPartial,
@@ -87,6 +88,11 @@ interface RenderActivityListViewOptions {
   state?: DeepPartial<RootState>;
 }
 
+interface RenderActivityListViewWithTabBarHeightOptions
+  extends RenderActivityListViewOptions {
+  tabBarHeight: number;
+}
+
 interface RenderActivityListViewWithRoutesOptions
   extends RenderActivityListViewOptions {
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
@@ -113,6 +119,20 @@ function ActivityListWithProviders() {
     null,
     React.createElement(ActivityList),
   );
+}
+
+function buildActivityListWithProvidersAndTabBarHeight(tabBarHeight: number) {
+  return function ActivityListWithProvidersAndTabBarHeight() {
+    return React.createElement(
+      BottomTabBarHeightContext.Provider,
+      { value: tabBarHeight },
+      React.createElement(
+        HardwareWalletProvider,
+        null,
+        React.createElement(ActivityList),
+      ),
+    );
+  };
 }
 
 function ActivityDetailsWithProviders() {
@@ -239,6 +259,21 @@ export function renderActivityListView(
 
   return renderComponentViewScreen(
     ActivityListWithProviders,
+    { name: Routes.TRANSACTIONS_VIEW },
+    { state },
+  );
+}
+
+export function renderActivityListViewWithTabBarHeight(
+  options: RenderActivityListViewWithTabBarHeightOptions,
+): ReturnType<typeof renderComponentViewScreen> {
+  const state = buildActivityState(options);
+  const Component = buildActivityListWithProvidersAndTabBarHeight(
+    options.tabBarHeight,
+  );
+
+  return renderComponentViewScreen(
+    Component,
     { name: Routes.TRANSACTIONS_VIEW },
     { state },
   );

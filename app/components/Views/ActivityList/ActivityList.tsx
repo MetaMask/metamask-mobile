@@ -958,7 +958,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const listContentStyle = useMemo(
       () => ({
         paddingTop: contentTopInset,
-        paddingBottom: floatingTabBarInset || (tabBarHeight ? 0 : bottomInset),
+        paddingBottom: floatingTabBarInset || tabBarHeight || bottomInset,
       }),
       [contentTopInset, floatingTabBarInset, tabBarHeight, bottomInset],
     );

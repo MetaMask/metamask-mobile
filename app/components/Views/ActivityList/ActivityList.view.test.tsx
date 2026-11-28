@@ -21,6 +21,7 @@ import {
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import {
   renderActivityListView,
+  renderActivityListViewWithTabBarHeight,
   renderActivityListViewWithRoutes,
 } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
@@ -105,6 +106,26 @@ describeForPlatforms('ActivityList', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.ACTIVITY_DETAILS)),
     ).toBeOnTheScreen();
+  });
+
+  it('applies bottom tab bar height as list padding', async () => {
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId, queryByTestId } =
+      renderActivityListViewWithTabBarHeight({ state, tabBarHeight: 50 });
+
+    await waitFor(
+      () => {
+        expect(
+          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+        ).toBeNull();
+      },
+      { timeout: ACTIVITY_LOAD_TIMEOUT_MS },
+    );
+
+    const list = await findByTestId(ActivityListSelectorsIDs.CONTAINER);
+    expect(list.props.contentContainerStyle).toEqual(
+      expect.objectContaining({ paddingBottom: 50 }),
+    );
   });
 });
 
